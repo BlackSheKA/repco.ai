@@ -58,7 +58,7 @@ Exceptions: 44px minimum touch target for mobile interactive elements (auth butt
 Notes:
 - Instrument Serif is a display typeface -- only use it for headings and the brand name. Never for body text or labels.
 - JetBrains Mono is reserved for the terminal header (Phase 2+), code snippets, and technical identifiers.
-- Inter at weight 500 is used for labels, nav items, and button text. Weight 600 (semibold) is used only for emphasis within body text.
+- Inter at weight 500 is used for labels, nav items, and button text. For emphasis within body text, use italic style rather than a heavier weight.
 
 ---
 
@@ -82,6 +82,8 @@ Accent reserved for: primary CTA button on login page, active sidebar nav indica
 ### Screen 1: Login Page (`/login`)
 
 **Layout:** Split horizontal -- 50/50 on desktop (min-width 1024px), full-width stacked on mobile.
+
+**Focal point:** The "Continue with email" CTA button anchors the right panel. The user's eye should travel: heading -> subheading -> email input -> primary CTA.
 
 **Left panel (brand):**
 - Background: `#09090B` (always dark, regardless of theme)
@@ -124,8 +126,8 @@ Accent reserved for: primary CTA button on login page, active sidebar nav indica
 **Header:**
 - Height: 48px
 - Background: dominant surface color
-- Left: hamburger menu icon (mobile only, hidden on desktop)
-- Right: theme toggle (sun/moon icon) + user avatar placeholder (circle, 32px, initials)
+- Left: hamburger menu icon (mobile only, hidden on desktop), `aria-label="Open navigation menu"`
+- Right: theme toggle (sun/moon icon, `aria-label="Toggle color theme"`) + user avatar placeholder (circle, 32px, initials)
 - Bottom border: 1px border color
 
 **Main content area:**
@@ -149,7 +151,7 @@ Accent reserved for: primary CTA button on login page, active sidebar nav indica
 | App shell placeholder body | "Your workspace is being set up. Features will appear here as they're built." |
 | Auth error (invalid email) | "Enter a valid email address" |
 | Auth error (generic) | "Something went wrong. Try again." |
-| Sign out confirmation | "Sign out": "You'll need to sign in again to access your workspace." |
+| Sign out confirmation | "Sign out of repco?": "You'll need to sign in again to access your workspace." / "Stay signed in" + "Sign out" buttons |
 
 ---
 
@@ -187,7 +189,7 @@ No third-party blocks required for Phase 1.
 
 ### Sign out
 1. User clicks "Sign out" in sidebar bottom
-2. Confirmation dialog (shadcn AlertDialog): "Sign out?" / "You'll need to sign in again to access your workspace." / Cancel + Sign out buttons
+2. Confirmation dialog (shadcn AlertDialog): "Sign out of repco?" / "You'll need to sign in again to access your workspace." / "Stay signed in" + "Sign out" buttons
 3. On confirm: clear session, redirect to `/login`
 
 ### Theme toggle
