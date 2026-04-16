@@ -117,7 +117,7 @@ Accent reserved for: primary CTA button on login page, active sidebar nav indica
 **Sidebar:**
 - Width: 240px on desktop, collapsed to 0 on mobile (hamburger toggle in header)
 - Background: secondary surface color
-- Top: brand mark "repco" in Instrument Serif 20px, 24px padding from top and left
+- Top: brand mark "repco" in Instrument Serif 28px, 24px padding from top and left
 - Nav items: Inter 14px weight 500, 8px vertical padding, 16px horizontal padding, rounded-md
 - Active nav item: accent color left border (3px), text inherits accent color
 - Nav items for Phase 1 (placeholder, non-functional): Dashboard, Signals, Approvals, Prospects, Accounts, Settings
