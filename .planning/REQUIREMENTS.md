@@ -189,13 +189,100 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmapper) | | |
+| OBSV-01 | Phase 1 | Pending |
+| OBSV-02 | Phase 1 | Pending |
+| OBSV-03 | Phase 1 | Pending |
+| OBSV-04 | Phase 1 | Pending |
+| MNTR-01 | Phase 2 | Pending |
+| MNTR-03 | Phase 2 | Pending |
+| MNTR-04 | Phase 2 | Pending |
+| MNTR-05 | Phase 2 | Pending |
+| MNTR-06 | Phase 2 | Pending |
+| MNTR-07 | Phase 2 | Pending |
+| FEED-01 | Phase 2 | Pending |
+| FEED-02 | Phase 2 | Pending |
+| FEED-03 | Phase 2 | Pending |
+| FEED-04 | Phase 2 | Pending |
+| FEED-05 | Phase 2 | Pending |
+| AGNT-01 | Phase 2 | Pending |
+| AGNT-02 | Phase 2 | Pending |
+| AGNT-03 | Phase 2 | Pending |
+| DASH-01 | Phase 2 | Pending |
+| DASH-02 | Phase 2 | Pending |
+| DASH-03 | Phase 2 | Pending |
+| ACTN-01 | Phase 3 | Pending |
+| ACTN-02 | Phase 3 | Pending |
+| ACTN-03 | Phase 3 | Pending |
+| ACTN-04 | Phase 3 | Pending |
+| ACTN-05 | Phase 3 | Pending |
+| ACTN-06 | Phase 3 | Pending |
+| ACTN-07 | Phase 3 | Pending |
+| ACTN-08 | Phase 3 | Pending |
+| ACTN-09 | Phase 3 | Pending |
+| ACTN-10 | Phase 3 | Pending |
+| APRV-01 | Phase 3 | Pending |
+| APRV-02 | Phase 3 | Pending |
+| APRV-03 | Phase 3 | Pending |
+| APRV-04 | Phase 3 | Pending |
+| ABAN-01 | Phase 3 | Pending |
+| ABAN-02 | Phase 3 | Pending |
+| ABAN-03 | Phase 3 | Pending |
+| ABAN-04 | Phase 3 | Pending |
+| ABAN-05 | Phase 3 | Pending |
+| ABAN-06 | Phase 3 | Pending |
+| ABAN-07 | Phase 3 | Pending |
+| ACCT-01 | Phase 3 | Pending |
+| ACCT-02 | Phase 3 | Pending |
+| ACCT-03 | Phase 3 | Pending |
+| ACCT-04 | Phase 3 | Pending |
+| FLLW-01 | Phase 4 | Pending |
+| FLLW-02 | Phase 4 | Pending |
+| FLLW-03 | Phase 4 | Pending |
+| FLLW-04 | Phase 4 | Pending |
+| FLLW-05 | Phase 4 | Pending |
+| RPLY-01 | Phase 4 | Pending |
+| RPLY-02 | Phase 4 | Pending |
+| RPLY-03 | Phase 4 | Pending |
+| RPLY-04 | Phase 4 | Pending |
+| NTFY-01 | Phase 4 | Pending |
+| NTFY-02 | Phase 4 | Pending |
+| NTFY-03 | Phase 4 | Pending |
+| BILL-01 | Phase 5 | Pending |
+| BILL-02 | Phase 5 | Pending |
+| BILL-03 | Phase 5 | Pending |
+| BILL-04 | Phase 5 | Pending |
+| BILL-05 | Phase 5 | Pending |
+| BILL-06 | Phase 5 | Pending |
+| BILL-07 | Phase 5 | Pending |
+| BILL-08 | Phase 5 | Pending |
+| BILL-09 | Phase 5 | Pending |
+| ONBR-01 | Phase 5 | Pending |
+| ONBR-02 | Phase 5 | Pending |
+| ONBR-03 | Phase 5 | Pending |
+| ONBR-04 | Phase 5 | Pending |
+| ONBR-05 | Phase 5 | Pending |
+| ONBR-06 | Phase 5 | Pending |
+| ONBR-07 | Phase 5 | Pending |
+| GROW-01 | Phase 5 | Pending |
+| GROW-02 | Phase 5 | Pending |
+| GROW-03 | Phase 5 | Pending |
+| GROW-04 | Phase 5 | Pending |
+| GROW-05 | Phase 5 | Pending |
+| GROW-06 | Phase 5 | Pending |
+| PRSP-01 | Phase 5 | Pending |
+| PRSP-02 | Phase 5 | Pending |
+| PRSP-03 | Phase 5 | Pending |
+| PRSP-04 | Phase 5 | Pending |
+| PRSP-05 | Phase 5 | Pending |
+| PRSP-06 | Phase 5 | Pending |
+| DASH-04 | Phase 5 | Pending |
+| MNTR-02 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 78 total
-- Mapped to phases: 0
-- Unmapped: 78
+- v1 requirements: 98 total
+- Mapped to phases: 98
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-16*
-*Last updated: 2026-04-16 after initial definition*
+*Last updated: 2026-04-16 — traceability populated by roadmapper*
