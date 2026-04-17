@@ -12,7 +12,10 @@ People who are actively looking for your product get a personalized, relevant DM
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] OBSV-01: Action execution logging to job_logs with duration_ms, status, error — Validated in Phase 1: Foundation
+- [x] OBSV-02: Zombie recovery cron (5 min) resets stuck actions — Validated in Phase 1: Foundation
+- [x] OBSV-03: Error tracking via Sentry + structured logging via Axiom — Validated in Phase 1: Foundation
+- [x] OBSV-04: Threshold alerting (success rate < 80%, timeout > 5%) via Sentry — Validated in Phase 1: Foundation
 
 ### Active
 
@@ -84,4 +87,4 @@ People who are actively looking for your product get a personalized, relevant DM
 | Event-driven actions (DB Webhook) over polling | Zero empty invocations, fires only on user approval | — Pending |
 
 ---
-*Last updated: 2026-04-16 after initialization*
+*Last updated: 2026-04-17 — Phase 1 Foundation complete*
