@@ -27,7 +27,7 @@ human_verification:
     expected: "At < 1024px, sidebar is hidden and hamburger button is visible. Clicking hamburger opens sidebar with overlay. Clicking overlay closes it."
     why_human: "Requires a browser viewport resize."
   - test: "Brand fonts load correctly"
-    expected: "Page headings render in Instrument Serif (serified). Body text in Inter (sans-serif). No FOUT or missing font fallback."
+    expected: "Page headings render in Inter (semibold/bold). Body text in Inter (regular). Monospace in Geist Mono. No FOUT or missing font fallback."
     why_human: "Font loading requires a browser with network access to Google Fonts."
   - test: "Sentry alert rules for OBSV-04"
     expected: "scripts/sentry-alert-rules.ts has been executed against the Sentry project, creating two rules matching fingerprints obsv04-low-success-rate and obsv04-high-timeout-rate with NotifyEmailAction targeting IssueOwners."
@@ -49,8 +49,8 @@ human_verification:
 |---|-------|--------|---------|
 | 1 | Next.js project starts without errors (all deps present, build compiles) | VERIFIED | All required packages in package.json: @supabase/supabase-js, @supabase/ssr, @sentry/nextjs, @axiomhq/js, next-themes, sonner, lucide-react. next.config.ts wrapped with withSentryConfig. |
 | 2 | Supabase client utilities export createClient for browser and server | VERIFIED | src/lib/supabase/client.ts exports createClient (createBrowserClient). src/lib/supabase/server.ts exports async createClient with awaited cookies(). src/lib/supabase/middleware.ts exports updateSession. |
-| 3 | Three Google Fonts load on page (Instrument Serif, Inter, JetBrains Mono) | VERIFIED | src/app/layout.tsx imports all three fonts from next/font/google with correct variable CSS names (--font-heading, --font-body, --font-mono). Applied to html element className. |
-| 4 | Brand accent color #E8500A is registered as CSS variable | VERIFIED | src/app/globals.css contains oklch(0.586 0.199 38.97) mapped to --accent and --primary (the oklch equivalent of #E8500A). Comment confirms the mapping. |
+| 3 | Three fonts load on page (Inter, Geist, Geist Mono) | VERIFIED | src/app/layout.tsx imports fonts with correct variable CSS names (--font-sans, --font-geist-sans, --font-geist-mono). Applied to html element className. |
+| 4 | Brand primary color #4338CA (indigo) is registered as CSS variable | VERIFIED | src/app/globals.css contains oklch(0.457 0.24 277.023) mapped to --primary (the oklch equivalent of #4338CA). Comment confirms the mapping. |
 | 5 | ThemeProvider wraps app with system/light/dark support | VERIFIED | src/app/layout.tsx imports ThemeProvider and wraps children. ThemeProvider delegates to NextThemesProvider with attribute="class" defaultTheme="system" enableSystem. |
 | 6 | All 11 PRD tables exist in migration with correct structure | VERIFIED | supabase/migrations/00002_initial_schema.sql contains exactly 11 CREATE TABLE statements. action_counts uses composite PRIMARY KEY (account_id, date). job_logs has duration_ms, status, error columns. |
 | 7 | 12 ENUM types are defined before tables | VERIFIED | supabase/migrations/00001_enums.sql contains 12 CREATE TYPE statements covering all constrained string columns from PRD. |
@@ -77,7 +77,7 @@ human_verification:
 | `src/lib/supabase/server.ts` | Server Supabase client with async cookies | VERIFIED | exports async createClient with await cookies(), uses createServerClient |
 | `src/lib/supabase/middleware.ts` | Middleware auth helper, exports updateSession | VERIFIED | exports updateSession, calls supabase.auth.getUser() internally |
 | `src/components/providers/theme-provider.tsx` | next-themes provider wrapper, exports ThemeProvider | VERIFIED | exports ThemeProvider wrapping NextThemesProvider with hotkey toggle |
-| `src/app/layout.tsx` | Root layout with fonts, ThemeProvider, Sonner | VERIFIED | contains Instrument_Serif, Inter, JetBrains_Mono, ThemeProvider, Toaster |
+| `src/app/layout.tsx` | Root layout with fonts, ThemeProvider, Sonner | VERIFIED | contains Inter, Geist, Geist Mono font variables, ThemeProvider, Toaster |
 | `supabase/migrations/00001_enums.sql` | 12 ENUM types | VERIFIED | 12 CREATE TYPE statements |
 | `supabase/migrations/00002_initial_schema.sql` | 11 tables with indexes and constraints | VERIFIED | 11 CREATE TABLE, composite PK on action_counts, gen_random_uuid(), ON DELETE CASCADE |
 | `supabase/migrations/00003_rls_policies.sql` | RLS policies for all 11 tables | VERIFIED | 11 ENABLE ROW LEVEL SECURITY, auth.uid() policies, anon access for live_stats and intent_signals |
@@ -85,7 +85,7 @@ human_verification:
 | `src/features/auth/actions/auth-actions.ts` | Server actions for auth, exports signInWithEmail/signInWithGoogle/signOut | VERIFIED | all three exports present, "use server" directive, correct Supabase calls |
 | `src/app/auth/callback/route.ts` | Auth callback handler | VERIFIED | GET handler calls exchangeCodeForSession, redirects to /login?error=auth_callback_failed on failure |
 | `src/middleware.ts` | Root middleware with auth redirect | VERIFIED | imports updateSession, calls getUser, enforces redirects, correct matcher config |
-| `src/app/(auth)/login/page.tsx` | Split-layout login page | VERIFIED | dark left panel bg-[#09090B], max-w-[400px] form container, renders LoginForm |
+| `src/app/(auth)/login/page.tsx` | Split-layout login page | VERIFIED | dark left panel bg-[#1C1917] (stone-900), max-w-[400px] form container, renders LoginForm |
 | `src/features/auth/components/login-form.tsx` | Email + Google auth form | VERIFIED | "use client", signInWithEmail/signInWithGoogle wired, loading states, error display, magicLinkSent view |
 | `src/app/(app)/layout.tsx` | Authenticated shell layout | VERIFIED | server component, calls supabase.auth.getUser(), redirect if no user, renders AppShell |
 | `src/components/shell/sidebar.tsx` | Sidebar navigation | VERIFIED | 6 nav items, "repco" brand mark, w-[240px], SignOutButton wired |
@@ -170,7 +170,7 @@ human_verification:
 
 6. **Brand fonts visual verification**
    Test: Inspect heading elements vs body text on /login and the app shell.
-   Expected: "repco" and other headings render in Instrument Serif (serif). Body text renders in Inter (sans-serif).
+   Expected: "repco" and other headings render in Inter (semibold/bold). Body text renders in Inter (regular). Monospace in Geist Mono.
    Why human: Font loading requires a browser.
 
 7. **Sentry alert rules for OBSV-04 (setup step)**

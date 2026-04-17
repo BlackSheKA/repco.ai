@@ -34,7 +34,7 @@ The system monitors Reddit every 15 minutes, classifies intent signals using key
 ### Dashboard layout
 - Standard SaaS layout: sidebar nav (from Phase 1 shell) + main content area — NOT multi-column
 - Terminal header: persistent strip at top of main content area, below the app header — shows last 5 agent actions
-- Terminal header styling uses design system tokens from shadcn preset (dark surface, JetBrains Mono, accent color) — NOT arbitrary "black background"
+- Terminal header styling uses design system tokens from shadcn preset (dark surface, Geist Mono, accent indigo) — NOT arbitrary "black background"
 - Agent card: dedicated card above the intent feed in the main content area, shows repco's current state + today's stats
 - Below agent card: filter bar, then scrollable intent feed
 
@@ -110,7 +110,7 @@ The system monitors Reddit every 15 minutes, classifies intent signals using key
 <specifics>
 ## Specific Ideas
 
-- Terminal header should feel like a live activity log — JetBrains Mono font, design system dark surface color, accent highlights on key events
+- Terminal header should feel like a live activity log — Geist Mono font, design system dark surface color, accent indigo highlights on key events
 - Agent personality is "chill colleague" not "excited bot" — conversational but not cringey
 - Flame icons for intent strength give the product personality — "hot leads" metaphor baked into the UI
 - The simplest effective approach wins: search API + keyword matching + Sonnet only for ambiguous cases

@@ -7,7 +7,7 @@ tags: [nextjs, shadcn, tailwind-v4, supabase-ssr, next-themes, sonner, google-fo
 requires: []
 provides:
   - "Next.js project skeleton with shadcn/ui (radix-nova style, Tailwind v4)"
-  - "Brand theming: Instrument Serif / Inter / JetBrains Mono fonts + #E8500A accent palette"
+  - "Brand theming: Inter / Geist / Geist Mono fonts + #4338CA indigo primary palette"
   - "Supabase browser/server/middleware client utilities"
   - "ThemeProvider with system/light/dark support and hotkey toggle"
   - "Sonner toast notifications via shadcn Toaster component"
@@ -42,8 +42,8 @@ key-decisions:
 patterns-established:
   - "Tailwind v4 @theme inline block for design tokens (colors, fonts, radii)"
   - "Supabase SSR pattern: async cookies() in server client, cookie relay in middleware"
-  - "Font variable strategy: --font-heading (Instrument Serif), --font-body (Inter), --font-mono (JetBrains Mono)"
-  - "Brand color mapping: primary = accent orange #E8500A, neutral zinc palette for surfaces"
+  - "Font variable strategy: --font-sans (Inter), --font-geist-sans (Geist), --font-geist-mono (Geist Mono)"
+  - "Brand color mapping: primary = indigo #4338CA, warm stone palette for surfaces"
 
 requirements-completed: [OBSV-03]
 
@@ -53,7 +53,7 @@ completed: 2026-04-17
 
 # Phase 1 Plan 1: Project Scaffold Summary
 
-**Next.js 16 + shadcn/ui (radix-nova) project with brand fonts (Instrument Serif/Inter/JetBrains Mono), #E8500A accent palette, Supabase SSR client utilities, and ThemeProvider**
+**Next.js 16 + shadcn/ui (radix-nova) project with brand fonts (Inter/Geist/Geist Mono), #4338CA indigo primary palette, Supabase SSR client utilities, and ThemeProvider**
 
 ## Performance
 
@@ -66,8 +66,8 @@ completed: 2026-04-17
 ## Accomplishments
 
 - Scaffolded Next.js project using locked shadcn preset b3QwALGmg with Tailwind v4 and radix-nova style
-- Configured brand color palette (#E8500A accent, zinc neutrals) as oklch CSS variables for light/dark modes
-- Loaded three Google Fonts (Instrument Serif, Inter, JetBrains Mono) mapped to Tailwind font families
+- Configured brand color palette (#4338CA indigo primary, warm stone neutrals) as oklch CSS variables for light/dark modes
+- Loaded three fonts (Inter, Geist, Geist Mono) mapped to Tailwind font families
 - Created Supabase browser, server (async cookies), and middleware client utilities
 - Set up ThemeProvider with system/light/dark support plus keyboard hotkey toggle
 
@@ -82,9 +82,9 @@ Each task was committed atomically:
 
 - `package.json` - Project manifest with all Phase 1 dependencies
 - `components.json` - shadcn/ui configuration (radix-nova style, src/ paths)
-- `src/app/globals.css` - Tailwind v4 theme with brand colors in oklch
-- `src/app/layout.tsx` - Root layout with 3 brand fonts, ThemeProvider, Toaster
-- `src/app/page.tsx` - Placeholder with centered "repco" in Instrument Serif
+- `src/app/globals.css` - Tailwind v4 theme with brand colors (indigo primary, stone palette) in oklch
+- `src/app/layout.tsx` - Root layout with 3 brand fonts (Inter, Geist, Geist Mono), ThemeProvider, Toaster
+- `src/app/page.tsx` - Placeholder with centered "repco" in Inter
 - `src/components/providers/theme-provider.tsx` - next-themes wrapper with hotkey
 - `src/components/ui/button.tsx` - shadcn Button component
 - `src/components/ui/input.tsx` - shadcn Input component
@@ -109,7 +109,7 @@ Each task was committed atomically:
 
 2. **Tailwind v4 CSS-based config:** The preset generated Tailwind v4 which uses CSS `@theme` blocks instead of `tailwind.config.ts`. Brand colors and font families are registered in `globals.css` rather than a JS config file.
 
-3. **oklch color values:** Matched the preset's convention of using oklch() color space instead of hsl() for better perceptual uniformity. The brand colors (#E8500A, #DC2626, zinc palette) were converted to oklch equivalents.
+3. **oklch color values:** Matched the preset's convention of using oklch() color space instead of hsl() for better perceptual uniformity. The brand colors (#4338CA indigo, #DC2626, stone palette) were converted to oklch equivalents.
 
 4. **src/ directory restructure:** Moved generated files from flat layout into `src/` directory to match the plan's feature-grouped folder structure. Updated tsconfig paths and components.json accordingly.
 
@@ -120,9 +120,9 @@ Each task was committed atomically:
 **1. [Rule 3 - Blocking] Adapted to Tailwind v4 from preset (expected Tailwind v3)**
 - **Found during:** Task 1 (Project initialization)
 - **Issue:** Plan specified `tailwind.config.ts` font family config, but preset generated Tailwind v4 which uses CSS-based configuration via `@theme` blocks
-- **Fix:** Registered font families (`--font-heading`, `--font-body`, `--font-mono`) in the `@theme inline` block of globals.css instead of tailwind.config.ts
+- **Fix:** Registered font families (`--font-sans`, `--font-geist-sans`, `--font-geist-mono`) in the `@theme inline` block of globals.css instead of tailwind.config.ts
 - **Files modified:** src/app/globals.css
-- **Verification:** `pnpm build` passes, font-heading/font-body/font-mono classes resolve correctly
+- **Verification:** `pnpm build` passes, font-sans/font-geist-sans/font-geist-mono classes resolve correctly
 - **Committed in:** 8bba847, 424a359
 
 **2. [Rule 3 - Blocking] Restructured from flat layout to src/ directory**

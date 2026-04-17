@@ -20,10 +20,10 @@ created: 2026-04-16
 | Tool | shadcn |
 | Preset | `b3QwALGmg` (init command: `pnpm dlx shadcn@latest init --preset b3QwALGmg --template next`) |
 | Component library | radix (via shadcn) |
-| Icon library | lucide-react |
-| Font heading | Instrument Serif (Google Fonts) |
-| Font body | Inter (Google Fonts) |
-| Font mono | JetBrains Mono (Google Fonts) |
+| Icon library | phosphor icons |
+| Font body/headings | Inter (Google Fonts, --font-sans) |
+| Font UI sans | Geist (--font-geist-sans) |
+| Font mono | Geist Mono (--font-geist-mono) |
 
 ---
 
@@ -51,13 +51,13 @@ Exceptions: 44px minimum touch target for mobile interactive elements (auth butt
 |------|------|------|--------|-------------|
 | Body | Inter | 16px | 400 (regular) | 1.5 |
 | Label | Inter | 14px | 500 (medium) | 1.4 |
-| Heading | Instrument Serif | 28px | 400 (regular) | 1.2 |
-| Display | Instrument Serif | 40px | 400 (regular) | 1.1 |
-| Mono | JetBrains Mono | 14px | 400 (regular) | 1.6 |
+| Heading | Inter | 28px | 600 (semibold) | 1.2 |
+| Display | Inter | 40px | 700 (bold) | 1.1 |
+| Mono | Geist Mono | 14px | 400 (regular) | 1.6 |
 
 Notes:
-- Instrument Serif is a display typeface -- only use it for headings and the brand name. Never for body text or labels.
-- JetBrains Mono is reserved for the terminal header (Phase 2+), code snippets, and technical identifiers.
+- Inter is the primary typeface for both body and headings. Use weight 600+ for headings to create visual hierarchy.
+- Geist Mono is reserved for the terminal header (Phase 2+), code snippets, and technical identifiers.
 - Inter at weight 500 is used for labels, nav items, and button text. For emphasis within body text, use italic style rather than a heavier weight.
 
 ---
@@ -66,14 +66,15 @@ Notes:
 
 | Role | Value | Usage |
 |------|-------|-------|
-| Dominant (60%) | `#FFFFFF` (light) / `#09090B` (dark) | Page background, main surfaces |
-| Secondary (30%) | `#F4F4F5` (light) / `#18181B` (dark) | Sidebar background, card surfaces, input fields, nav bar |
-| Accent (10%) | `#E8500A` | Primary CTA buttons, active nav indicator, brand logo mark, link hover state |
+| Dominant (60%) | `#FFFFFF` (light) / `#1C1917` (dark, stone-900) | Page background, main surfaces |
+| Secondary (30%) | `#F5F5F4` (light, stone-100) / `#292524` (dark, stone-800) | Sidebar background, card surfaces, input fields, nav bar |
+| Primary (10%) | `#4338CA` (indigo, oklch(0.457 0.24 277.023)) | Primary CTA buttons, active nav indicator, brand logo mark, link hover state |
+| Primary foreground | `#EEF2FF` (oklch(0.962 0.018 272.314)) | Text on primary-colored surfaces |
 | Destructive | `#DC2626` | Sign-out confirmation, error toasts, validation error borders |
-| Muted text | `#71717A` (light) / `#A1A1AA` (dark) | Placeholder text, secondary descriptions, timestamps |
-| Border | `#E4E4E7` (light) / `#27272A` (dark) | Card borders, dividers, input borders |
+| Muted text | `#78716C` (light, stone-500) / `#A8A29E` (dark, stone-400) | Placeholder text, secondary descriptions, timestamps |
+| Border | `#E7E5E4` (light, stone-200) / `#44403C` (dark, stone-700) | Card borders, dividers, input borders |
 
-Accent reserved for: primary CTA button on login page, active sidebar nav indicator, brand logo mark, link hover underline. Never used for backgrounds, borders, or decorative elements.
+Primary (indigo) reserved for: primary CTA button on login page, active sidebar nav indicator, brand logo mark, link hover underline. Never used for backgrounds, borders, or decorative elements.
 
 ---
 
@@ -86,16 +87,16 @@ Accent reserved for: primary CTA button on login page, active sidebar nav indica
 **Focal point:** The "Continue with email" CTA button anchors the right panel. The user's eye should travel: heading -> subheading -> email input -> primary CTA.
 
 **Left panel (brand):**
-- Background: `#09090B` (always dark, regardless of theme)
-- Brand name "repco" in Instrument Serif at 40px, color `#FFFFFF`
-- Tagline: "Your AI sales rep that never sleeps." in Inter 16px, color `#A1A1AA`
+- Background: `#1C1917` (stone-900, always dark, regardless of theme)
+- Brand name "repco" in Inter at 40px weight 700, color `#FFFFFF`
+- Tagline: "Your AI sales rep that never sleeps." in Inter 16px, color `#A8A29E` (stone-400)
 - Vertically and horizontally centered
 - No images, no illustrations -- text only
 
 **Right panel (auth form):**
 - Background: dominant surface color (theme-aware)
 - Vertically and horizontally centered, max-width 400px
-- Heading: "Welcome back" in Instrument Serif 28px
+- Heading: "Welcome back" in Inter 28px weight 600
 - Subheading: "Sign in to your account" in Inter 16px, muted text color
 - 24px gap between heading group and form fields
 
@@ -117,7 +118,7 @@ Accent reserved for: primary CTA button on login page, active sidebar nav indica
 **Sidebar:**
 - Width: 240px on desktop, collapsed to 0 on mobile (hamburger toggle in header)
 - Background: secondary surface color
-- Top: brand mark "repco" in Instrument Serif 28px, 24px padding from top and left
+- Top: brand mark "repco" in Inter 28px weight 700, 24px padding from top and left
 - Nav items: Inter 14px weight 500, 8px vertical padding, 16px horizontal padding, rounded-md
 - Active nav item: accent color left border (3px), text inherits accent color
 - Nav items for Phase 1 (placeholder, non-functional): Dashboard, Signals, Approvals, Prospects, Accounts, Settings
@@ -133,7 +134,7 @@ Accent reserved for: primary CTA button on login page, active sidebar nav indica
 **Main content area:**
 - Background: dominant surface color
 - Centered placeholder content, max-width 600px:
-  - Heading: "Welcome to repco" in Instrument Serif 28px
+  - Heading: "Welcome to repco" in Inter 28px weight 600
   - Body: "Your workspace is being set up. Features will appear here as they're built." in Inter 16px, muted text
   - No CTA button -- this is a placeholder, not an empty state with an action
 

@@ -59,8 +59,8 @@ People who are actively looking for your product get a personalized, relevant DM
 - No existing tools do cross-platform intent detection + social DM outreach — DM APIs don't exist, Computer Use makes it possible
 - Target: $20K MRR by month 3-4
 - Self-promotion GTM from day 1 — repco uses itself as first customer
-- Design language: Polsia-inspired, terminal-first, black/white/orange (#E8500A), agent personality
-- Typography: Instrument Serif (headlines), Inter (body), JetBrains Mono (terminal)
+- Design language: shadcn preset b3QwALGmg — radix-nova style, indigo primary (#4338CA), warm stone palette, agent personality
+- Typography: Inter (body/headings), Geist (UI sans), Geist Mono (monospace/terminal)
 
 ## Constraints
 

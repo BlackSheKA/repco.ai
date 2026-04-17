@@ -46,7 +46,7 @@ export function Sidebar({ user, open, onClose }: SidebarProps) {
       >
         {/* Brand */}
         <div className="p-6">
-          <span className="font-heading text-[28px]">repco</span>
+          <span className="font-sans text-[28px]">repco</span>
         </div>
 
         {/* Navigation */}

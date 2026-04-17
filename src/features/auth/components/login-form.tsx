@@ -80,7 +80,7 @@ export function LoginForm() {
   if (magicLinkSent) {
     return (
       <div className="space-y-4">
-        <h1 className="font-heading text-[28px] leading-[1.2]">
+        <h1 className="font-sans text-[28px] leading-[1.2]">
           Check your email
         </h1>
         <p className="text-base text-muted-foreground">
@@ -93,7 +93,7 @@ export function LoginForm() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="font-heading text-[28px] leading-[1.2]">
+        <h1 className="font-sans text-[28px] leading-[1.2]">
           Welcome back
         </h1>
         <p className="text-base text-muted-foreground">

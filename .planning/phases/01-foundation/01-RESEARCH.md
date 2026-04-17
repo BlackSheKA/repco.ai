@@ -29,7 +29,7 @@ The stack is well-documented and mature. Supabase has first-class Next.js SSR su
 - pnpm as package manager
 - shadcn/ui initialized via: `pnpm dlx shadcn@latest init --preset b3QwALGmg --template next`
 - Modern SaaS aesthetic -- NOT Polsia-inspired
-- Brand identity from day 1: black/white/orange (#E8500A), Instrument Serif (headlines), Inter (body), JetBrains Mono (terminal/code)
+- Brand identity from day 1: indigo primary (#4338CA), warm stone palette, Inter (body/headings), Geist (UI sans), Geist Mono (monospace)
 - Tailwind theme configured with brand colors via shadcn CSS variables
 - Sentry for error tracking with built-in alert rules
 - Axiom for structured logging -- request-level + errors with correlation IDs (stay within 500MB free tier)

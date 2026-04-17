@@ -35,7 +35,7 @@ The Supabase schema is already deployed with all tables needed. Two minor schema
 - Feed sorted by recency, filterable by platform (Reddit/LinkedIn placeholder) and minimum intent strength
 - Standard SaaS layout: sidebar nav (from Phase 1 shell) + main content area -- NOT multi-column
 - Terminal header: persistent strip at top of main content area, below the app header -- shows last 5 agent actions
-- Terminal header styling uses design system tokens from shadcn preset (dark surface, JetBrains Mono, accent color) -- NOT arbitrary "black background"
+- Terminal header styling uses design system tokens from shadcn preset (dark surface, Geist Mono, accent indigo) -- NOT arbitrary "black background"
 - Agent card: dedicated card above the intent feed in the main content area, shows repco's current state + today's stats
 - Below agent card: filter bar, then scrollable intent feed
 - 7 emotional states per PRD: Scanning, Found, Waiting, Sent, Reply, Cooldown, Quiet
@@ -81,7 +81,7 @@ None -- discussion stayed within phase scope
 | FEED-05 | User can filter signals by platform and minimum intent strength | Client-side filter bar with platform dropdown and intent strength range |
 | AGNT-01 | Dashboard displays agent card showing "repco" with current state and today's stats | Agent card component above feed, reads from derived state |
 | AGNT-02 | Agent has emotional states: Scanning, Found, Waiting, Sent, Reply, Cooldown, Quiet | State machine module with 7 states and transition logic |
-| AGNT-03 | Terminal header shows last 5 agent actions in real-time with monospace font and orange accents | CONTEXT overrides: design system tokens, not arbitrary black bg. JetBrains Mono + accent color |
+| AGNT-03 | Terminal header shows last 5 agent actions in real-time with monospace font and indigo accents | CONTEXT overrides: design system tokens, not arbitrary black bg. Geist Mono + accent indigo |
 | DASH-01 | Dashboard displays persistent terminal header with last 5 agent actions in real-time | Terminal header component in app layout, Supabase Realtime on job_logs/intent_signals |
 | DASH-02 | Dashboard displays multi-column layout | CONTEXT overrides: standard SaaS layout with sidebar + main content area, NOT multi-column. Agent card > filter bar > feed |
 | DASH-03 | Dashboard updates in real-time via Supabase Realtime for authenticated users | Supabase Realtime postgres_changes subscription pattern |
@@ -558,7 +558,7 @@ export function getHeatTier(strength: number): HeatTier {
 const tierStyles: Record<HeatTier, string> = {
   cold: "text-zinc-400",           // muted
   warm: "text-amber-500",          // warm amber
-  hot: "text-[#E8500A]",           // brand accent
+  hot: "text-[#4338CA]",           // brand accent (indigo)
 };
 
 export function FlameIndicator({ strength }: { strength: number }) {

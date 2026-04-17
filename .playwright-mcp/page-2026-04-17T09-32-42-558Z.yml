@@ -1,0 +1,40 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]: repco
+      - navigation [ref=e5]:
+        - button "Dashboard" [ref=e6]:
+          - img [ref=e7]
+          - text: Dashboard
+        - button "Signals" [ref=e12]:
+          - img [ref=e13]
+          - text: Signals
+        - button "Approvals" [ref=e19]:
+          - img [ref=e20]
+          - text: Approvals
+        - button "Prospects" [ref=e23]:
+          - img [ref=e24]
+          - text: Prospects
+        - button "Accounts" [ref=e29]:
+          - img [ref=e30]
+          - text: Accounts
+        - button "Settings" [ref=e32]:
+          - img [ref=e33]
+          - text: Settings
+      - generic [ref=e36]:
+        - paragraph [ref=e37]: kamil.wandtke@gmail.com
+        - button "Sign out" [ref=e38]
+    - generic [ref=e39]:
+      - banner [ref=e40]:
+        - generic [ref=e41]:
+          - button "Toggle color theme" [ref=e42]:
+            - img
+          - generic [ref=e44]: K
+      - main [ref=e45]:
+        - generic [ref=e47]:
+          - heading "Welcome to repco" [level=1] [ref=e48]
+          - paragraph [ref=e49]: Your workspace is being set up. Features will appear here as they're built.
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e55] [cursor=pointer]:
+    - img [ref=e56]
+  - alert [ref=e59]

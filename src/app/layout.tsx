@@ -1,25 +1,21 @@
 import type { Metadata } from "next";
-import { Instrument_Serif, Inter, JetBrains_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
-const instrumentSerif = Instrument_Serif({
-  weight: "400",
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  variable: "--font-heading",
 });
 
-const inter = Inter({
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  variable: "--font-body",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
 });
 
 export const metadata: Metadata = {
@@ -37,13 +33,15 @@ export default function RootLayout({
       lang="en"
       suppressHydrationWarning
       className={cn(
+        "h-full",
         "antialiased",
-        instrumentSerif.variable,
+        geistSans.variable,
+        geistMono.variable,
+        "font-sans",
         inter.variable,
-        jetbrainsMono.variable,
       )}
     >
-      <body className="font-body">
+      <body className="min-h-full flex flex-col">
         <ThemeProvider>
           {children}
           <Toaster />

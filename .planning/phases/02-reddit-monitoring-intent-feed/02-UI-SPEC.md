@@ -20,10 +20,10 @@ created: 2026-04-17
 | Tool | shadcn |
 | Preset | `b3QwALGmg` (inherited from Phase 1) |
 | Component library | radix (via shadcn) |
-| Icon library | lucide-react |
-| Font heading | Instrument Serif (Google Fonts) |
-| Font body | Inter (Google Fonts) |
-| Font mono | JetBrains Mono (Google Fonts) |
+| Icon library | phosphor (radix-nova style) |
+| Font heading | Inter (Google Fonts, --font-sans) |
+| Font body | Inter (Google Fonts, --font-sans) |
+| Font mono | Geist Mono (--font-geist-mono) |
 
 Phase 2 inherits the full design system from Phase 1 (`01-UI-SPEC.md`). No new fonts, no new color primitives. All additions use existing tokens.
 
@@ -53,20 +53,20 @@ Inherited from Phase 1. All roles apply:
 |------|------|------|--------|-------------|---------------|
 | Body | Inter | 16px | 400 (regular) | 1.5 | Signal card excerpt, agent mood message, settings descriptions |
 | Label | Inter | 14px | 500 (medium) | 1.4 | Signal metadata (subreddit, author, time ago), filter labels, stat labels |
-| Heading | Instrument Serif | 28px | 400 (regular) | 1.2 | Page title "Signals", settings page title |
-| Mono | JetBrains Mono | 14px | 400 (regular) | 1.6 | Terminal header log lines |
+| Heading | Inter | 28px | 600 (semibold) | 1.2 | Page title "Signals", settings page title |
+| Mono | Geist Mono | 14px | 400 (regular) | 1.6 | Terminal header log lines |
 
 Additional type specs for Phase 2:
 
 | Element | Font | Size | Weight | Line Height |
 |---------|------|------|--------|-------------|
-| Agent name "repco" | Instrument Serif | 20px | 400 | 1.2 |
+| Agent name "repco" | Inter | 20px | 600 (semibold) | 1.2 |
 | Agent state label | Inter | 14px | 500 (medium) | 1.4 |
 | Agent stat number | Inter | 28px | 400 (regular) | 1.2 |
 | Agent stat label | Inter | 14px | 400 (regular) | 1.4 |
 | Signal card excerpt | Inter | 16px | 400 (regular) | 1.5 |
 | Intent strength label | Inter | 14px | 500 (medium) | 1.4 |
-| Terminal timestamp | JetBrains Mono | 14px | 400 (regular) | 1.6 |
+| Terminal timestamp | Geist Mono | 14px | 400 (regular) | 1.6 |
 
 ---
 
@@ -76,22 +76,22 @@ Inherited from Phase 1. All values apply:
 
 | Role | Value | Usage |
 |------|-------|-------|
-| Dominant (60%) | `#FFFFFF` (light) / `#09090B` (dark) | Page background, main content area |
-| Secondary (30%) | `#F4F4F5` (light) / `#18181B` (dark) | Signal cards, agent card, filter bar background, settings form background |
-| Accent (10%) | `#E8500A` | "Contact" button, hot flame icon, terminal header accent highlights, active filter indicator |
+| Dominant (60%) | `#FFFFFF` (light) / `#1C1917` (dark) | Page background, main content area |
+| Secondary (30%) | `#F5F5F4` (light) / `#292524` (dark) | Signal cards, agent card, filter bar background, settings form background |
+| Accent (10%) | `#4338CA` | "Contact" button, hot flame icon, terminal header accent highlights, active filter indicator |
 | Destructive | `#DC2626` | Error toasts, failed monitoring run indicator |
-| Muted text | `#71717A` (light) / `#A1A1AA` (dark) | Time ago, author handle, terminal timestamps, placeholder text |
-| Border | `#E4E4E7` (light) / `#27272A` (dark) | Signal card borders, agent card border, dividers |
+| Muted text | `#78716C` (light) / `#A8A29E` (dark) | Time ago, author handle, terminal timestamps, placeholder text |
+| Border | `#E7E5E4` (light) / `#44403C` (dark) | Signal card borders, agent card border, dividers |
 
 ### Terminal Header Colors
 
 | Element | Light Mode | Dark Mode |
 |---------|------------|-----------|
-| Background | `#18181B` | `#09090B` |
-| Text (default) | `#A1A1AA` | `#A1A1AA` |
-| Text (highlight) | `#E8500A` | `#E8500A` |
+| Background | `#292524` | `#1C1917` |
+| Text (default) | `#A8A29E` | `#A8A29E` |
+| Text (highlight) | `#4338CA` | `#4338CA` |
 | Text (success) | `#22C55E` | `#22C55E` |
-| Text (spinner/active) | `#71717A` | `#71717A` |
+| Text (spinner/active) | `#78716C` | `#78716C` |
 
 The terminal header always uses a dark surface regardless of theme (consistent with the Phase 1 brand panel approach). In light mode it uses the secondary dark token; in dark mode the dominant dark token.
 
@@ -99,9 +99,9 @@ The terminal header always uses a dark surface regardless of theme (consistent w
 
 | Tier | Score Range | Color | Icon |
 |------|------------|-------|------|
-| Cold | 1-3 | `#71717A` (muted) | `Flame` (lucide) at 16px, opacity 0.5 |
-| Warm | 4-6 | `#F59E0B` (amber-500) | `Flame` (lucide) at 16px, opacity 0.8 |
-| Hot | 7-10 | `#E8500A` (accent) | `Flame` (lucide) at 16px, opacity 1.0 |
+| Cold | 1-3 | `#78716C` (muted) | `Flame` (phosphor) at 16px, opacity 0.5 |
+| Warm | 4-6 | `#F59E0B` (amber-500) | `Flame` (phosphor) at 16px, opacity 0.8 |
+| Hot | 7-10 | `#4338CA` (accent) | `Flame` (phosphor) at 16px, opacity 1.0 |
 
 Accent reserved for: "Contact" CTA button, hot flame icon (score 7-10), terminal header highlight text, active filter state. Never used for signal card backgrounds, dismiss buttons, or decorative elements.
 
@@ -116,7 +116,7 @@ Accent reserved for: "Contact" CTA button, hot flame icon (score 7-10), terminal
 **Terminal Header (persistent, full-width strip at top of main content):**
 - Height: 120px (5 lines x 24px)
 - Background: always dark (see Terminal Header Colors above)
-- Font: JetBrains Mono 14px, line-height 1.6
+- Font: Geist Mono 14px, line-height 1.6
 - Padding: 16px horizontal, 8px vertical
 - Shows last 5 agent actions, newest at bottom
 - Each line format: `> {action text}` or `{symbol} {action text}`
@@ -135,8 +135,8 @@ Accent reserved for: "Contact" CTA button, hot flame icon (score 7-10), terminal
 - Layout: horizontal flex on desktop, vertical stack on mobile
 
 Left section:
-- Agent avatar: 48px circle, background `#18181B`, displaying a stylized "r" in Instrument Serif 24px, color `#E8500A`
-- Agent name "repco" in Instrument Serif 20px, 8px below avatar (desktop: 16px to the right of avatar, vertically centered)
+- Agent avatar: 48px circle, background `#292524`, displaying a stylized "r" in Inter 24px semibold, color `#4338CA`
+- Agent name "repco" in Inter 20px semibold, 8px below avatar (desktop: 16px to the right of avatar, vertically centered)
 - Current state label below name: Inter 14px medium, muted text color
 - Mood message below state: Inter 16px regular, default text color
 
@@ -211,7 +211,7 @@ Bottom row (horizontal flex, space-between, items center):
 
 **Layout:** Sidebar (Phase 1 shell) + main content area. Single column, max-width 640px, centered.
 
-**Page heading:** "Settings" in Instrument Serif 28px, margin-bottom 32px.
+**Page heading:** "Settings" in Inter 28px semibold, margin-bottom 32px.
 
 **Section 1: Keywords**
 - Section label: "Keywords" in Inter 16px weight 500, margin-bottom 16px

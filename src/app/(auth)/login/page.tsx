@@ -11,7 +11,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen">
       {/* Left panel — always dark brand panel */}
       <div className="hidden lg:flex lg:w-1/2 bg-[#09090B] items-center justify-center flex-col gap-2">
-        <span className="font-heading text-[40px] text-white">repco</span>
+        <span className="font-sans text-[40px] text-white">repco</span>
         <p className="text-base text-[#A1A1AA]">
           Your AI sales rep that never sleeps.
         </p>
@@ -22,7 +22,7 @@ export default function LoginPage() {
         <div className="w-full max-w-[400px]">
           {/* Mobile brand header */}
           <div className="lg:hidden text-center mb-8">
-            <span className="font-heading text-2xl">repco</span>
+            <span className="font-sans text-2xl">repco</span>
           </div>
 
           <LoginForm />

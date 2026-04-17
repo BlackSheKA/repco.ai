@@ -11,7 +11,7 @@
     "prefix": ""
   },
   "iconLibrary": "phosphor",
-  "rtl": false,
+  "rtl": true,
   "aliases": {
     "components": "@/components",
     "utils": "@/lib/utils",
