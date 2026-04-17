@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 01-foundation
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md, 01-03-SUMMARY.md, 01-04-SUMMARY.md, 01-05-SUMMARY.md]
 started: 2026-04-17T09:50:00Z
@@ -67,27 +67,46 @@ skipped: 2
   reason: "User reported: Theme toggle button clicks don't change the theme. localStorage.getItem('theme') returns null after multiple clicks. HTML class stays 'light'. CSS dark mode works when forced manually via JS. setTheme() from next-themes has no effect."
   severity: major
   test: 6
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "next-themes 0.4.6 incompatible with React 19.2.5 / Next.js 16.1.7. setTheme() returned by useTheme() is the no-op default. React 19 changed behavior for inline script tags rendered via dangerouslySetInnerHTML inside React components — they never execute on client-side renders, breaking next-themes' flash prevention script and state initialization."
+  artifacts:
+    - path: "src/components/providers/theme-provider.tsx"
+      issue: "Wraps broken next-themes ThemeProvider"
+    - path: "src/components/shell/theme-toggle.tsx"
+      issue: "Consumes broken useTheme() hook"
+    - path: "node_modules/next-themes/dist/index.mjs"
+      issue: "Library incompatible with React 19"
+  missing:
+    - "Replace next-themes with custom ThemeProvider (~50 lines) or @wrksz/themes drop-in replacement"
+  debug_session: ".planning/debug/theme-toggle-broken.md"
 
 - truth: "Mobile sidebar opens as overlay when hamburger is tapped"
   status: failed
   reason: "User reported: Hamburger click doesn't open sidebar as overlay on mobile. Sidebar element disappears entirely from DOM at mobile width. Toggle Sidebar button click has no visible effect."
   severity: major
   test: 7
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "useIsMobile hook returns false when toggleSidebar is called, causing it to call setOpen (desktop) instead of setOpenMobile (mobile). The hook initializes isMobile as undefined (!!undefined = false) and relies on useEffect + matchMedia, which may not fire correctly when viewport is resized after page load. toggleSidebar branches on stale isMobile value."
+  artifacts:
+    - path: "src/hooks/use-mobile.ts"
+      issue: "useIsMobile initial value is false (!!undefined), timing issue with matchMedia"
+    - path: "src/components/ui/sidebar.tsx"
+      issue: "toggleSidebar branches on isMobile — calls wrong setter when isMobile is stale"
+  missing:
+    - "Add console.log to toggleSidebar to verify isMobile at click time"
+    - "Ensure useIsMobile correctly handles viewport changes and initial state"
+  debug_session: ".planning/debug/mobile-sidebar-not-opening.md"
 
 - truth: "Sign out button shows confirmation dialog before signing out"
   status: failed
   reason: "User reported: AlertDialog confirmation doesn't appear when clicking Sign out. Zero elements with role='alertdialog' found in DOM after clicking. SignOutButton component uses AlertDialog with AlertDialogTrigger but dialog content never renders."
   severity: major
   test: 8
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Radix AlertDialog asChild Slot event handler composition fails with React 19. Known issues with Radix primitives and React 19's ref handling (radix-ui/primitives#3293, #3776). The Slot mergeProps onClick composition doesn't fire the internal onOpenToggle handler. May also be exacerbated by nesting AlertDialog inside Sidebar's Sheet (nested Dialog contexts)."
+  artifacts:
+    - path: "src/features/auth/components/sign-out-button.tsx"
+      issue: "AlertDialog trigger click doesn't open dialog due to Radix/React 19 asChild issue"
+    - path: "src/components/ui/sidebar.tsx"
+      issue: "On mobile, wraps children in Sheet (Radix Dialog), creating nested Dialog contexts"
+  missing:
+    - "Convert AlertDialog to controlled mode with explicit open/onOpenChange state"
+    - "Add direct onClick handler on trigger button to bypass Radix Slot composition"
+  debug_session: ".planning/debug/signout-alertdialog-not-opening.md"
