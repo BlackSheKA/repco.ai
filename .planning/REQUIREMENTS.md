@@ -24,16 +24,16 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **MNTR-03**: System applies structural matching (keyword, regex, competitor mention) to filter ~80-90% of signals at zero AI cost
 - [x] **MNTR-04**: System classifies ambiguous signals (~10-20%) using Claude Sonnet with intent_type, intent_strength (1-10), reasoning, and suggested_angle
 - [ ] **MNTR-05**: System deduplicates signals by post_url (UNIQUE constraint) and filters posts older than 48h
-- [ ] **MNTR-06**: System pushes new signals to dashboard in real-time via Supabase Realtime
+- [x] **MNTR-06**: System pushes new signals to dashboard in real-time via Supabase Realtime
 - [ ] **MNTR-07**: System logs each monitoring run to job_logs with duration, status, and signal count
 
 ### Intent Feed
 
-- [ ] **FEED-01**: User can view intent signals in a scrollable feed sorted by recency
-- [ ] **FEED-02**: Each signal shows platform, subreddit/source, author handle, time ago, post excerpt, and intent strength (1-10) with visual bar
-- [ ] **FEED-03**: User can click "Contact" to initiate outreach sequence for a signal
-- [ ] **FEED-04**: User can click "Dismiss" to remove a signal from the feed
-- [ ] **FEED-05**: User can filter signals by platform (Reddit/LinkedIn) and minimum intent strength
+- [x] **FEED-01**: User can view intent signals in a scrollable feed sorted by recency
+- [x] **FEED-02**: Each signal shows platform, subreddit/source, author handle, time ago, post excerpt, and intent strength (1-10) with visual bar
+- [x] **FEED-03**: User can click "Contact" to initiate outreach sequence for a signal
+- [x] **FEED-04**: User can click "Dismiss" to remove a signal from the feed
+- [x] **FEED-05**: User can filter signals by platform (Reddit/LinkedIn) and minimum intent strength
 
 ### Agent Persona
 
@@ -106,7 +106,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **DASH-01**: Dashboard displays persistent terminal header with last 5 agent actions in real-time
 - [ ] **DASH-02**: Dashboard displays multi-column layout: Agent card, Found Today (intent feed), Approval Queue, Results
-- [ ] **DASH-03**: Dashboard updates in real-time via Supabase Realtime for authenticated users
+- [x] **DASH-03**: Dashboard updates in real-time via Supabase Realtime for authenticated users
 - [ ] **DASH-04**: Dashboard shows revenue counter (user-configured avg deal value x conversions)
 
 ### Billing
@@ -197,19 +197,19 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MNTR-03 | Phase 2 | Complete |
 | MNTR-04 | Phase 2 | Complete |
 | MNTR-05 | Phase 2 | Pending |
-| MNTR-06 | Phase 2 | Pending |
+| MNTR-06 | Phase 2 | Complete |
 | MNTR-07 | Phase 2 | Pending |
-| FEED-01 | Phase 2 | Pending |
-| FEED-02 | Phase 2 | Pending |
-| FEED-03 | Phase 2 | Pending |
-| FEED-04 | Phase 2 | Pending |
-| FEED-05 | Phase 2 | Pending |
+| FEED-01 | Phase 2 | Complete |
+| FEED-02 | Phase 2 | Complete |
+| FEED-03 | Phase 2 | Complete |
+| FEED-04 | Phase 2 | Complete |
+| FEED-05 | Phase 2 | Complete |
 | AGNT-01 | Phase 2 | Pending |
 | AGNT-02 | Phase 2 | Complete |
 | AGNT-03 | Phase 2 | Pending |
 | DASH-01 | Phase 2 | Pending |
 | DASH-02 | Phase 2 | Pending |
-| DASH-03 | Phase 2 | Pending |
+| DASH-03 | Phase 2 | Complete |
 | ACTN-01 | Phase 3 | Pending |
 | ACTN-02 | Phase 3 | Pending |
 | ACTN-03 | Phase 3 | Pending |
