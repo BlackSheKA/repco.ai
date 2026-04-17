@@ -16,14 +16,19 @@ People who are actively looking for your product get a personalized, relevant DM
 - [x] OBSV-02: Zombie recovery cron (5 min) resets stuck actions — Validated in Phase 1: Foundation
 - [x] OBSV-03: Error tracking via Sentry + structured logging via Axiom — Validated in Phase 1: Foundation
 - [x] OBSV-04: Threshold alerting (success rate < 80%, timeout > 5%) via Sentry — Validated in Phase 1: Foundation
+- [x] MNTR-01: Reddit monitoring via snoowrap, 15-min Vercel Cron — Validated in Phase 2: Reddit Monitoring + Intent Feed
+- [x] MNTR-03: Structural keyword matching (80-90% zero AI cost) — Validated in Phase 2
+- [x] MNTR-04: Claude Sonnet classification for ambiguous signals — Validated in Phase 2
+- [x] MNTR-05: Deduplication by post_url + 48h freshness filter — Validated in Phase 2
+- [x] MNTR-06: Supabase Realtime feed updates — Validated in Phase 2
+- [x] MNTR-07: Job logging for monitor runs — Validated in Phase 2
+- [x] FEED-01 through FEED-05: Intent feed with signal cards, flame indicators, contact/dismiss, filters — Validated in Phase 2
+- [x] AGNT-01 through AGNT-03: Agent persona card, 7 emotional states, terminal header — Validated in Phase 2
+- [x] DASH-01 through DASH-03: Dashboard layout, realtime updates — Validated in Phase 2
 
 ### Active
 
 - [ ] Onboarding: 3-question flow (product, customer, competitor) that auto-generates keywords and subreddits
-- [ ] Monitoring: Reddit (snoowrap, co 15 min) + LinkedIn (Apify, co 2-4h) intent detection
-- [ ] Signal detection: structural keyword/pattern matching + Claude Sonnet classification for ambiguous signals
-- [ ] Intent feed: real-time dashboard showing detected signals with intent strength scoring (1-10)
-- [ ] Agent persona: "repco" with emotional states (Scanning, Found, Waiting, Sent, Reply, Cooldown, Quiet)
 - [ ] Action engine: event-driven (Supabase DB Webhook -> Vercel Function -> GoLogin -> Playwright CDP -> Claude Haiku CU)
 - [ ] Human-in-the-loop: DM + public reply require approval; like + follow auto-approved
 - [ ] DM generation: Claude Sonnet 4.6, max 3 sentences, references specific post, quality control pass
@@ -87,4 +92,4 @@ People who are actively looking for your product get a personalized, relevant DM
 | Event-driven actions (DB Webhook) over polling | Zero empty invocations, fires only on user approval | — Pending |
 
 ---
-*Last updated: 2026-04-17 — Phase 1 Foundation complete*
+*Last updated: 2026-04-17 — Phase 2 Reddit Monitoring + Intent Feed complete*
