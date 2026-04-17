@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/zombie-recovery",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/monitor-reddit",
+      "schedule": "*/15 * * * *"
     }
   ]
 }
