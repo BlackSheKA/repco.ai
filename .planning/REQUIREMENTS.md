@@ -37,9 +37,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Agent Persona
 
-- [ ] **AGNT-01**: Dashboard displays agent card showing "repco" with current state and today's stats
+- [x] **AGNT-01**: Dashboard displays agent card showing "repco" with current state and today's stats
 - [x] **AGNT-02**: Agent has emotional states: Scanning, Found, Waiting, Sent, Reply, Cooldown, Quiet
-- [ ] **AGNT-03**: Terminal header (persistent, top, black bg) shows last 5 agent actions in real-time with monospace font and orange accents
+- [x] **AGNT-03**: Terminal header (persistent, top, black bg) shows last 5 agent actions in real-time with monospace font and orange accents
 
 ### Action Engine
 
@@ -104,8 +104,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Dashboard
 
-- [ ] **DASH-01**: Dashboard displays persistent terminal header with last 5 agent actions in real-time
-- [ ] **DASH-02**: Dashboard displays multi-column layout: Agent card, Found Today (intent feed), Approval Queue, Results
+- [x] **DASH-01**: Dashboard displays persistent terminal header with last 5 agent actions in real-time
+- [x] **DASH-02**: Dashboard displays multi-column layout: Agent card, Found Today (intent feed), Approval Queue, Results
 - [x] **DASH-03**: Dashboard updates in real-time via Supabase Realtime for authenticated users
 - [ ] **DASH-04**: Dashboard shows revenue counter (user-configured avg deal value x conversions)
 
@@ -204,11 +204,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FEED-03 | Phase 2 | Complete |
 | FEED-04 | Phase 2 | Complete |
 | FEED-05 | Phase 2 | Complete |
-| AGNT-01 | Phase 2 | Pending |
+| AGNT-01 | Phase 2 | Complete |
 | AGNT-02 | Phase 2 | Complete |
-| AGNT-03 | Phase 2 | Pending |
-| DASH-01 | Phase 2 | Pending |
-| DASH-02 | Phase 2 | Pending |
+| AGNT-03 | Phase 2 | Complete |
+| DASH-01 | Phase 2 | Complete |
+| DASH-02 | Phase 2 | Complete |
 | DASH-03 | Phase 2 | Complete |
 | ACTN-01 | Phase 3 | Pending |
 | ACTN-02 | Phase 3 | Pending |

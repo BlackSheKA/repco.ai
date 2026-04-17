@@ -13,7 +13,7 @@ repco.ai is built in six phases that follow the strict dependency chain from res
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Foundation** - Supabase schema + RLS + Auth, Next.js 15 shell, observability infrastructure
-- [ ] **Phase 2: Reddit Monitoring + Intent Feed** - snoowrap ingestion, hybrid signal classification, real-time intent feed, dashboard shell, agent persona
+- [x] **Phase 2: Reddit Monitoring + Intent Feed** - snoowrap ingestion, hybrid signal classification, real-time intent feed, dashboard shell, agent persona (completed 2026-04-17)
 - [ ] **Phase 3: Action Engine** - GoLogin + Playwright + Haiku CU action execution, approval queue, anti-ban system, account management
 - [ ] **Phase 4: Sequences + Reply Detection** - 3-touch follow-up sequences, inbox reply detection, email notifications
 - [ ] **Phase 5: Billing + Onboarding + Growth** - Stripe subscription + credit economy, 3-question onboarding, landing hook, /live page, prospect pipeline
@@ -139,7 +139,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 4/5 | Gap closure | - |
-| 2. Reddit Monitoring + Intent Feed | 0/4 | Not started | - |
+| 2. Reddit Monitoring + Intent Feed | 4/4 | Complete   | 2026-04-17 |
 | 3. Action Engine | 0/5 | Not started | - |
 | 4. Sequences + Reply Detection | 0/3 | Not started | - |
 | 5. Billing + Onboarding + Growth | 0/5 | Not started | - |
