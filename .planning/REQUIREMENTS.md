@@ -139,9 +139,9 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Observability
 
 - [x] **OBSV-01**: System logs all action executions to job_logs with duration_ms, status, and error details
-- [ ] **OBSV-02**: System runs zombie recovery cron every 5 minutes: actions stuck in "executing" > 10 min are reset
+- [x] **OBSV-02**: System runs zombie recovery cron every 5 minutes: actions stuck in "executing" > 10 min are reset
 - [x] **OBSV-03**: System tracks error rates via Sentry with structured logging via Axiom
-- [ ] **OBSV-04**: System alerts (email) when action success rate < 80% or timeout rate > 5%
+- [x] **OBSV-04**: System alerts (email) when action success rate < 80% or timeout rate > 5%
 
 ## v2 Requirements
 
@@ -190,9 +190,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | OBSV-01 | Phase 1 | Complete |
-| OBSV-02 | Phase 1 | Pending |
+| OBSV-02 | Phase 1 | Complete |
 | OBSV-03 | Phase 1 | Complete |
-| OBSV-04 | Phase 1 | Pending |
+| OBSV-04 | Phase 1 | Complete |
 | MNTR-01 | Phase 2 | Pending |
 | MNTR-03 | Phase 2 | Pending |
 | MNTR-04 | Phase 2 | Pending |
