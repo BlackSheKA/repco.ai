@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { logger } from "@/lib/logger";
+import { checkActionThresholds } from "@/lib/alerts";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -94,10 +95,22 @@ export async function GET(request: Request) {
       },
     });
 
+    // OBSV-04: Check action success/timeout rate thresholds
+    let thresholds = { totalActions: 0, successRate: 100, timeoutRate: 0, alertsFired: [] as string[] };
+    try {
+      thresholds = await checkActionThresholds(supabase, correlationId);
+    } catch (thresholdErr) {
+      logger.warn("Threshold check failed", {
+        correlationId,
+        error: thresholdErr instanceof Error ? thresholdErr.message : String(thresholdErr),
+      });
+    }
+
     logger.info("Zombie recovery completed", {
       correlationId,
       stuckCount,
       durationMs,
+      ...thresholds,
     });
 
     await logger.flush();
@@ -106,6 +119,7 @@ export async function GET(request: Request) {
       ok: true,
       stuckCount,
       durationMs,
+      thresholds,
     });
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));
