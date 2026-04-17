@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-04-17T07:54:16.822Z"
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-04-17T08:00:42.075Z"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -47,6 +47,7 @@ Plan: 2 of 4
 
 *Updated after each plan completion*
 | Phase 01 P02 | 3min | 2 tasks | 5 files |
+| Phase 01 P01 | 8min | 2 tasks | 33 files |
 
 ## Accumulated Context
 
@@ -61,6 +62,8 @@ Recent decisions affecting current work:
 - Anti-ban warmup (Phase 3) must complete before any DM outreach
 - [Phase 01]: 12 ENUM types for all constrained PRD schema columns; ON DELETE CASCADE on user FKs, SET NULL on job_logs
 - [Phase 01]: Anon SELECT on live_stats and public intent_signals for /live page; action_counts RLS via social_accounts subquery
+- [Phase 01]: Accepted Next.js 16 from shadcn preset (locked command) instead of 15; Tailwind v4 CSS-based config
+- [Phase 01]: Brand palette: oklch color values mapping #E8500A accent, zinc neutrals; src/ directory layout
 
 ### Pending Todos
 
@@ -74,6 +77,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-17T07:54:16.819Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-04-17T08:00:42.073Z
+Stopped at: Completed 01-01-PLAN.md
 Resume file: None
