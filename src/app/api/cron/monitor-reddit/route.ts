@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logger } from "@/lib/logger"
 import { runIngestionForUser } from "@/features/monitoring/lib/ingestion-pipeline"
+import { classifyPendingSignals } from "@/features/monitoring/lib/classification-pipeline"
 import type { MonitoringConfig } from "@/features/monitoring/lib/types"
 
 export const runtime = "nodejs"
@@ -109,6 +110,29 @@ export async function GET(request: Request) {
       }
     }
 
+    // Classify pending signals (structural match + Sonnet fallback)
+    let classResult = { classified: 0, errors: 0 }
+    try {
+      classResult = await classifyPendingSignals(supabase)
+      logger.info("Classification pipeline complete", {
+        correlationId,
+        classified: classResult.classified,
+        classificationErrors: classResult.errors,
+      })
+    } catch (classErr) {
+      logger.error("Classification pipeline failed", {
+        correlationId,
+        error:
+          classErr instanceof Error
+            ? classErr
+            : new Error(String(classErr)),
+        errorMessage:
+          classErr instanceof Error
+            ? classErr.message
+            : String(classErr),
+      })
+    }
+
     const finishedAt = new Date()
     const durationMs = finishedAt.getTime() - startedAt.getTime()
 
@@ -124,6 +148,8 @@ export async function GET(request: Request) {
         correlation_id: correlationId,
         total_signals: totalSignals,
         users_processed: usersProcessed,
+        classified: classResult.classified,
+        classification_errors: classResult.errors,
       },
     })
 
@@ -131,6 +157,7 @@ export async function GET(request: Request) {
       correlationId,
       usersProcessed,
       totalSignals,
+      classified: classResult.classified,
       durationMs,
     })
 
@@ -140,6 +167,8 @@ export async function GET(request: Request) {
       ok: true,
       usersProcessed,
       totalSignals,
+      classified: classResult.classified,
+      classificationErrors: classResult.errors,
       durationMs,
     })
   } catch (err) {
