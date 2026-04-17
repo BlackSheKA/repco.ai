@@ -31,12 +31,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Any unhandled error in production appears in Sentry with structured context visible in Axiom
   4. A zombie recovery cron runs every 5 minutes and resets stale "executing" actions
   5. The app is deployed to Vercel Pro and accessible at its production URL
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 01-01: Next.js 15 project scaffold, Supabase project setup, Vercel deployment pipeline
-- [ ] 01-02: Full database schema + RLS + Auth configuration
-- [ ] 01-03: Sentry + Axiom observability, zombie recovery cron, job_logs table
+- [ ] 01-01-PLAN.md — Project scaffold: Next.js 15, shadcn/ui preset, brand theming, Supabase client utilities
+- [ ] 01-02-PLAN.md — Database schema: all 11 PRD tables, ENUMs, indexes, RLS policies, auth trigger
+- [ ] 01-03-PLAN.md — Auth flow + app shell: login page, middleware, sidebar, header, theme toggle
+- [ ] 01-04-PLAN.md — Observability: Sentry, Axiom, structured logger, zombie recovery cron
 
 ### Phase 2: Reddit Monitoring + Intent Feed
 **Goal**: The system monitors Reddit every 15 minutes, classifies intent signals using structural matching + Claude Sonnet, and surfaces them in a real-time dashboard with agent persona
@@ -136,7 +137,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/3 | Not started | - |
+| 1. Foundation | 0/4 | Not started | - |
 | 2. Reddit Monitoring + Intent Feed | 0/4 | Not started | - |
 | 3. Action Engine | 0/5 | Not started | - |
 | 4. Sequences + Reply Detection | 0/3 | Not started | - |
