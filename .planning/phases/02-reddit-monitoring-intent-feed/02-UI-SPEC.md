@@ -43,8 +43,6 @@ Inherited from Phase 1. Declared values (must be multiples of 4):
 | 2xl | 48px | Gap between agent card and filter bar |
 | 3xl | 64px | Not used in Phase 2 |
 
-Exceptions: 44px minimum touch target for "Contact" and "Dismiss" buttons on mobile.
-
 ---
 
 ## Typography
@@ -68,7 +66,7 @@ Additional type specs for Phase 2:
 | Agent stat label | Inter | 14px | 400 (regular) | 1.4 |
 | Signal card excerpt | Inter | 16px | 400 (regular) | 1.5 |
 | Intent strength label | Inter | 14px | 500 (medium) | 1.4 |
-| Terminal timestamp | JetBrains Mono | 12px | 400 (regular) | 1.6 |
+| Terminal timestamp | JetBrains Mono | 14px | 400 (regular) | 1.6 |
 
 ---
 
@@ -119,7 +117,7 @@ Accent reserved for: "Contact" CTA button, hot flame icon (score 7-10), terminal
 - Height: 120px (5 lines x 24px)
 - Background: always dark (see Terminal Header Colors above)
 - Font: JetBrains Mono 14px, line-height 1.6
-- Padding: 16px horizontal, 12px vertical
+- Padding: 16px horizontal, 8px vertical
 - Shows last 5 agent actions, newest at bottom
 - Each line format: `> {action text}` or `{symbol} {action text}`
 - Symbols: `>` for active scanning (muted), checkmark for completed (green), spinner character for in-progress (muted)
@@ -184,7 +182,7 @@ State transitions update the agent card in real-time via Supabase Realtime. No p
 - Layout: vertical stack
 
 Top row (horizontal flex, space-between):
-- Left: platform badge (rounded-full pill, 24px height) — Reddit: `#FF4500` background, white "Reddit" text in Inter 12px medium; LinkedIn placeholder: `#0A66C2` background, white "LinkedIn" text
+- Left: platform badge (rounded-full pill, 24px height) — Reddit: `#FF4500` background, white "Reddit" text in Inter 14px medium; LinkedIn placeholder: `#0A66C2` background, white "LinkedIn" text
 - Left (continued): subreddit name in Inter 14px medium, muted text — e.g., "r/SaaS"
 - Left (continued): dot separator, then author handle in Inter 14px regular, muted text — e.g., "u/jakub_founder"
 - Right: time ago in Inter 14px regular, muted text — e.g., "4m ago"
@@ -218,19 +216,19 @@ Bottom row (horizontal flex, space-between, items center):
 **Section 1: Keywords**
 - Section label: "Keywords" in Inter 16px weight 500, margin-bottom 16px
 - Description: "Posts containing these words will be detected as signals." in Inter 14px regular, muted text, margin-bottom 16px
-- Input row: shadcn `Input` (placeholder "Add a keyword...") + shadcn `Button` variant `default` size `sm` label "Add", horizontal flex, 8px gap
+- Input row: shadcn `Input` (placeholder "Add a keyword...") + shadcn `Button` variant `default` size `sm` label "Add Keyword", horizontal flex, 8px gap
 - Keyword list: vertical stack below input, 8px gap
   - Each keyword: pill shape (rounded-full), secondary surface background, border token border, Inter 14px regular, 8px horizontal padding, 4px vertical padding
-  - "x" remove button: lucide `X` icon at 14px, muted text, hover accent color, inside the pill on the right
+  - "x" remove button: lucide `X` icon at 14px, muted text, hover accent color, inside the pill on the right, `aria-label="Remove keyword {value}"`
 - Validation: minimum 1 character, no duplicates. On duplicate: toast "Keyword already added"
 - Save: instant on add/remove (no save button). Optimistic update with rollback on error.
 
 **Section 2: Subreddits**
 - Section label: "Subreddits" in Inter 16px weight 500, margin-bottom 16px
 - Description: "Reddit communities to monitor for intent signals." in Inter 14px regular, muted text, margin-bottom 16px
-- Input row: shadcn `Input` (placeholder "r/subreddit") + shadcn `Button` variant `default` size `sm` label "Add", horizontal flex, 8px gap
+- Input row: shadcn `Input` (placeholder "r/subreddit") + shadcn `Button` variant `default` size `sm` label "Add Subreddit", horizontal flex, 8px gap
 - Input auto-prepends "r/" if user omits it
-- Subreddit list: same pill pattern as keywords
+- Subreddit list: same pill pattern as keywords, remove button `aria-label="Remove subreddit {value}"`
 - Validation: must start with "r/" after normalization, no duplicates
 - Save: instant on add/remove
 
@@ -330,7 +328,7 @@ All from shadcn official registry. No new components beyond what Phase 1 already
 4. If more than 5 entries, only show the most recent 5
 
 ### Settings — keyword/subreddit management
-1. User types keyword/subreddit, clicks "Add" or presses Enter
+1. User types keyword/subreddit, clicks "Add Keyword"/"Add Subreddit" or presses Enter
 2. Optimistic update: pill appears immediately
 3. Background save to database
 4. On success: toast confirmation
@@ -367,8 +365,11 @@ All from shadcn official registry. No new components beyond what Phase 1 already
 | Platform filter | `aria-label="Filter by platform"` |
 | Intent filter | `aria-label="Filter by minimum intent strength"` |
 | Show dismissed | `aria-label="Show dismissed signals"` |
+| Keyword pill remove | `aria-label="Remove keyword {value}"` |
+| Subreddit pill remove | `aria-label="Remove subreddit {value}"` |
 | Keyboard nav | Tab order: filters -> signal cards (Contact, Dismiss) -> scroll for more |
 | Color contrast | All text on secondary surfaces meets WCAG AA (4.5:1 for body, 3:1 for large text) |
+| Touch targets | "Contact" and "Dismiss" buttons: `min-height: 44px` on mobile (WCAG 2.5.8) |
 
 ---
 
