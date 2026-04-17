@@ -21,8 +21,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **MNTR-01**: System scans Reddit every 15 minutes for posts matching user's keywords and subreddits via snoowrap
 - [ ] **MNTR-02**: System scans LinkedIn every 2-4 hours for posts matching user's keywords via Apify
-- [ ] **MNTR-03**: System applies structural matching (keyword, regex, competitor mention) to filter ~80-90% of signals at zero AI cost
-- [ ] **MNTR-04**: System classifies ambiguous signals (~10-20%) using Claude Sonnet with intent_type, intent_strength (1-10), reasoning, and suggested_angle
+- [x] **MNTR-03**: System applies structural matching (keyword, regex, competitor mention) to filter ~80-90% of signals at zero AI cost
+- [x] **MNTR-04**: System classifies ambiguous signals (~10-20%) using Claude Sonnet with intent_type, intent_strength (1-10), reasoning, and suggested_angle
 - [ ] **MNTR-05**: System deduplicates signals by post_url (UNIQUE constraint) and filters posts older than 48h
 - [ ] **MNTR-06**: System pushes new signals to dashboard in real-time via Supabase Realtime
 - [ ] **MNTR-07**: System logs each monitoring run to job_logs with duration, status, and signal count
@@ -38,7 +38,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Agent Persona
 
 - [ ] **AGNT-01**: Dashboard displays agent card showing "repco" with current state and today's stats
-- [ ] **AGNT-02**: Agent has emotional states: Scanning, Found, Waiting, Sent, Reply, Cooldown, Quiet
+- [x] **AGNT-02**: Agent has emotional states: Scanning, Found, Waiting, Sent, Reply, Cooldown, Quiet
 - [ ] **AGNT-03**: Terminal header (persistent, top, black bg) shows last 5 agent actions in real-time with monospace font and orange accents
 
 ### Action Engine
@@ -194,8 +194,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OBSV-03 | Phase 1 | Complete |
 | OBSV-04 | Phase 1 | Complete |
 | MNTR-01 | Phase 2 | Pending |
-| MNTR-03 | Phase 2 | Pending |
-| MNTR-04 | Phase 2 | Pending |
+| MNTR-03 | Phase 2 | Complete |
+| MNTR-04 | Phase 2 | Complete |
 | MNTR-05 | Phase 2 | Pending |
 | MNTR-06 | Phase 2 | Pending |
 | MNTR-07 | Phase 2 | Pending |
@@ -205,7 +205,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FEED-04 | Phase 2 | Pending |
 | FEED-05 | Phase 2 | Pending |
 | AGNT-01 | Phase 2 | Pending |
-| AGNT-02 | Phase 2 | Pending |
+| AGNT-02 | Phase 2 | Complete |
 | AGNT-03 | Phase 2 | Pending |
 | DASH-01 | Phase 2 | Pending |
 | DASH-02 | Phase 2 | Pending |
