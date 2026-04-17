@@ -48,7 +48,7 @@ export function SignalCard({
           </Badge>
           {signal.subreddit && (
             <span className="text-sm font-medium text-muted-foreground">
-              r/{signal.subreddit}
+              {signal.subreddit}
             </span>
           )}
           {signal.author_handle && (

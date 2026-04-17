@@ -145,11 +145,11 @@ export function useRealtimeTerminal(userId: string) {
           const row = payload.new as {
             id: string
             author_handle: string
-            content_snippet: string
+            post_content: string
             intent_strength: number
             detected_at: string
           }
-          const excerpt = truncate(row.content_snippet ?? "", 50)
+          const excerpt = truncate(row.post_content ?? "", 50)
           addEntry({
             id: row.id,
             text: `> Intent detected: ${row.author_handle} "${excerpt}" [${row.intent_strength}/10]`,
