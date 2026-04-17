@@ -54,7 +54,7 @@ Inherited from Phase 1/2. All roles apply:
 | Role | Font | Size | Weight | Line Height | Phase 3 Usage |
 |------|------|------|--------|-------------|---------------|
 | Body | Inter | 16px | 400 (regular) | 1.5 | DM draft text, post excerpt in approval card, account descriptions |
-| Label | Inter | 14px | 500 (medium) | 1.4 | Approval card metadata, account name, health badge label, daily limit labels |
+| Label | Inter | 14px | 400 (regular) | 1.4 | Approval card metadata, account name, health badge label, daily limit labels |
 | Heading | Inter | 28px | 600 (semibold) | 1.2 | "Approval Queue" section heading, "Accounts" page title |
 | Mono | Geist Mono | 14px | 400 (regular) | 1.6 | Terminal header action execution lines |
 
@@ -65,7 +65,7 @@ Additional type specs for Phase 3:
 | DM draft text (editable) | Inter | 16px | 400 (regular) | 1.5 |
 | Suggested angle label | Inter | 14px | 400 (regular) | 1.4 |
 | Account username | Inter | 20px | 600 (semibold) | 1.2 |
-| Warmup day label | Inter | 14px | 500 (medium) | 1.4 |
+| Warmup day label | Inter | 14px | 400 (regular) | 1.4 |
 | Daily limit number | Inter | 20px | 400 (regular) | 1.2 |
 | Daily limit label | Inter | 14px | 400 (regular) | 1.4 |
 | Last action timestamp | Inter | 14px | 400 (regular) | 1.4 |
@@ -139,19 +139,19 @@ Context row:
 
 Angle row:
 - Margin-top: 8px
-- "Suggested angle:" label in Inter 14px medium, muted text
+- "Suggested angle:" label in Inter 14px regular, muted text
 - Angle text in Inter 14px regular, default text -- displayed inline after label
 
 DM Draft row:
-- Margin-top: 12px
+- Margin-top: 16px
 - Background: dominant surface (creates contrast from card secondary surface)
 - Border: 1px border token, rounded-md (6px radius)
-- Padding: 12px
+- Padding: 16px
 - DM text: Inter 16px regular, default text, line-height 1.5
 - When editing: same area becomes a `textarea` with identical styling, auto-height, no resize handle
 
 Action row:
-- Margin-top: 12px
+- Margin-top: 16px
 - Horizontal flex, 8px gap, right-aligned
 - "Approve" button: shadcn `Button` variant `default` (accent background), size `sm`
 - "Edit" button: shadcn `Button` variant `outline`, size `sm`
@@ -161,14 +161,14 @@ Action row:
 **Edit mode (inline):**
 - Triggered by clicking "Edit" button
 - DM text area becomes editable textarea
-- "Edit" button label changes to "Cancel"
+- "Edit" button label changes to "Discard edits"
 - "Approve" button remains visible (approves edited text)
 - Textarea auto-focuses on edit activation
 - No modal, no separate screen
 
 **Empty state (no pending approvals):**
 - Centered in approval queue section area
-- Heading: "No messages pending" in Inter 16px weight 500
+- Heading: "No messages pending" in Inter 16px weight 600
 - Body: "When you click Contact on a signal, repco will draft a DM for your review." in Inter 14px regular, muted text
 
 ### Screen 2: Accounts Page (`/accounts`)
@@ -195,12 +195,12 @@ Left section:
 - Last action: "Last action: {time ago}" in Inter 14px regular, muted text, below username row with 4px top margin
 
 Center section -- Warmup Progress:
-- Label: "Warmup: Day {X} of 7" in Inter 14px medium
+- Label: "Warmup: Day {X} of 7" in Inter 14px regular
 - Progress bar: full width of center section, 8px height, rounded-full
 - Progress bar background: muted at 20% opacity
 - Progress bar fill: colored per Warmup Progress Bar Colors table, segmented
-- If warmup complete: "Warmup complete" in Inter 14px medium, green-500 text, no progress bar
-- If warmup skipped: "Warmup skipped" in Inter 14px medium, amber-500 text with tooltip "This account skipped warmup. Higher ban risk."
+- If warmup complete: "Warmup complete" in Inter 14px regular, green-500 text, no progress bar
+- If warmup skipped: "Warmup skipped" in Inter 14px regular, amber-500 text with tooltip "This account skipped warmup. Higher ban risk."
 
 Right section -- Daily Limits:
 - Three columns, 16px gap
@@ -231,7 +231,7 @@ Right section -- Daily Limits:
 
 **Connection flow card:**
 - Same card styling as account cards
-- Step indicator: "Step {N} of 3" in Inter 14px medium, muted text
+- Step indicator: "Step {N} of 3" in Inter 14px regular, muted text
 
 Step 1 -- GoLogin Login:
 - Instruction: "Log into Reddit using the GoLogin browser window that just opened." in Inter 16px regular
@@ -255,7 +255,7 @@ Step 3 -- Result:
 |---------|------|
 | Primary CTA (approval card) | "Approve" |
 | Edit action | "Edit" |
-| Cancel edit | "Cancel" |
+| Discard edits action | "Discard edits" |
 | Regenerate action | "Regenerate" |
 | Reject action | "Reject" |
 | Approve toast | "Message approved -- sending shortly" |
@@ -338,9 +338,9 @@ All from shadcn official registry. No third-party blocks required.
 ### Edit action (inline)
 1. User clicks "Edit" on approval card
 2. DM draft area becomes editable textarea, auto-focused, cursor at end
-3. "Edit" button label changes to "Cancel"
+3. "Edit" button label changes to "Discard edits"
 4. "Approve" button remains active -- approves the edited text
-5. User clicks "Cancel" -- textarea reverts to original text, returns to read-only
+5. User clicks "Discard edits" -- textarea reverts to original text, returns to read-only
 6. User clicks "Approve" -- saves edited text, then follows approve flow
 
 ### Regenerate action
@@ -415,7 +415,7 @@ All from shadcn official registry. No third-party blocks required.
 | Approval card | `role="article"`, DM draft area has `aria-label="DM draft for {author}"` |
 | Approve button | `aria-label="Approve message to {author}"` |
 | Reject button | `aria-label="Reject message to {author}"` |
-| Edit button | `aria-label="Edit message to {author}"` / `aria-label="Cancel editing"` (toggle) |
+| Edit button | `aria-label="Edit message to {author}"` / `aria-label="Discard edits"` (toggle) |
 | Regenerate button | `aria-label="Generate new draft for {author}"` |
 | DM textarea (edit mode) | `aria-label="Edit DM to {author}"`, auto-focus on activation |
 | Account card | `role="article"`, `aria-label="Account {username}"` |
