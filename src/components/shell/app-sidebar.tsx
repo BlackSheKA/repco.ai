@@ -1,5 +1,6 @@
-"use client";
+"use client"
 
+import { usePathname } from "next/navigation"
 import {
   CheckCircle,
   LayoutDashboard,
@@ -7,9 +8,9 @@ import {
   Settings,
   Shield,
   Users,
-} from "lucide-react";
+} from "lucide-react"
 
-import { SignOutButton } from "@/features/auth/components/sign-out-button";
+import { SignOutButton } from "@/features/auth/components/sign-out-button"
 import {
   Sidebar,
   SidebarContent,
@@ -20,22 +21,31 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
+} from "@/components/ui/sidebar"
 
 const NAV_ITEMS = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/", active: true },
-  { label: "Signals", icon: Radio, href: "#", active: false },
-  { label: "Approvals", icon: CheckCircle, href: "#", active: false },
-  { label: "Prospects", icon: Users, href: "#", active: false },
-  { label: "Accounts", icon: Shield, href: "#", active: false },
-  { label: "Settings", icon: Settings, href: "/settings", active: false },
-];
+  { label: "Dashboard", icon: LayoutDashboard, href: "/" },
+  { label: "Signals", icon: Radio, href: "#" },
+  { label: "Approvals", icon: CheckCircle, href: "#" },
+  { label: "Prospects", icon: Users, href: "#" },
+  { label: "Accounts", icon: Shield, href: "/accounts" },
+  { label: "Settings", icon: Settings, href: "/settings" },
+]
 
 interface AppSidebarProps {
-  user: { email: string };
+  user: { email: string }
+  hasAccountAlerts?: boolean
 }
 
-export function AppSidebar({ user }: AppSidebarProps) {
+export function AppSidebar({ user, hasAccountAlerts }: AppSidebarProps) {
+  const pathname = usePathname()
+
+  function isActive(href: string): boolean {
+    if (href === "/") return pathname === "/"
+    if (href === "#") return false
+    return pathname.startsWith(href)
+  }
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -49,13 +59,19 @@ export function AppSidebar({ user }: AppSidebarProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               {NAV_ITEMS.map((item) => (
-                <SidebarMenuItem key={item.label}>
-                  <SidebarMenuButton asChild isActive={item.active}>
+                <SidebarMenuItem key={item.label} className="relative">
+                  <SidebarMenuButton asChild isActive={isActive(item.href)}>
                     <a href={item.href}>
                       <item.icon />
                       <span>{item.label}</span>
                     </a>
                   </SidebarMenuButton>
+                  {item.label === "Accounts" && hasAccountAlerts && (
+                    <span
+                      className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive"
+                      aria-label="Account needs attention"
+                    />
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -72,5 +88,5 @@ export function AppSidebar({ user }: AppSidebarProps) {
         </div>
       </SidebarFooter>
     </Sidebar>
-  );
+  )
 }
