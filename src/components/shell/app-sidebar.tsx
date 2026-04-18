@@ -1,6 +1,8 @@
 "use client"
 
+import Image from "next/image"
 import { usePathname } from "next/navigation"
+import { useTheme } from "next-themes"
 import {
   CheckCircle,
   LayoutDashboard,
@@ -10,6 +12,8 @@ import {
   Users,
 } from "lucide-react"
 
+import logoDark from "@/app/images/repco-dark-mode.svg"
+import logoLight from "@/app/images/repco-light-mode.svg"
 import { SignOutButton } from "@/features/auth/components/sign-out-button"
 import {
   Sidebar,
@@ -39,6 +43,8 @@ interface AppSidebarProps {
 
 export function AppSidebar({ user, hasAccountAlerts }: AppSidebarProps) {
   const pathname = usePathname()
+  const { resolvedTheme } = useTheme()
+  const logo = resolvedTheme === "dark" ? logoDark : logoLight
 
   function isActive(href: string): boolean {
     if (href === "/") return pathname === "/"
@@ -50,7 +56,7 @@ export function AppSidebar({ user, hasAccountAlerts }: AppSidebarProps) {
     <Sidebar>
       <SidebarHeader>
         <div className="p-2">
-          <span className="text-xl font-semibold">repco</span>
+          <Image src={logo} alt="repco" height={28} priority />
         </div>
       </SidebarHeader>
 
