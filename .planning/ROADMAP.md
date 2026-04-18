@@ -71,14 +71,15 @@ Plans:
   4. No account can contact a prospect already contacted by another account (target isolation enforced)
   5. Each connected social account has a dedicated GoLogin Cloud profile and completes the 7-day progressive warmup before DMs are enabled
   6. User can view warmup progress, health status (healthy/warning/cooldown/banned), and remaining daily capacity for each account
-**Plans**: TBD
+**Plans:** 6 plans
 
 Plans:
-- [ ] 03-01: GoLogin Cloud adapter, Playwright CDP integration, Haiku CU executor (max 15 steps, stuck detection)
-- [ ] 03-02: DB Webhook → Vercel Function action worker, FOR UPDATE SKIP LOCKED, state machine, screenshot storage
-- [ ] 03-03: DM generation (Claude Sonnet 4.6, 3-sentence limit, quality control pass), approval queue UI
-- [ ] 03-04: Anti-ban system: warmup protocol, behavioral noise, random delays, action timing, target isolation
-- [ ] 03-05: Account management UI: health status, warmup progress, daily limits, GoLogin profile lifecycle
+- [ ] 03-01-PLAN.md — DB migration (expired enum, claim RPC, limit RPC, target isolation), GoLogin REST client + CDP adapter, shared types
+- [ ] 03-02-PLAN.md — DM generation (Claude Sonnet 4.6, 3-sentence limit, QC rules) with TDD
+- [ ] 03-03-PLAN.md — Haiku CU executor (15-step cap, stuck detection), action worker pipeline, webhook handler, daily limits, expiry cron
+- [ ] 03-04-PLAN.md — Anti-ban system: random delays, behavioral noise, timezone timing, target isolation, health state machine, warmup cron
+- [ ] 03-05-PLAN.md — Approval queue UI (stacked cards, inline edit, approve/reject/regenerate), Realtime updates, contact-to-action flow
+- [ ] 03-06-PLAN.md — Account management page (/accounts), health badges, warmup progress, daily limits, connection flow, sidebar update
 
 ### Phase 4: Sequences + Reply Detection
 **Goal**: Prospects who don't reply receive structured follow-ups at day 3, 7, and 14; replies are detected automatically and stop all follow-ups; users are notified by email for replies, account alerts, and daily digests
@@ -141,7 +142,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|----------------|--------|-----------|
 | 1. Foundation | 5/6 | Gap closure | - |
 | 2. Reddit Monitoring + Intent Feed | 4/4 | Complete   | 2026-04-17 |
-| 3. Action Engine | 0/5 | Not started | - |
+| 3. Action Engine | 0/6 | Not started | - |
 | 4. Sequences + Reply Detection | 0/3 | Not started | - |
 | 5. Billing + Onboarding + Growth | 0/5 | Not started | - |
 | 6. LinkedIn | 0/1 | Not started | - |
