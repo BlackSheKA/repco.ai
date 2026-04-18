@@ -97,9 +97,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Account Management
 
-- [ ] **ACCT-01**: User can view health status and warmup progress for each connected social account
-- [ ] **ACCT-02**: User can see daily action limits and remaining capacity per account
-- [ ] **ACCT-03**: User can assign accounts to signal sources (which account responds to which platform)
+- [x] **ACCT-01**: User can view health status and warmup progress for each connected social account
+- [x] **ACCT-02**: User can see daily action limits and remaining capacity per account
+- [x] **ACCT-03**: User can assign accounts to signal sources (which account responds to which platform)
 - [x] **ACCT-04**: System automatically manages GoLogin profiles (create, open, close) without user intervention
 
 ### Dashboard
@@ -231,9 +231,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ABAN-05 | Phase 3 | Complete |
 | ABAN-06 | Phase 3 | Complete |
 | ABAN-07 | Phase 3 | Complete |
-| ACCT-01 | Phase 3 | Pending |
-| ACCT-02 | Phase 3 | Pending |
-| ACCT-03 | Phase 3 | Pending |
+| ACCT-01 | Phase 3 | Complete |
+| ACCT-02 | Phase 3 | Complete |
+| ACCT-03 | Phase 3 | Complete |
 | ACCT-04 | Phase 3 | Complete |
 | FLLW-01 | Phase 4 | Pending |
 | FLLW-02 | Phase 4 | Pending |
