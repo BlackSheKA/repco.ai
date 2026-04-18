@@ -48,11 +48,11 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **ACTN-03**: System runs quality control pass on generated DM (rejects spammy, generic, long, or link-containing messages)
 - [ ] **ACTN-04**: DM action appears in approval queue with status pending_approval
 - [ ] **ACTN-05**: System executes approved actions via Supabase DB Webhook -> Vercel Function -> GoLogin Cloud -> Playwright CDP -> Claude Haiku CU
-- [ ] **ACTN-06**: System uses FOR UPDATE SKIP LOCKED for atomic action claiming (no duplicate execution)
+- [x] **ACTN-06**: System uses FOR UPDATE SKIP LOCKED for atomic action claiming (no duplicate execution)
 - [ ] **ACTN-07**: System takes screenshot after action execution for verification
 - [ ] **ACTN-08**: System limits Haiku CU to max 15 steps per action with stuck detection (3 identical screenshots = abort)
 - [ ] **ACTN-09**: System enforces daily action limits per account (DM: 8, engage: 20, public reply: 5)
-- [ ] **ACTN-10**: Action expires after 4h if not approved (post becomes stale)
+- [x] **ACTN-10**: Action expires after 4h if not approved (post becomes stale)
 
 ### Approval Queue
 
@@ -78,12 +78,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Anti-Ban System
 
-- [ ] **ABAN-01**: Each social account uses a dedicated GoLogin Cloud profile with unique fingerprint and built-in proxy
+- [x] **ABAN-01**: Each social account uses a dedicated GoLogin Cloud profile with unique fingerprint and built-in proxy
 - [ ] **ABAN-02**: System enforces 7-day progressive warmup: days 1-3 browse only, days 4-5 likes+follows (max 5/day), day 6-7 first public reply, day 8+ DM enabled
 - [ ] **ABAN-03**: System adds random delays between actions (mean 90s, std 60s, min 15s)
 - [ ] **ABAN-04**: System generates behavioral noise: 60% of actions are scroll, read, like on unrelated content
 - [ ] **ABAN-05**: System varies action timing within user's timezone active hours (configurable, default 8-22)
-- [ ] **ABAN-06**: System ensures no two accounts contact the same prospect (target isolation)
+- [x] **ABAN-06**: System ensures no two accounts contact the same prospect (target isolation)
 - [ ] **ABAN-07**: System tracks account health: healthy, warning (auto-cooldown 48h), cooldown, banned (alert user)
 
 ### Prospect Pipeline
@@ -100,7 +100,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **ACCT-01**: User can view health status and warmup progress for each connected social account
 - [ ] **ACCT-02**: User can see daily action limits and remaining capacity per account
 - [ ] **ACCT-03**: User can assign accounts to signal sources (which account responds to which platform)
-- [ ] **ACCT-04**: System automatically manages GoLogin profiles (create, open, close) without user intervention
+- [x] **ACCT-04**: System automatically manages GoLogin profiles (create, open, close) without user intervention
 
 ### Dashboard
 
@@ -215,26 +215,26 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ACTN-03 | Phase 3 | Pending |
 | ACTN-04 | Phase 3 | Pending |
 | ACTN-05 | Phase 3 | Pending |
-| ACTN-06 | Phase 3 | Pending |
+| ACTN-06 | Phase 3 | Complete |
 | ACTN-07 | Phase 3 | Pending |
 | ACTN-08 | Phase 3 | Pending |
 | ACTN-09 | Phase 3 | Pending |
-| ACTN-10 | Phase 3 | Pending |
+| ACTN-10 | Phase 3 | Complete |
 | APRV-01 | Phase 3 | Pending |
 | APRV-02 | Phase 3 | Pending |
 | APRV-03 | Phase 3 | Pending |
 | APRV-04 | Phase 3 | Pending |
-| ABAN-01 | Phase 3 | Pending |
+| ABAN-01 | Phase 3 | Complete |
 | ABAN-02 | Phase 3 | Pending |
 | ABAN-03 | Phase 3 | Pending |
 | ABAN-04 | Phase 3 | Pending |
 | ABAN-05 | Phase 3 | Pending |
-| ABAN-06 | Phase 3 | Pending |
+| ABAN-06 | Phase 3 | Complete |
 | ABAN-07 | Phase 3 | Pending |
 | ACCT-01 | Phase 3 | Pending |
 | ACCT-02 | Phase 3 | Pending |
 | ACCT-03 | Phase 3 | Pending |
-| ACCT-04 | Phase 3 | Pending |
+| ACCT-04 | Phase 3 | Complete |
 | FLLW-01 | Phase 4 | Pending |
 | FLLW-02 | Phase 4 | Pending |
 | FLLW-03 | Phase 4 | Pending |
