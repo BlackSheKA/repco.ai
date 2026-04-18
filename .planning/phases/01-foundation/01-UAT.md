@@ -1,9 +1,9 @@
 ---
-status: diagnosed
+status: resolved
 phase: 01-foundation
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md, 01-03-SUMMARY.md, 01-04-SUMMARY.md, 01-05-SUMMARY.md]
 started: 2026-04-17T09:50:00Z
-updated: 2026-04-17T14:57:00Z
+updated: 2026-04-18T00:00:00Z
 ---
 
 ## Current Test
@@ -36,34 +36,37 @@ result: pass
 
 ### 6. Theme Toggle
 expected: Clicking the theme toggle in the header cycles through modes: system -> light -> dark -> system. The page colors change accordingly (dark background in dark mode, light in light mode).
-result: issue
+result: pass (fixed in 01-06)
 reported: "Theme toggle button clicks don't change the theme. localStorage.getItem('theme') returns null after multiple clicks. HTML class stays 'light'. CSS dark mode works when forced manually via JS. setTheme() from next-themes has no effect."
 severity: major
+resolution: Replaced next-themes with custom ThemeProvider (commit 60d926e). Verified via Playwright: cycles system→light→dark→system, localStorage updates, dark class toggles.
 
 ### 7. Mobile Sidebar
 expected: Resize the browser to mobile width (< 768px). The sidebar is hidden. A hamburger icon appears in the header. Tapping it opens the sidebar as an overlay. Tapping outside or pressing the hamburger again closes it.
-result: issue
+result: pass (fixed in 01-06)
 reported: "Hamburger click doesn't open sidebar as overlay on mobile. Sidebar element disappears entirely from DOM at mobile width. Toggle Sidebar button click has no visible effect."
 severity: major
+resolution: Fixed useIsMobile useState initializer to read window.innerWidth on first render (commit 488eee5). Verified via Playwright at 375px viewport: sidebar opens as overlay dialog.
 
 ### 8. Sign Out
 expected: Click the sign-out button in the sidebar. A confirmation dialog appears asking to confirm. Confirming signs you out and redirects to /login.
-result: issue
+result: pass (fixed in 01-06)
 reported: "AlertDialog confirmation doesn't appear when clicking Sign out. Zero elements with role='alertdialog' found in DOM after clicking. SignOutButton component uses AlertDialog with AlertDialogTrigger but dialog content never renders."
 severity: major
+resolution: Switched to controlled AlertDialog with explicit open state, removed asChild trigger (commit 488eee5). Verified via Playwright: dialog opens, "Stay signed in" dismisses it.
 
 ## Summary
 
 total: 8
 passed: 3
-issues: 3
+issues: 0 (3 resolved by 01-06)
 pending: 0
 skipped: 2
 
 ## Gaps
 
 - truth: "Theme toggle cycles system -> light -> dark and page colors change"
-  status: failed
+  status: resolved
   reason: "User reported: Theme toggle button clicks don't change the theme. localStorage.getItem('theme') returns null after multiple clicks. HTML class stays 'light'. CSS dark mode works when forced manually via JS. setTheme() from next-themes has no effect."
   severity: major
   test: 6
@@ -80,7 +83,7 @@ skipped: 2
   debug_session: ".planning/debug/theme-toggle-broken.md"
 
 - truth: "Mobile sidebar opens as overlay when hamburger is tapped"
-  status: failed
+  status: resolved
   reason: "User reported: Hamburger click doesn't open sidebar as overlay on mobile. Sidebar element disappears entirely from DOM at mobile width. Toggle Sidebar button click has no visible effect."
   severity: major
   test: 7
@@ -96,7 +99,7 @@ skipped: 2
   debug_session: ".planning/debug/mobile-sidebar-not-opening.md"
 
 - truth: "Sign out button shows confirmation dialog before signing out"
-  status: failed
+  status: resolved
   reason: "User reported: AlertDialog confirmation doesn't appear when clicking Sign out. Zero elements with role='alertdialog' found in DOM after clicking. SignOutButton component uses AlertDialog with AlertDialogTrigger but dialog content never renders."
   severity: major
   test: 8
