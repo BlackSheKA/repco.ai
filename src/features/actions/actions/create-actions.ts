@@ -93,7 +93,7 @@ export async function createActionsFromSignal(signalId: string) {
   // 6. Create DM action (pending_approval or drop if QC failed, ACTN-04)
   if (dmResult.passed) {
     const expiresAt = new Date(
-      Date.now() + 12 * 60 * 60 * 1000,
+      Date.now() + 4 * 60 * 60 * 1000,
     ).toISOString()
     await supabase.from("actions").insert({
       user_id: user.id,

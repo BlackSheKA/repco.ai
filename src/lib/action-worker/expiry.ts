@@ -1,7 +1,7 @@
 /**
  * Expiry logic for stale pending_approval actions.
  *
- * Actions older than 12 hours that are still pending_approval
+ * Actions older than 4 hours that are still pending_approval
  * are marked as expired, and their prospects are reset to detected.
  */
 
@@ -10,8 +10,8 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 export async function expireStaleActions(
   supabase: SupabaseClient,
 ): Promise<{ expiredCount: number; error?: string }> {
-  const twelveHoursAgo = new Date(
-    Date.now() - 12 * 60 * 60 * 1000,
+  const fourHoursAgo = new Date(
+    Date.now() - 4 * 60 * 60 * 1000,
   ).toISOString()
 
   // Find stale actions
@@ -19,7 +19,7 @@ export async function expireStaleActions(
     .from("actions")
     .select("id, prospect_id")
     .eq("status", "pending_approval")
-    .lt("created_at", twelveHoursAgo)
+    .lt("created_at", fourHoursAgo)
 
   if (selectError) {
     return { expiredCount: 0, error: selectError.message }
