@@ -113,14 +113,16 @@ Plans:
   5. The /live page shows a public real-time feed of anonymized signals with aggregate stats — no login required
   6. The "Scan my product" landing hook returns real Reddit results in under 5 seconds without requiring signup
   7. User can share a weekly results card (1200x630 image) with their stats
-**Plans**: TBD
+**Plans:** 7 plans
 
 Plans:
-- [ ] 05-01: 3-question onboarding flow, keyword/subreddit auto-generation, account connection (GoLogin profiles), live scanning animation
-- [ ] 05-02: Stripe billing: subscription plans, credit packs, 3-day free trial, webhook handlers
-- [ ] 05-03: Credit economy: 3-layer deduction (monitoring, account, action), atomic SQL, balance display, upgrade prompts
-- [ ] 05-04: Prospect pipeline kanban, detail view, notes/tags, CSV export, revenue counter
-- [ ] 05-05: /live page (polling 10s), "Scan my product" hook, weekly results card generation
+- [ ] 05-01-PLAN.md — DB migration (deduct_credits/add_credits RPC, onboarding + billing columns), billing types + credit cost/burn logic (TDD), prospect pipeline types + stage transitions (TDD)
+- [ ] 05-02-PLAN.md — 3-question onboarding wizard, Claude keyword generation, scanning animation, dashboard checklist card, middleware onboarding gate
+- [ ] 05-03-PLAN.md — Stripe billing: checkout actions, webhook handler, /billing page with plans, credit packs, history, subscription management
+- [ ] 05-04-PLAN.md — Credit economy runtime: daily burn cron, sidebar credit balance widget, dashboard credit card, upgrade prompts (banner + contextual)
+- [ ] 05-05-PLAN.md — Prospect pipeline: kanban board (@dnd-kit/react), prospect detail page, notes/tags, CSV export, dashboard stats + revenue counter
+- [ ] 05-06-PLAN.md — /live public page (10s polling, anonymized feed, aggregate stats), "Scan my product" API + form with rate limiting
+- [ ] 05-07-PLAN.md — Weekly results card (next/og 1200x630 PNG), share buttons (X/LinkedIn), daily email digest cron
 
 ### Phase 6: LinkedIn
 **Goal**: The system monitors LinkedIn every 2-4 hours via Apify and surfaces LinkedIn signals alongside Reddit signals in the same intent feed — extending repco's cross-platform advantage
@@ -146,5 +148,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Reddit Monitoring + Intent Feed | 4/4 | Complete   | 2026-04-17 |
 | 3. Action Engine | 3/6 | In Progress|  |
 | 4. Sequences + Reply Detection | 0/5 | Not started | - |
-| 5. Billing + Onboarding + Growth | 0/5 | Not started | - |
+| 5. Billing + Onboarding + Growth | 0/7 | Not started | - |
 | 6. LinkedIn | 0/1 | Not started | - |
