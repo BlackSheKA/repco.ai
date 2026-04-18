@@ -85,6 +85,12 @@ Recent decisions affecting current work:
 
 None yet.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260418-fcb | Add Google OAuth provider configuration | 2026-04-18 | baa70be | [260418-fcb-add-google-oauth-provider-configuration](./quick/260418-fcb-add-google-oauth-provider-configuration/) |
+
 ### Blockers/Concerns
 
 - Reddit OAuth app approval takes 2-4 weeks — register immediately or Phase 2 is blocked
@@ -93,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-18T09:03:49.939Z
+Last activity: 2026-04-18 - Completed quick task 260418-fcb: Add Google OAuth provider configuration
 Stopped at: Phase 5 context gathered
 Resume file: .planning/phases/05-billing-onboarding-growth/05-CONTEXT.md
