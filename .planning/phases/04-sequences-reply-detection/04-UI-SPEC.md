@@ -67,7 +67,7 @@ Additional type specs for Phase 4:
 | Prospect reply text | Inter | 16px | 400 (regular) | 1.5 |
 | Timeline step label | Inter | 14px | 400 (regular) | 1.4 |
 | Timeline day label | Inter | 14px | 400 (regular) | 1.4 |
-| Follow-up tag | Inter | 14px | 500 (medium) | 1.4 |
+| Follow-up tag | Inter | 14px | 400 (regular) | 1.4 |
 | Warning banner text | Inter | 14px | 400 (regular) | 1.4 |
 | Settings section heading | Inter | 20px | 600 (semibold) | 1.2 |
 | Settings toggle label | Inter | 16px | 400 (regular) | 1.5 |
@@ -140,10 +140,10 @@ Original DM row (collapsed/truncated):
 - Clicking expands to show full DM text (toggle)
 
 Reply row:
-- Margin-top: 12px
+- Margin-top: 16px
 - Background: dominant surface (creates contrast from card secondary surface)
 - Border-left: 3px solid accent color
-- Padding: 12px 16px
+- Padding: 16px
 - Reply text: Inter 16px regular, default text, line-height 1.5
 - Full reply text displayed, no truncation
 
@@ -171,7 +171,7 @@ Action row:
 **Follow-up tag (addition to Phase 3 approval card):**
 - Position: top-right of card, 16px from top edge, 16px from right edge
 - shadcn `Badge` variant `outline` with accent border
-- Text: "Follow-up {N} of 3" in Inter 14px medium
+- Text: "Follow-up {N} of 3" in Inter 14px regular
 - N = 1 (day 3), 2 (day 7), 3 (day 14)
 
 **Context addition (below post excerpt):**
@@ -218,7 +218,7 @@ All other card elements (post excerpt, intent score, angle, DM draft, action but
 - Background: amber-500 at 10% opacity
 - Border: 1px solid amber-500 at 30% opacity
 - Border-radius: rounded-md (6px)
-- Padding: 12px 16px
+- Padding: 16px
 - Horizontal flex, space-between
 
 Left:
@@ -227,7 +227,7 @@ Left:
 - Text: "Reply check failed for @{account} -- last successful check: {X}h ago" in Inter 14px regular, default text
 
 Right:
-- Dismiss button: phosphor `X` icon, 16px, muted text, ghost button styling
+- Dismiss button: phosphor `X` icon, 16px, muted text, ghost button styling, wrapped in shadcn `Tooltip` with label "Dismiss"
 - On dismiss: banner hidden for this session only (reappears on refresh if still failing)
 
 **Visibility rules:**
@@ -321,7 +321,7 @@ Components needed from shadcn for Phase 4:
 | Alert Dialog | Approval | Stop sequence confirmation |
 | Sonner (toast) | Dashboard | Reply received, follow-up approved, sequence stopped |
 | Skeleton | Replies | Loading state for reply cards |
-| Tooltip | Approval | Timeline step state explanations |
+| Tooltip | Approval, Warning Banner | Timeline step state explanations, warning dismiss button label |
 
 Components already installed from prior phases: Button, Card, Badge, Alert Dialog, Sonner, Skeleton, Tooltip, Switch.
 
@@ -346,7 +346,7 @@ All from shadcn official registry. No third-party blocks required.
   - 16px gap
   - "View the conversation in your repco dashboard." in Inter 16px regular, `#78716C`
   - 24px gap
-  - "View in repco" CTA button: 48px height, rounded-md, background `#4338CA`, text `#EEF2FF`, Inter 16px medium, centered, full-width
+  - "View in repco" CTA button: 48px height, rounded-md, background `#4338CA`, text `#EEF2FF`, Inter 16px semibold, centered, full-width
 - Footer: 32px padding top, "repco -- Your AI sales rep" in Inter 14px regular, `#78716C`, centered
 
 ### Daily Digest Email
@@ -366,7 +366,7 @@ All from shadcn official registry. No third-party blocks required.
   - Stat labels below each: "detected" / "awaiting approval" / "received" in Inter 14px regular, `#78716C`
   - 24px gap
   - Top signals section (if any):
-    - "Top signal:" in Inter 14px medium, `#78716C`
+    - "Top signal:" in Inter 14px semibold, `#78716C`
     - Signal excerpt in Inter 16px regular, `#1C1917`, max 2 lines
     - "r/{subreddit} -- {intent_strength}/10 intent" in Inter 14px regular, `#78716C`
   - 24px gap
@@ -482,7 +482,7 @@ All from shadcn official registry. No third-party blocks required.
 | Stop sequence button | `aria-label="Stop follow-up sequence for u/{prospect}"` |
 | Stop sequence dialog | Focus trap, Escape to close, default focus on "Keep sending" |
 | Warning banner | `role="alert"`, `aria-live="polite"` |
-| Warning dismiss | `aria-label="Dismiss warning"` |
+| Warning dismiss | `aria-label="Dismiss warning"`, wrapped in `Tooltip` with visible label "Dismiss" |
 | Auto-send switch | `aria-label="Auto-send follow-ups"`, `aria-describedby="auto-send-description"` |
 | Keyboard nav | Tab order: warning banner dismiss -> replies cards (View on Reddit per card) -> follow-up approval cards -> settings toggle |
 | Color contrast | All text on secondary surfaces meets WCAG AA (4.5:1 for body, 3:1 for large text) |
