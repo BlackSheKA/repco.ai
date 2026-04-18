@@ -33,15 +33,13 @@ Declared values (must be multiples of 4):
 |-------|-------|-------|
 | xs | 4px | Icon gaps, inline badge padding |
 | sm | 8px | Compact element spacing, card internal gaps |
-| md | 16px | Default element spacing, card padding |
+| md | 16px | Default element spacing, card padding, kanban column gap |
 | lg | 24px | Section padding, onboarding step spacing |
 | xl | 32px | Layout gaps between major sections |
-| 2xl | 48px | Onboarding screen vertical centering padding |
+| 2xl | 48px | Onboarding screen vertical centering padding, drag handle touch target height |
 | 3xl | 64px | Page-level top/bottom margins |
 
-Exceptions:
-- Kanban column gap: 12px (between columns for visual density)
-- Drag handle touch target: 44px minimum height for mobile drag-and-drop
+No exceptions. All spacing values use the standard scale.
 
 ---
 
@@ -260,7 +258,7 @@ Additional semantic colors for this phase:
 
 | Interaction | Behavior |
 |-------------|----------|
-| Drag-and-drop | Cards draggable between columns. Visual placeholder shown in target column. |
+| Drag-and-drop | Cards draggable between columns. Visual placeholder shown in target column. Drag handle touch target: 48px height. |
 | Mobile fallback | "Move to..." dropdown on each card (no drag on touch screens below 768px). |
 | Column scroll | Each column scrolls vertically independently. Board scrolls horizontally on mobile. |
 | Card click | Navigate to `/prospects/[id]` full page detail. |
@@ -334,7 +332,7 @@ Additional semantic colors for this phase:
 
 - Standard app shell (sidebar + header)
 - Full-width kanban board below page header
-- 6 columns, each 280px min-width
+- 6 columns, each 280px min-width, 16px gap between columns
 - Horizontal scroll on viewport < 1680px
 - Page header: "Prospects" heading + "Export CSV" button right-aligned
 - Column header: stage name + count badge
