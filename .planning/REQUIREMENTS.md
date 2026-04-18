@@ -47,11 +47,11 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **ACTN-02**: System generates DM draft via Claude Sonnet 4.6 (max 3 sentences, references specific post, no link in first message)
 - [x] **ACTN-03**: System runs quality control pass on generated DM (rejects spammy, generic, long, or link-containing messages)
 - [x] **ACTN-04**: DM action appears in approval queue with status pending_approval
-- [ ] **ACTN-05**: System executes approved actions via Supabase DB Webhook -> Vercel Function -> GoLogin Cloud -> Playwright CDP -> Claude Haiku CU
+- [x] **ACTN-05**: System executes approved actions via Supabase DB Webhook -> Vercel Function -> GoLogin Cloud -> Playwright CDP -> Claude Haiku CU
 - [x] **ACTN-06**: System uses FOR UPDATE SKIP LOCKED for atomic action claiming (no duplicate execution)
-- [ ] **ACTN-07**: System takes screenshot after action execution for verification
-- [ ] **ACTN-08**: System limits Haiku CU to max 15 steps per action with stuck detection (3 identical screenshots = abort)
-- [ ] **ACTN-09**: System enforces daily action limits per account (DM: 8, engage: 20, public reply: 5)
+- [x] **ACTN-07**: System takes screenshot after action execution for verification
+- [x] **ACTN-08**: System limits Haiku CU to max 15 steps per action with stuck detection (3 identical screenshots = abort)
+- [x] **ACTN-09**: System enforces daily action limits per account (DM: 8, engage: 20, public reply: 5)
 - [x] **ACTN-10**: Action expires after 4h if not approved (post becomes stale)
 
 ### Approval Queue
@@ -214,11 +214,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ACTN-02 | Phase 3 | Complete |
 | ACTN-03 | Phase 3 | Complete |
 | ACTN-04 | Phase 3 | Complete |
-| ACTN-05 | Phase 3 | Pending |
+| ACTN-05 | Phase 3 | Complete |
 | ACTN-06 | Phase 3 | Complete |
-| ACTN-07 | Phase 3 | Pending |
-| ACTN-08 | Phase 3 | Pending |
-| ACTN-09 | Phase 3 | Pending |
+| ACTN-07 | Phase 3 | Complete |
+| ACTN-08 | Phase 3 | Complete |
+| ACTN-09 | Phase 3 | Complete |
 | ACTN-10 | Phase 3 | Complete |
 | APRV-01 | Phase 3 | Complete |
 | APRV-02 | Phase 3 | Complete |
