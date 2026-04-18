@@ -43,10 +43,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Action Engine
 
-- [ ] **ACTN-01**: System creates engage actions (like, follow) with auto-approved status when user clicks "Contact"
+- [x] **ACTN-01**: System creates engage actions (like, follow) with auto-approved status when user clicks "Contact"
 - [x] **ACTN-02**: System generates DM draft via Claude Sonnet 4.6 (max 3 sentences, references specific post, no link in first message)
 - [x] **ACTN-03**: System runs quality control pass on generated DM (rejects spammy, generic, long, or link-containing messages)
-- [ ] **ACTN-04**: DM action appears in approval queue with status pending_approval
+- [x] **ACTN-04**: DM action appears in approval queue with status pending_approval
 - [ ] **ACTN-05**: System executes approved actions via Supabase DB Webhook -> Vercel Function -> GoLogin Cloud -> Playwright CDP -> Claude Haiku CU
 - [x] **ACTN-06**: System uses FOR UPDATE SKIP LOCKED for atomic action claiming (no duplicate execution)
 - [ ] **ACTN-07**: System takes screenshot after action execution for verification
@@ -56,10 +56,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Approval Queue
 
-- [ ] **APRV-01**: User can view pending DM drafts with original post context, intent score, and suggested angle
-- [ ] **APRV-02**: User can approve a DM draft with one click
-- [ ] **APRV-03**: User can edit a DM draft before approving
-- [ ] **APRV-04**: User can reject a DM draft
+- [x] **APRV-01**: User can view pending DM drafts with original post context, intent score, and suggested angle
+- [x] **APRV-02**: User can approve a DM draft with one click
+- [x] **APRV-03**: User can edit a DM draft before approving
+- [x] **APRV-04**: User can reject a DM draft
 
 ### Follow-up Sequences
 
@@ -210,20 +210,20 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-01 | Phase 2 | Complete |
 | DASH-02 | Phase 2 | Complete |
 | DASH-03 | Phase 2 | Complete |
-| ACTN-01 | Phase 3 | Pending |
+| ACTN-01 | Phase 3 | Complete |
 | ACTN-02 | Phase 3 | Complete |
 | ACTN-03 | Phase 3 | Complete |
-| ACTN-04 | Phase 3 | Pending |
+| ACTN-04 | Phase 3 | Complete |
 | ACTN-05 | Phase 3 | Pending |
 | ACTN-06 | Phase 3 | Complete |
 | ACTN-07 | Phase 3 | Pending |
 | ACTN-08 | Phase 3 | Pending |
 | ACTN-09 | Phase 3 | Pending |
 | ACTN-10 | Phase 3 | Complete |
-| APRV-01 | Phase 3 | Pending |
-| APRV-02 | Phase 3 | Pending |
-| APRV-03 | Phase 3 | Pending |
-| APRV-04 | Phase 3 | Pending |
+| APRV-01 | Phase 3 | Complete |
+| APRV-02 | Phase 3 | Complete |
+| APRV-03 | Phase 3 | Complete |
+| APRV-04 | Phase 3 | Complete |
 | ABAN-01 | Phase 3 | Complete |
 | ABAN-02 | Phase 3 | Complete |
 | ABAN-03 | Phase 3 | Complete |
