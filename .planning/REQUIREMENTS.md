@@ -79,12 +79,12 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Anti-Ban System
 
 - [x] **ABAN-01**: Each social account uses a dedicated GoLogin Cloud profile with unique fingerprint and built-in proxy
-- [ ] **ABAN-02**: System enforces 7-day progressive warmup: days 1-3 browse only, days 4-5 likes+follows (max 5/day), day 6-7 first public reply, day 8+ DM enabled
-- [ ] **ABAN-03**: System adds random delays between actions (mean 90s, std 60s, min 15s)
-- [ ] **ABAN-04**: System generates behavioral noise: 60% of actions are scroll, read, like on unrelated content
-- [ ] **ABAN-05**: System varies action timing within user's timezone active hours (configurable, default 8-22)
+- [x] **ABAN-02**: System enforces 7-day progressive warmup: days 1-3 browse only, days 4-5 likes+follows (max 5/day), day 6-7 first public reply, day 8+ DM enabled
+- [x] **ABAN-03**: System adds random delays between actions (mean 90s, std 60s, min 15s)
+- [x] **ABAN-04**: System generates behavioral noise: 60% of actions are scroll, read, like on unrelated content
+- [x] **ABAN-05**: System varies action timing within user's timezone active hours (configurable, default 8-22)
 - [x] **ABAN-06**: System ensures no two accounts contact the same prospect (target isolation)
-- [ ] **ABAN-07**: System tracks account health: healthy, warning (auto-cooldown 48h), cooldown, banned (alert user)
+- [x] **ABAN-07**: System tracks account health: healthy, warning (auto-cooldown 48h), cooldown, banned (alert user)
 
 ### Prospect Pipeline
 
@@ -225,12 +225,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | APRV-03 | Phase 3 | Pending |
 | APRV-04 | Phase 3 | Pending |
 | ABAN-01 | Phase 3 | Complete |
-| ABAN-02 | Phase 3 | Pending |
-| ABAN-03 | Phase 3 | Pending |
-| ABAN-04 | Phase 3 | Pending |
-| ABAN-05 | Phase 3 | Pending |
+| ABAN-02 | Phase 3 | Complete |
+| ABAN-03 | Phase 3 | Complete |
+| ABAN-04 | Phase 3 | Complete |
+| ABAN-05 | Phase 3 | Complete |
 | ABAN-06 | Phase 3 | Complete |
-| ABAN-07 | Phase 3 | Pending |
+| ABAN-07 | Phase 3 | Complete |
 | ACCT-01 | Phase 3 | Pending |
 | ACCT-02 | Phase 3 | Pending |
 | ACCT-03 | Phase 3 | Pending |
