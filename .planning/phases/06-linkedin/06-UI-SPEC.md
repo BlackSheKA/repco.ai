@@ -48,11 +48,11 @@ Exceptions: none -- Phase 6 introduces no new layout patterns, only extends exis
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 16px | 400 (regular) | 1.5 |
-| Label | 14px | 500 (medium) | 1.4 |
+| Label | 14px | 400 (regular) | 1.4 |
 | Heading | 20px | 600 (semibold) | 1.2 |
 | Display | 28px | 600 (semibold) | 1.2 |
 
-Source: Established in Phase 1, carried forward. No new typography roles needed for Phase 6.
+Source: Established in Phase 1, carried forward. Two weights only: 400 (regular) for body and label text, 600 (semibold) for headings and display text.
 
 ---
 
@@ -125,10 +125,12 @@ The signal card conditionally renders LinkedIn-specific content when `signal.pla
 +----------------------------------------------------------+
 ```
 
+**Focal point:** The professional headline (top row, after the author name) is the primary visual anchor of the LinkedIn signal card. It is the key differentiator from Reddit cards and the primary data point for lead qualification at a glance.
+
 ### Top Row Details
 
-- **Badge**: `bg-[#0A66C2] text-white` rounded-full, height 24px (h-6), text-sm font-medium -- matches Reddit badge dimensions exactly
-- **Author name**: `text-sm font-medium text-muted-foreground` -- shows full name (not handle)
+- **Badge**: `bg-[#0A66C2] text-white` rounded-full, height 24px (h-6), text-sm font-regular -- matches Reddit badge dimensions exactly
+- **Author name**: `text-sm font-regular text-muted-foreground` -- shows full name (not handle)
 - **Professional headline**: `text-sm text-muted-foreground` after a middot separator -- truncated with `truncate` class, max-width 60% of row
 - **Time ago**: right-aligned, `text-sm text-muted-foreground`, same as Reddit variant
 
@@ -176,7 +178,7 @@ Appears above the signal feed when the last successful LinkedIn monitoring run e
 | Border | `border border-amber-200` (light) / `border-amber-800/50` (dark) |
 | Text | `text-amber-800` (light) / `text-amber-200` (dark) |
 | Icon | Phosphor `Warning` icon, 16px, `text-amber-600` (light) / `text-amber-400` (dark) |
-| Padding | 12px vertical, 16px horizontal |
+| Padding | 8px vertical, 16px horizontal |
 | Border radius | `rounded-lg` (matches card radius) |
 | Position | Above filter bar, below terminal header, full width of feed column |
 | Dismiss | No dismiss button -- banner auto-clears when next successful run completes |
@@ -249,6 +251,8 @@ Connection request notes appear in the existing approval queue using the same st
 | Destructive confirmation | None -- Phase 6 introduces no new destructive actions. Dismiss and Reject use existing patterns without confirmation dialogs. |
 | Filter option enabled | "LinkedIn" (replacing disabled "LinkedIn" with tooltip) |
 | Contacted state (LinkedIn) | "Connected" (replaces "Contacted" for LinkedIn signals) |
+
+Note on "Connect" CTA: "Connect" is used as a single-word CTA without a noun to match LinkedIn's own native UI convention. LinkedIn's platform uses "Connect" as a standalone action label throughout its interface. Deviating to "Connect with user" or "Send Connection" would feel foreign to users familiar with LinkedIn's interaction model. The approval queue variant "Approve & Connect" follows the established verb + verb pattern from "Approve & Send".
 
 ---
 
