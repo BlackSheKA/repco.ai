@@ -4,9 +4,11 @@ import { useEffect, useState } from "react"
 import {
   AlertTriangle,
   CheckCircle,
+  Copy,
   ExternalLink,
   Loader2,
 } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -34,6 +36,7 @@ export function ConnectionFlow({
   const [verified, setVerified] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [browserUrl, setBrowserUrl] = useState<string | null>(null)
+  const [loginUrl, setLoginUrl] = useState<string | null>(null)
   const [startingBrowser, setStartingBrowser] = useState(true)
 
   useEffect(() => {
@@ -48,6 +51,7 @@ export function ConnectionFlow({
       setStartingBrowser(false)
       if (result.success && result.url) {
         setBrowserUrl(result.url)
+        setLoginUrl(result.loginUrl ?? null)
       } else {
         setError(result.error ?? "Could not start the remote browser")
       }
@@ -137,16 +141,48 @@ export function ConnectionFlow({
 
             {!startingBrowser && browserUrl && (
               <>
-                <p className="text-base">
-                  Open the remote browser, go to{" "}
-                  <span className="font-mono">reddit.com/login</span>, and
-                  log in. repco never sees your password.
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  The remote browser opens in a new tab. When you&apos;re
-                  logged into Reddit there, come back here and click
-                  &quot;I&apos;ve logged in&quot;.
-                </p>
+                <ol className="flex flex-col gap-2 pl-4 text-base [list-style:decimal]">
+                  <li>
+                    Click{" "}
+                    <span className="font-semibold">
+                      Open remote browser
+                    </span>{" "}
+                    below — a new tab opens with the GoLogin cloud browser.
+                  </li>
+                  <li>
+                    Paste this URL into that browser&apos;s address bar and
+                    press Enter:
+                    {loginUrl && (
+                      <div className="mt-2 flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-2">
+                        <code className="flex-1 break-all text-sm">
+                          {loginUrl}
+                        </code>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(loginUrl)
+                            toast.success("Copied")
+                          }}
+                          aria-label="Copy login URL"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </li>
+                  <li>
+                    Log into your account. repco never sees your password.
+                  </li>
+                  <li>
+                    Come back here and click{" "}
+                    <span className="font-semibold">
+                      I&apos;ve logged in
+                    </span>
+                    .
+                  </li>
+                </ol>
                 <div className="flex flex-wrap gap-2">
                   <Button asChild>
                     <a

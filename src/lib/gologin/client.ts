@@ -125,47 +125,6 @@ export async function startCloudBrowser(
 }
 
 /**
- * Set the profile's startUrl (homepage the browser opens on launch).
- *
- * The GoLogin API doesn't support PATCH — we GET the full profile, mutate
- * startUrl, and PUT it back. Idempotent.
- *
- * @param profileId - The GoLogin profile ID
- * @param startUrl - The URL to set as the profile's startUrl
- */
-export async function setProfileStartUrl(
-  profileId: string,
-  startUrl: string
-): Promise<void> {
-  const current = await fetch(`${GOLOGIN_API}/browser/${profileId}`, {
-    method: "GET",
-    headers: headers(),
-  })
-  if (!current.ok) {
-    const body = await current.text()
-    throw new Error(
-      `GoLogin setProfileStartUrl (GET) failed (${current.status}): ${body}`
-    )
-  }
-  const profile = (await current.json()) as Record<string, unknown>
-  if (profile.startUrl === startUrl) return
-
-  const updated = { ...profile, startUrl }
-  const response = await fetch(`${GOLOGIN_API}/browser/${profileId}`, {
-    method: "PUT",
-    headers: headers(),
-    body: JSON.stringify(updated),
-  })
-
-  if (!response.ok) {
-    const body = await response.text()
-    throw new Error(
-      `GoLogin setProfileStartUrl (PUT) failed (${response.status}): ${body}`
-    )
-  }
-}
-
-/**
  * Stop a running GoLogin Cloud Browser session. Idempotent — returns true
  * whether or not a session was running.
  *

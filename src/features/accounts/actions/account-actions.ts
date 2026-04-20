@@ -5,12 +5,16 @@ import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import {
   createProfile,
-  setProfileStartUrl,
   startCloudBrowser,
   stopCloudBrowser,
 } from "@/lib/gologin/client"
 
-const LOGIN_URLS: Record<string, string> = {
+/**
+ * Login URLs shown to the user in the connection flow. GoLogin's Cloud
+ * Browser web-viewer mode ignores profile startUrl, so the user has to
+ * navigate here manually — we just surface the URL in the UI.
+ */
+export const ACCOUNT_LOGIN_URLS: Record<string, string> = {
   reddit: "https://www.reddit.com/login/",
   linkedin: "https://www.linkedin.com/login",
 }
@@ -25,10 +29,12 @@ export async function connectAccount(
   } = await supabase.auth.getUser()
   if (!user) return { error: "Not authenticated" }
 
-  // 1. Create GoLogin Cloud profile with login-page startUrl
+  // 1. Create GoLogin Cloud profile
+  // (startUrl is set but the cloud web viewer ignores it; kept for the
+  // desktop app where users may run the profile manually.)
   let profileId: string
   try {
-    profileId = await createProfile(handle, LOGIN_URLS[platform])
+    profileId = await createProfile(handle, ACCOUNT_LOGIN_URLS[platform])
   } catch (err) {
     return { error: `Failed to create browser profile: ${err}` }
   }
@@ -77,6 +83,7 @@ export async function skipWarmup(accountId: string) {
 export async function startAccountBrowser(accountId: string): Promise<{
   success: boolean
   url?: string
+  loginUrl?: string
   error?: string
 }> {
   const supabase = await createClient()
@@ -96,18 +103,13 @@ export async function startAccountBrowser(accountId: string): Promise<{
     return { success: false, error: "No GoLogin profile on this account" }
   }
 
-  const loginUrl = LOGIN_URLS[account.platform]
-
   try {
-    if (loginUrl) {
-      try {
-        await setProfileStartUrl(account.gologin_profile_id, loginUrl)
-      } catch {
-        // Non-fatal: profile will open on its existing startUrl (maybe empty).
-      }
-    }
     const session = await startCloudBrowser(account.gologin_profile_id)
-    return { success: true, url: session.remoteOrbitaUrl }
+    return {
+      success: true,
+      url: session.remoteOrbitaUrl,
+      loginUrl: ACCOUNT_LOGIN_URLS[account.platform],
+    }
   } catch (err) {
     return {
       success: false,
