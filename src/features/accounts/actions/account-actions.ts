@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 
 import { createClient } from "@/lib/supabase/server"
-import { createProfile } from "@/lib/gologin/client"
+import { createProfile, startCloudBrowser } from "@/lib/gologin/client"
 import {
   connectToProfile,
   disconnectProfile,
@@ -87,6 +87,39 @@ export async function assignAccountToPlatform(
   if (error) return { error: error.message }
   revalidatePath("/accounts")
   return { success: true }
+}
+
+export async function startAccountBrowser(accountId: string): Promise<{
+  success: boolean
+  url?: string
+  error?: string
+}> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: "Not authenticated" }
+
+  const { data: account } = await supabase
+    .from("social_accounts")
+    .select("gologin_profile_id")
+    .eq("id", accountId)
+    .eq("user_id", user.id)
+    .single()
+
+  if (!account?.gologin_profile_id) {
+    return { success: false, error: "No GoLogin profile on this account" }
+  }
+
+  try {
+    const session = await startCloudBrowser(account.gologin_profile_id)
+    return { success: true, url: session.remoteOrbitaUrl }
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    }
+  }
 }
 
 export async function verifyAccountSession(accountId: string): Promise<{

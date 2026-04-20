@@ -87,6 +87,38 @@ export async function deleteProfile(profileId: string): Promise<void> {
   }
 }
 
+export interface CloudBrowserSession {
+  status: string
+  remoteOrbitaUrl: string
+}
+
+/**
+ * Start the GoLogin Cloud Browser for a profile and return the remote
+ * viewer URL. The URL can be opened in any browser to see and interact
+ * with the running Orbita instance.
+ *
+ * @param profileId - The GoLogin profile ID to start
+ * @returns Session info with the remote Orbita viewer URL
+ */
+export async function startCloudBrowser(
+  profileId: string
+): Promise<CloudBrowserSession> {
+  const response = await fetch(`${GOLOGIN_API}/browser/${profileId}/web`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({}),
+  })
+
+  if (!response.ok) {
+    const body = await response.text()
+    throw new Error(
+      `GoLogin startCloudBrowser failed (${response.status}): ${body}`
+    )
+  }
+
+  return (await response.json()) as CloudBrowserSession
+}
+
 /**
  * Get a GoLogin browser profile by ID.
  *

@@ -1,11 +1,19 @@
 "use client"
 
-import { useState } from "react"
-import { CheckCircle, AlertTriangle, Loader2 } from "lucide-react"
+import { useEffect, useState } from "react"
+import {
+  AlertTriangle,
+  CheckCircle,
+  ExternalLink,
+  Loader2,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { verifyAccountSession } from "@/features/accounts/actions/account-actions"
+import {
+  startAccountBrowser,
+  verifyAccountSession,
+} from "@/features/accounts/actions/account-actions"
 
 interface ConnectionFlowProps {
   accountId: string
@@ -18,13 +26,38 @@ type FlowStep = 1 | 2 | 3
 
 export function ConnectionFlow({
   accountId,
-  profileId,
   onComplete,
   onCancel,
 }: ConnectionFlowProps) {
   const [step, setStep] = useState<FlowStep>(1)
   const [verified, setVerified] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [browserUrl, setBrowserUrl] = useState<string | null>(null)
+  const [startingBrowser, setStartingBrowser] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function start() {
+      setStartingBrowser(true)
+      setError(null)
+      const result = await startAccountBrowser(accountId)
+      if (cancelled) return
+
+      setStartingBrowser(false)
+      if (result.success && result.url) {
+        setBrowserUrl(result.url)
+      } else {
+        setError(result.error ?? "Could not start the remote browser")
+      }
+    }
+
+    start()
+
+    return () => {
+      cancelled = true
+    }
+  }, [accountId])
 
   async function handleVerify() {
     setStep(2)
@@ -56,22 +89,76 @@ export function ConnectionFlow({
 
         {step === 1 && (
           <div className="flex flex-col gap-3">
-            <p className="text-base">
-              Log into Reddit using the GoLogin browser window that just
-              opened.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Use your Reddit credentials. repco never sees your
-              password.
-            </p>
-            <div className="flex gap-2">
-              <Button onClick={handleVerify}>
-                I&apos;ve logged in
-              </Button>
-              <Button variant="outline" onClick={onCancel}>
-                Cancel
-              </Button>
-            </div>
+            {startingBrowser && (
+              <div className="flex items-center gap-2 text-base">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <span>Starting a remote browser for this account...</span>
+              </div>
+            )}
+
+            {!startingBrowser && error && (
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-base text-destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>Could not start remote browser</span>
+                </div>
+                <p className="text-sm text-muted-foreground">{error}</p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setError(null)
+                      setStartingBrowser(true)
+                      startAccountBrowser(accountId).then((r) => {
+                        setStartingBrowser(false)
+                        if (r.success && r.url) setBrowserUrl(r.url)
+                        else
+                          setError(
+                            r.error ?? "Could not start the remote browser",
+                          )
+                      })
+                    }}
+                  >
+                    Retry
+                  </Button>
+                  <Button variant="ghost" onClick={onCancel}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {!startingBrowser && browserUrl && (
+              <>
+                <p className="text-base">
+                  Log into Reddit in the remote browser. repco never sees
+                  your password.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  The browser opens in a new tab. After you&apos;re logged
+                  in, come back here and click &quot;I&apos;ve logged
+                  in&quot;.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild>
+                    <a
+                      href={browserUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Open remote browser
+                    </a>
+                  </Button>
+                  <Button variant="outline" onClick={handleVerify}>
+                    I&apos;ve logged in
+                  </Button>
+                  <Button variant="ghost" onClick={onCancel}>
+                    Cancel
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         )}
 
