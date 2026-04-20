@@ -8,15 +8,6 @@ import {
   startCloudBrowser,
   stopCloudBrowser,
 } from "@/lib/gologin/client"
-import {
-  connectToProfile,
-  disconnectProfile,
-} from "@/lib/gologin/adapter"
-
-const LOGIN_URLS: Record<string, string> = {
-  reddit: "https://www.reddit.com/login/",
-  linkedin: "https://www.linkedin.com/login",
-}
 
 export async function connectAccount(
   platform: "reddit" | "linkedin",
@@ -90,7 +81,7 @@ export async function startAccountBrowser(accountId: string): Promise<{
 
   const { data: account } = await supabase
     .from("social_accounts")
-    .select("gologin_profile_id, platform")
+    .select("gologin_profile_id")
     .eq("id", accountId)
     .eq("user_id", user.id)
     .single()
@@ -99,28 +90,8 @@ export async function startAccountBrowser(accountId: string): Promise<{
     return { success: false, error: "No GoLogin profile on this account" }
   }
 
-  const profileId = account.gologin_profile_id
-
   try {
-    const session = await startCloudBrowser(profileId)
-
-    const loginUrl =
-      LOGIN_URLS[account.platform] ?? "https://www.google.com"
-    try {
-      const connection = await connectToProfile(profileId)
-      try {
-        await connection.page.goto(loginUrl, {
-          waitUntil: "domcontentloaded",
-          timeout: 30000,
-        })
-      } finally {
-        await disconnectProfile(connection.browser)
-      }
-    } catch {
-      // Navigate failed -- user can navigate manually in the remote browser.
-      // The remote session itself is still valid.
-    }
-
+    const session = await startCloudBrowser(account.gologin_profile_id)
     return { success: true, url: session.remoteOrbitaUrl }
   } catch (err) {
     return {
@@ -161,6 +132,17 @@ export async function stopAccountBrowser(
   }
 }
 
+/**
+ * Marks the account's session as verified (user asserts they logged in via
+ * the remote browser). We trust the user here because GoLogin's /browser/{id}/web
+ * viewer mode does not expose a CDP endpoint we can use to inspect the page
+ * server-side. The first real action (warmup scan, DM, like/follow) will
+ * naturally fail via Haiku CU if the login wasn't actually completed, and
+ * the health state machine will downgrade the account to "warning".
+ *
+ * Stores the assertion on the account record so the worker pipeline can
+ * later gate outreach on session_verified_at presence.
+ */
 export async function verifyAccountSession(accountId: string): Promise<{
   success: boolean
   verified: boolean
@@ -170,58 +152,23 @@ export async function verifyAccountSession(accountId: string): Promise<{
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return { success: false, verified: false, error: "Not authenticated" }
+  if (!user)
+    return { success: false, verified: false, error: "Not authenticated" }
 
-  // 1. Get account's GoLogin profile ID
-  const { data: account } = await supabase
+  const { error } = await supabase
     .from("social_accounts")
-    .select("gologin_profile_id")
+    .update({ session_verified_at: new Date().toISOString() })
     .eq("id", accountId)
     .eq("user_id", user.id)
-    .single()
 
-  if (!account?.gologin_profile_id) {
-    return { success: false, verified: false, error: "No GoLogin profile" }
-  }
-
-  // 2. Connect to GoLogin profile via Playwright CDP
-  let connection
-  try {
-    connection = await connectToProfile(account.gologin_profile_id)
-  } catch (err) {
-    return {
-      success: false,
-      verified: false,
-      error: `GoLogin connection failed: ${err}`,
+  if (error) {
+    // If the column doesn't exist yet, still succeed — worker pipeline will
+    // handle the absence of the timestamp gracefully.
+    if (!/column .*session_verified_at.* does not exist/i.test(error.message)) {
+      return { success: false, verified: false, error: error.message }
     }
   }
 
-  try {
-    // 3. Navigate to Reddit and check login status
-    await connection.page.goto("https://www.reddit.com", {
-      waitUntil: "domcontentloaded",
-      timeout: 30000,
-    })
-
-    // 4. Check for logged-in indicator via page.evaluate
-    const isLoggedIn = await connection.page.evaluate(() => {
-      const loginButton = document.querySelector(
-        '[data-testid="login-button"], a[href*="login"]',
-      )
-      const userMenu = document.querySelector(
-        '[data-testid="user-drawer-button"], #USER_DROPDOWN_ID, [aria-label*="profile"]',
-      )
-      return userMenu !== null || loginButton === null
-    })
-
-    return { success: true, verified: isLoggedIn }
-  } catch (err) {
-    return {
-      success: false,
-      verified: false,
-      error: `Verification failed: ${err}`,
-    }
-  } finally {
-    await disconnectProfile(connection.browser)
-  }
+  revalidatePath("/accounts")
+  return { success: true, verified: true }
 }

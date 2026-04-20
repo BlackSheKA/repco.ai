@@ -138,13 +138,14 @@ export function ConnectionFlow({
             {!startingBrowser && browserUrl && (
               <>
                 <p className="text-base">
-                  Log into Reddit in the remote browser. repco never sees
-                  your password.
+                  Open the remote browser, go to{" "}
+                  <span className="font-mono">reddit.com/login</span>, and
+                  log in. repco never sees your password.
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  The browser opens in a new tab. After you&apos;re logged
-                  in, come back here and click &quot;I&apos;ve logged
-                  in&quot;.
+                  The remote browser opens in a new tab. When you&apos;re
+                  logged into Reddit there, come back here and click
+                  &quot;I&apos;ve logged in&quot;.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Button asChild>
