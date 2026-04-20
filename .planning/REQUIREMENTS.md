@@ -118,8 +118,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **BILL-05**: System deducts account credits daily (Reddit 3/day, LinkedIn 5/day per extra account beyond 2 included)
 - [x] **BILL-06**: System deducts action credits on completion: like/follow 0, public reply 15, DM 30, follow-up DM 20, LinkedIn connect 20
 - [x] **BILL-07**: System uses atomic SQL for credit deduction (no negative balance race conditions)
-- [ ] **BILL-08**: Dashboard shows live credit burn, remaining balance, and per-action costs
-- [ ] **BILL-09**: System shows contextual upgrade prompts when credits run low
+- [x] **BILL-08**: Dashboard shows live credit burn, remaining balance, and per-action costs
+- [x] **BILL-09**: System shows contextual upgrade prompts when credits run low
 
 ### PLG / Growth
 
@@ -254,8 +254,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BILL-05 | Phase 5 | Complete |
 | BILL-06 | Phase 5 | Complete |
 | BILL-07 | Phase 5 | Complete |
-| BILL-08 | Phase 5 | Pending |
-| BILL-09 | Phase 5 | Pending |
+| BILL-08 | Phase 5 | Complete |
+| BILL-09 | Phase 5 | Complete |
 | ONBR-01 | Phase 5 | Complete |
 | ONBR-02 | Phase 5 | Complete |
 | ONBR-03 | Phase 5 | Complete |

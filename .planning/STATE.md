@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 05-02-PLAN.md (onboarding wizard + middleware gate + dashboard checklist)
-last_updated: "2026-04-20T11:48:07.769Z"
+stopped_at: Completed 05-04-PLAN.md (credit burn cron + action worker deduction + credit UI)
+last_updated: "2026-04-20T11:56:37.894Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 33
-  completed_plans: 27
+  completed_plans: 28
 ---
 
 # Project State
@@ -73,6 +73,7 @@ Plan: 3 of 7
 | Phase 03 P10 | 4min | 2 tasks | 5 files |
 | Phase 05 P01 | 3min | 3 tasks | 9 files |
 | Phase 05 P02 | 6min | 2 tasks | 10 files |
+| Phase 05 P04 | 5min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,7 @@ Recent decisions affecting current work:
 - [Phase 03]: [Phase 03 P10]: Save writes drafted_content (not final_content); installed zod (missing from package.json); wrapped Save label in span to satisfy >Save< acceptance grep
 - [Phase 05]: [Phase 05 P01]: Migration renumbered to 00010 (plan said 00007 but 00007-00009 already exist); SECURITY DEFINER RPCs return sentinel -1 on insufficient balance; extra-account burn uses insertion order (slice after INCLUDED_ACCOUNTS=2); pipeline validator treats 'rejected' as only reversible stage
 - [Phase 05]: [Phase 05 P02]: Wizard rendered as fixed overlay on /onboarding (bypasses inherited AppShell); scan animation shows signalCount=0 zero-state (real scan is async via 15min cron); competitor keywords seeded as reddit_keyword signals alongside generated ones; checklist Describe/Keywords treated atomic (single product_profiles gate)
+- [Phase 05]: [Phase 05 P04]: credit-burn cron bulk-loads users/signals/accounts (3 queries vs 3N); action credit deduction wrapped in try/catch so failures never revert completed actions; accounts sorted by created_at to match insertion-order semantics of calculateAccountBurn; ContextualCreditPrompt lives in ApprovalQueue (not ApprovalCard) to preserve card contract; 7-day smoothed action-burn estimate for projected-days
 
 ### Pending Todos
 
@@ -138,5 +140,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-20
-Stopped at: Completed 05-02-PLAN.md (onboarding wizard + middleware gate + dashboard checklist)
+Stopped at: Completed 05-04-PLAN.md (credit burn cron + action worker deduction + credit UI)
 Resume file: None
