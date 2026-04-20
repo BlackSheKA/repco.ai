@@ -25,6 +25,9 @@ People who are actively looking for your product get a personalized, relevant DM
 - [x] FEED-01 through FEED-05: Intent feed with signal cards, flame indicators, contact/dismiss, filters — Validated in Phase 2
 - [x] AGNT-01 through AGNT-03: Agent persona card, 7 emotional states, terminal header — Validated in Phase 2
 - [x] DASH-01 through DASH-03: Dashboard layout, realtime updates — Validated in Phase 2
+- [x] FLLW-01 through FLLW-05: 3-touch follow-up sequences (day 3/7/14), auto-send toggle, cancellation — Validated in Phase 4: Sequences + Reply Detection
+- [x] RPLY-01 through RPLY-04: Reply detection via GoLogin + Playwright + Haiku vision, stop-on-reply, inbox failure tracking — Validated in Phase 4
+- [x] NTFY-01 through NTFY-03: Email notifications (reply alert, daily digest, account warning) via Resend + React Email — Validated in Phase 4
 
 ### Active
 
@@ -32,13 +35,10 @@ People who are actively looking for your product get a personalized, relevant DM
 - [ ] Action engine: event-driven (Supabase DB Webhook -> Vercel Function -> GoLogin -> Playwright CDP -> Claude Haiku CU)
 - [ ] Human-in-the-loop: DM + public reply require approval; like + follow auto-approved
 - [ ] DM generation: Claude Sonnet 4.6, max 3 sentences, references specific post, quality control pass
-- [ ] Follow-up sequence: 3 follow-ups (day 3, 7, 14), stops on any reply
-- [ ] Reply detection: inbox check co 2h via GoLogin + Playwright + Haiku CU
 - [ ] Anti-ban system: GoLogin Cloud profiles, behavioral noise, warmup protocol (7 days), rate limiting
 - [ ] Dashboard: multi-column layout with persistent terminal header, agent card, intent feed, approval queue, results
 - [ ] Prospect database: pipeline kanban (detected -> engaged -> contacted -> replied -> converted -> rejected), CSV export
 - [ ] Account health monitoring: warmup progress, health status, daily limits
-- [ ] Daily email digest: "X people looking for [product] yesterday" via Resend
 - [ ] /live page: public real-time feed of intent signals (polling, no auth required)
 - [ ] "Scan my product" landing page hook: real Reddit search results before signup
 - [ ] Weekly results card: shareable 1200x630 image with stats
@@ -92,4 +92,4 @@ People who are actively looking for your product get a personalized, relevant DM
 | Event-driven actions (DB Webhook) over polling | Zero empty invocations, fires only on user approval | — Pending |
 
 ---
-*Last updated: 2026-04-17 — Phase 2 Reddit Monitoring + Intent Feed complete*
+*Last updated: 2026-04-20 — Phase 4 Sequences + Reply Detection complete*
