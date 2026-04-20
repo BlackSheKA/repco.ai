@@ -41,11 +41,11 @@ ALTER TABLE actions
 --    (ACTN-06)
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION claim_action(p_action_id uuid)
-RETURNS SETOF actions AS $$
-  UPDATE actions
+RETURNS SETOF public.actions AS $$
+  UPDATE public.actions
   SET status = 'executing', executed_at = now()
   WHERE id = (
-    SELECT id FROM actions
+    SELECT id FROM public.actions
     WHERE id = p_action_id
     AND status = 'approved'
     FOR UPDATE SKIP LOCKED
@@ -78,40 +78,40 @@ BEGIN
   END IF;
 
   -- Upsert today's row
-  INSERT INTO action_counts (account_id, date, dm_count, engage_count, reply_count)
+  INSERT INTO public.action_counts (account_id, date, dm_count, engage_count, reply_count)
   VALUES (p_account_id, CURRENT_DATE, 0, 0, 0)
   ON CONFLICT (account_id, date) DO NOTHING;
 
   -- Check limit and increment if within bounds
   IF v_column = 'dm_count' THEN
     SELECT dm_count INTO v_current
-    FROM action_counts
+    FROM public.action_counts
     WHERE account_id = p_account_id AND date = CURRENT_DATE
     FOR UPDATE;
     SELECT daily_dm_limit INTO v_limit
-    FROM social_accounts WHERE id = p_account_id;
+    FROM public.social_accounts WHERE id = p_account_id;
     IF v_current >= v_limit THEN RETURN false; END IF;
-    UPDATE action_counts SET dm_count = dm_count + 1
+    UPDATE public.action_counts SET dm_count = dm_count + 1
     WHERE account_id = p_account_id AND date = CURRENT_DATE;
   ELSIF v_column = 'engage_count' THEN
     SELECT engage_count INTO v_current
-    FROM action_counts
+    FROM public.action_counts
     WHERE account_id = p_account_id AND date = CURRENT_DATE
     FOR UPDATE;
     SELECT daily_engage_limit INTO v_limit
-    FROM social_accounts WHERE id = p_account_id;
+    FROM public.social_accounts WHERE id = p_account_id;
     IF v_current >= v_limit THEN RETURN false; END IF;
-    UPDATE action_counts SET engage_count = engage_count + 1
+    UPDATE public.action_counts SET engage_count = engage_count + 1
     WHERE account_id = p_account_id AND date = CURRENT_DATE;
   ELSIF v_column = 'reply_count' THEN
     SELECT reply_count INTO v_current
-    FROM action_counts
+    FROM public.action_counts
     WHERE account_id = p_account_id AND date = CURRENT_DATE
     FOR UPDATE;
     SELECT daily_reply_limit INTO v_limit
-    FROM social_accounts WHERE id = p_account_id;
+    FROM public.social_accounts WHERE id = p_account_id;
     IF v_current >= v_limit THEN RETURN false; END IF;
-    UPDATE action_counts SET reply_count = reply_count + 1
+    UPDATE public.action_counts SET reply_count = reply_count + 1
     WHERE account_id = p_account_id AND date = CURRENT_DATE;
   END IF;
 
