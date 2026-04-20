@@ -1,15 +1,10 @@
 "use client"
 
-import { MessageSquare } from "lucide-react"
+import { LogIn, MessageSquare } from "lucide-react"
 
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { HealthBadge } from "./health-badge"
 import { WarmupProgress } from "./warmup-progress"
 import type {
@@ -21,7 +16,12 @@ interface AccountCardProps {
   account: SocialAccount
   usage: AccountDailyUsage
   onSkipWarmup: (accountId: string) => void
-  onAssignPlatform: (accountId: string, platform: "reddit" | "linkedin") => void
+  onReconnect: (accountId: string, profileId: string | null) => void
+}
+
+const PLATFORM_LABEL: Record<string, string> = {
+  reddit: "Reddit",
+  linkedin: "LinkedIn",
 }
 
 function formatTimeAgo(dateString: string): string {
@@ -74,9 +74,10 @@ export function AccountCard({
   account,
   usage,
   onSkipWarmup,
-  onAssignPlatform,
+  onReconnect,
 }: AccountCardProps) {
   const username = account.handle ?? "unknown"
+  const platformLabel = PLATFORM_LABEL[account.platform] ?? account.platform
 
   return (
     <Card
@@ -94,27 +95,21 @@ export function AccountCard({
           <span className="text-sm text-muted-foreground">
             Last action: {formatTimeAgo(account.created_at)}
           </span>
-          <div className="mt-2">
-            <span className="text-sm text-muted-foreground">
-              Responds to:
-            </span>
-            <Select
-              value={account.platform}
-              onValueChange={(value) =>
-                onAssignPlatform(
-                  account.id,
-                  value as "reddit" | "linkedin",
-                )
+          <div className="mt-2 flex items-center gap-2">
+            <Badge variant="secondary">{platformLabel}</Badge>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7"
+              onClick={() =>
+                onReconnect(account.id, account.gologin_profile_id)
               }
+              aria-label={`Log in to ${platformLabel} for ${username}`}
             >
-              <SelectTrigger className="mt-1 h-8 w-32 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="reddit">Reddit</SelectItem>
-                <SelectItem value="linkedin">LinkedIn</SelectItem>
-              </SelectContent>
-            </Select>
+              <LogIn className="mr-1 h-3.5 w-3.5" />
+              Log in
+            </Button>
           </div>
         </div>
 

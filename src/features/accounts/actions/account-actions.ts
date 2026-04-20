@@ -68,27 +68,6 @@ export async function skipWarmup(accountId: string) {
   return { success: true }
 }
 
-export async function assignAccountToPlatform(
-  accountId: string,
-  platform: "reddit" | "linkedin",
-) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: "Not authenticated" }
-
-  const { error } = await supabase
-    .from("social_accounts")
-    .update({ platform })
-    .eq("id", accountId)
-    .eq("user_id", user.id)
-
-  if (error) return { error: error.message }
-  revalidatePath("/accounts")
-  return { success: true }
-}
-
 export async function startAccountBrowser(accountId: string): Promise<{
   success: boolean
   url?: string

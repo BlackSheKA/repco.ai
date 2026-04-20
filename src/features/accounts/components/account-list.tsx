@@ -14,7 +14,6 @@ import { useRealtimeAccounts } from "@/features/accounts/lib/use-realtime-accoun
 import {
   connectAccount,
   skipWarmup,
-  assignAccountToPlatform,
 } from "@/features/accounts/actions/account-actions"
 import type {
   SocialAccount,
@@ -81,18 +80,14 @@ export function AccountList({
     })
   }
 
-  function handleAssignPlatform(
-    accountId: string,
-    platform: "reddit" | "linkedin",
-  ) {
-    startTransition(async () => {
-      const result = await assignAccountToPlatform(accountId, platform)
-      if (result.error) {
-        toast.error(result.error)
-      } else {
-        toast.success("Platform assignment updated")
-      }
-    })
+  function handleReconnect(accountId: string, profileId: string | null) {
+    if (!profileId) {
+      toast.error("This account has no browser profile")
+      return
+    }
+    setConnecting(true)
+    setNewAccountId(accountId)
+    setNewProfileId(profileId)
   }
 
   if (accounts.length === 0 && !connecting) {
@@ -197,7 +192,7 @@ export function AccountList({
             }
           }
           onSkipWarmup={handleSkipWarmup}
-          onAssignPlatform={handleAssignPlatform}
+          onReconnect={handleReconnect}
         />
       ))}
 
