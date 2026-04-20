@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04-03-PLAN.md (follow-up scheduler + daily digest cron + auto-send toggle)
-last_updated: "2026-04-20T06:42:07.652Z"
+stopped_at: Completed 04-04-PLAN.md (reply detection cron + reply matching)
+last_updated: "2026-04-20T06:42:48.588Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 28
-  completed_plans: 19
+  completed_plans: 20
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-04-16)
 ## Current Position
 
 Phase: 04 (sequences-reply-detection) — EXECUTING
-Plan: 3 of 5
+Plan: 5 of 5
 
 ## Performance Metrics
 
@@ -65,6 +65,7 @@ Plan: 3 of 5
 | Phase 04 P02 | 9min | 2 tasks | 10 files |
 | Phase 04 P01 | 3min | 2 tasks | 8 files |
 | Phase 04 P03 | 3min | 2 tasks | 6 files |
+| Phase 04 P04 | 4min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,7 @@ Recent decisions affecting current work:
 - [Phase 04]: [Phase 04 P01]: Sequence state on prospects table (not separate); getNextFollowUpStep pure for unit testability; missed-step skip to next due step; idempotent handleReplyDetected
 - [Phase 04]: [Phase 04 P02]: No reply body in reply alert email (locked CONTEXT decision); createElement for send functions to keep .ts files and preserve React props for Vitest introspection
 - [Phase 04]: [Phase 04 P03]: Follow-up angle injected via suggestedAngle override (reuse QC pipeline); skip empty digests to avoid training users to ignore; yesterday TZ boundary via formatInTimeZone round-trip (date-fns-tz v3 dropped zonedTimeToUtc)
+- [Phase 04]: [Phase 04 P04]: Vision-only Haiku call (not computer_use loop) for inbox read; deterministic page.goto before screenshot; empty-array-on-parse-failure so malformed CU responses don't bump failure counter; finally-block disconnectProfile for guaranteed browser cleanup
 
 ### Pending Todos
 
@@ -122,5 +124,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-20
-Stopped at: Completed 04-03-PLAN.md (follow-up scheduler + daily digest cron + auto-send toggle)
+Stopped at: Completed 04-04-PLAN.md (reply detection cron + reply matching)
 Resume file: None
