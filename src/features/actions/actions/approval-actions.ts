@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
 import { createClient } from "@/lib/supabase/server"
-import { generateDM } from "@/features/actions/lib/dm-generation"
+import { generateDM, stripDashes } from "@/features/actions/lib/dm-generation"
 
 export async function approveAction(
   actionId: string,
@@ -21,7 +21,7 @@ export async function approveAction(
     approved_at: new Date().toISOString(),
   }
   if (editedContent) {
-    updateData.final_content = editedContent
+    updateData.final_content = stripDashes(editedContent)
   }
 
   const { error } = await supabase
@@ -59,7 +59,7 @@ export async function saveEdits(actionId: string, editedContent: string) {
 
   const { error } = await supabase
     .from("actions")
-    .update({ drafted_content: parsed.data.editedContent })
+    .update({ drafted_content: stripDashes(parsed.data.editedContent) })
     .eq("id", parsed.data.actionId)
     .eq("user_id", user.id)
     .eq("status", "pending_approval")

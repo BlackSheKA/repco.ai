@@ -35,7 +35,7 @@ describe("generateDM", () => {
     mockCreate.mockReset()
   })
 
-  it('calls Anthropic with model "claude-sonnet-4-6-20250514" and max_tokens 300', async () => {
+  it('calls Anthropic with model "claude-sonnet-4-6" and max_tokens 300', async () => {
     const goodDm =
       "Sprint planning can be a pain. We built something that makes it way easier. Want to take a look?"
     mockCreate.mockResolvedValueOnce(mockResponse(goodDm))
@@ -44,7 +44,7 @@ describe("generateDM", () => {
 
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
-        model: "claude-sonnet-4-6-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 300,
       }),
     )

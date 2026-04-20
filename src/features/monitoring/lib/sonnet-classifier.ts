@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk"
+import { stripDashes } from "@/features/actions/lib/dm-generation"
 import type { ClassificationResult } from "./types"
 
 const SONNET_LABEL_TO_ENUM: Record<string, ClassificationResult["intent_type"]> =
@@ -37,7 +38,7 @@ export async function classifySignals(
   })
 
   const model =
-    process.env.SONNET_MODEL_ID ?? "claude-sonnet-4-6-20250514"
+    process.env.SONNET_MODEL_ID ?? "claude-sonnet-4-6"
 
   try {
     const response = await anthropic.messages.create({
@@ -75,8 +76,8 @@ For each post, return a JSON array. Each object: { "post_url": string, "intent_t
       post_url: item.post_url,
       intent_type: mapSonnetLabel(item.intent_type),
       intent_strength: item.intent_strength,
-      reasoning: item.reasoning,
-      suggested_angle: item.suggested_angle,
+      reasoning: stripDashes(item.reasoning),
+      suggested_angle: stripDashes(item.suggested_angle),
     }))
   } catch (error) {
     console.error("[sonnet-classifier] Failed to classify signals:", error)

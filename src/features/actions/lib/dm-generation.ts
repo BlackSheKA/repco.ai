@@ -20,7 +20,16 @@ const SYSTEM_PROMPT = `You are writing a Reddit DM on behalf of a product owner.
 - Reference something specific from their post
 - Casual, helpful tone -- no hard sell
 - End with a question or soft CTA
-- Do NOT start with "Hey, I saw your post"`
+- Do NOT start with "Hey, I saw your post"
+- NEVER use em-dashes (—) or en-dashes (–). Use a regular hyphen (-) or rewrite the sentence.`
+
+/**
+ * Strip em-dashes (—) and en-dashes (–) from AI-generated text.
+ * em-dashes are a strong AI-writing tell on Reddit; users want plain hyphens.
+ */
+export function stripDashes(text: string): string {
+  return text.replace(/[—–]/g, "-")
+}
 
 function buildUserMessage(input: DmGenerationInput): string {
   return `Post: ${input.postContent}
@@ -39,16 +48,17 @@ export async function generateDM(
 
   // First attempt
   const firstResponse = await client.messages.create({
-    model: "claude-sonnet-4-6-20250514",
+    model: "claude-sonnet-4-6",
     max_tokens: 300,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: buildUserMessage(input) }],
   })
 
-  const firstContent =
+  const firstContent = stripDashes(
     firstResponse.content[0].type === "text"
       ? firstResponse.content[0].text
       : ""
+  )
 
   const firstQC = runQualityControl(firstContent, input.postContent)
   if (firstQC.passed) {
@@ -59,16 +69,17 @@ export async function generateDM(
   const stricterSystem = `${SYSTEM_PROMPT}\nIMPORTANT: Your previous attempt was rejected because: ${firstQC.reason}. Fix this issue.`
 
   const secondResponse = await client.messages.create({
-    model: "claude-sonnet-4-6-20250514",
+    model: "claude-sonnet-4-6",
     max_tokens: 300,
     system: stricterSystem,
     messages: [{ role: "user", content: buildUserMessage(input) }],
   })
 
-  const secondContent =
+  const secondContent = stripDashes(
     secondResponse.content[0].type === "text"
       ? secondResponse.content[0].text
       : ""
+  )
 
   const secondQC = runQualityControl(secondContent, input.postContent)
   if (secondQC.passed) {
