@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04-04-PLAN.md (reply detection cron + reply matching)
-last_updated: "2026-04-20T06:42:48.588Z"
+stopped_at: "Completed 04-05-PLAN.md (Phase 4 dashboard UI: Replies section, timeline, inbox warning, terminal events)"
+last_updated: "2026-04-20T07:07:03.279Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 6
-  completed_phases: 3
-  total_plans: 28
-  completed_plans: 20
+  completed_phases: 4
+  total_plans: 29
+  completed_plans: 21
 ---
 
 # Project State
@@ -24,8 +24,8 @@ See: .planning/PROJECT.md (updated 2026-04-16)
 
 ## Current Position
 
-Phase: 04 (sequences-reply-detection) — EXECUTING
-Plan: 5 of 5
+Phase: 04 (sequences-reply-detection) — COMPLETE
+Plan: 5 of 5 — shipped (Phase 4 complete; ready for Phase 5)
 
 ## Performance Metrics
 
@@ -66,6 +66,7 @@ Plan: 5 of 5
 | Phase 04 P01 | 3min | 2 tasks | 8 files |
 | Phase 04 P03 | 3min | 2 tasks | 6 files |
 | Phase 04 P04 | 4min | 2 tasks | 6 files |
+| Phase 04-sequences-reply-detection P05 | 10min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,7 @@ Recent decisions affecting current work:
 - [Phase 04]: [Phase 04 P02]: No reply body in reply alert email (locked CONTEXT decision); createElement for send functions to keep .ts files and preserve React props for Vitest introspection
 - [Phase 04]: [Phase 04 P03]: Follow-up angle injected via suggestedAngle override (reuse QC pipeline); skip empty digests to avoid training users to ignore; yesterday TZ boundary via formatInTimeZone round-trip (date-fns-tz v3 dropped zonedTimeToUtc)
 - [Phase 04]: [Phase 04 P04]: Vision-only Haiku call (not computer_use loop) for inbox read; deterministic page.goto before screenshot; empty-array-on-parse-failure so malformed CU responses don't bump failure counter; finally-block disconnectProfile for guaranteed browser cleanup
+- [Phase 04-sequences-reply-detection]: [Phase 04 P05]: Edge-only reply side-effects (transition-gated toast + state prepend); AgentCard owns emotional state with its own Realtime sub (not cross-component mutation); 4 separate terminal Realtime channels (one filter per .on call); timeline takes onStopSequence callback for Phase 5 reuse
 
 ### Pending Todos
 
@@ -124,5 +126,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-20
-Stopped at: Completed 04-04-PLAN.md (reply detection cron + reply matching)
+Stopped at: Completed 04-05-PLAN.md (Phase 4 dashboard UI: Replies section, timeline, inbox warning, terminal events)
 Resume file: None
