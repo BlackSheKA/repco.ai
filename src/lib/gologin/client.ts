@@ -98,15 +98,17 @@ export interface CloudBrowserSession {
  * with the running Orbita instance.
  *
  * @param profileId - The GoLogin profile ID to start
+ * @param startingUrl - Optional URL for the browser's initial page
  * @returns Session info with the remote Orbita viewer URL
  */
 export async function startCloudBrowser(
-  profileId: string
+  profileId: string,
+  startingUrl?: string
 ): Promise<CloudBrowserSession> {
   const response = await fetch(`${GOLOGIN_API}/browser/${profileId}/web`, {
     method: "POST",
     headers: headers(),
-    body: JSON.stringify({}),
+    body: JSON.stringify(startingUrl ? { startingUrl } : {}),
   })
 
   if (!response.ok) {

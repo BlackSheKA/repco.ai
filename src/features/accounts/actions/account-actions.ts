@@ -81,7 +81,7 @@ export async function startAccountBrowser(accountId: string): Promise<{
 
   const { data: account } = await supabase
     .from("social_accounts")
-    .select("gologin_profile_id")
+    .select("gologin_profile_id, platform")
     .eq("id", accountId)
     .eq("user_id", user.id)
     .single()
@@ -90,8 +90,17 @@ export async function startAccountBrowser(accountId: string): Promise<{
     return { success: false, error: "No GoLogin profile on this account" }
   }
 
+  const loginUrls: Record<string, string> = {
+    reddit: "https://www.reddit.com/login/",
+    linkedin: "https://www.linkedin.com/login",
+  }
+  const startingUrl = loginUrls[account.platform]
+
   try {
-    const session = await startCloudBrowser(account.gologin_profile_id)
+    const session = await startCloudBrowser(
+      account.gologin_profile_id,
+      startingUrl
+    )
     return { success: true, url: session.remoteOrbitaUrl }
   } catch (err) {
     return {
