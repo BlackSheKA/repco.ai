@@ -12,7 +12,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **ONBR-01**: User can describe their product in one sentence and get auto-generated keywords + subreddits
 - [x] **ONBR-02**: User can specify their target customer in one sentence
 - [x] **ONBR-03**: User can optionally name competitors (helps find "alternative to X" posts)
-- [ ] **ONBR-04**: User can connect their Reddit account via GoLogin profile session
+- [x] **ONBR-04**: User can connect their Reddit account via GoLogin profile session (Phase 3 `/accounts` UI; surfaced via onboarding checklist card in Phase 5)
 - [ ] **ONBR-05**: User can connect their LinkedIn account via GoLogin profile session
 - [x] **ONBR-06**: User sees live scanning animation with real signals appearing during onboarding
 - [x] **ONBR-07**: User is redirected to dashboard with first intent signals after onboarding completes
@@ -259,7 +259,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ONBR-01 | Phase 5 | Complete |
 | ONBR-02 | Phase 5 | Complete |
 | ONBR-03 | Phase 5 | Complete |
-| ONBR-04 | Phase 5 | Pending |
+| ONBR-04 | Phase 5 | Complete |
 | ONBR-05 | Phase 5 | Pending |
 | ONBR-06 | Phase 5 | Complete |
 | ONBR-07 | Phase 5 | Complete |
