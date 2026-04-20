@@ -32,6 +32,9 @@ importers:
       '@sentry/nextjs':
         specifier: ^10.49.0
         version: 10.49.0(@opentelemetry/core@2.6.1(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.6.1(@opentelemetry/api@1.9.1))(next@16.1.7(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)(webpack@5.106.2)
+      '@stripe/stripe-js':
+        specifier: ^9.2.0
+        version: 9.2.0
       '@supabase/ssr':
         specifier: ^0.10.2
         version: 0.10.2(@supabase/supabase-js@2.103.3)
@@ -62,6 +65,9 @@ importers:
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      papaparse:
+        specifier: ^5.5.3
+        version: 5.5.3
       playwright-core:
         specifier: ^1.59.1
         version: 1.59.1
@@ -86,6 +92,9 @@ importers:
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      stripe:
+        specifier: ^22.0.2
+        version: 22.0.2(@types/node@25.6.0)
       tailwind-merge:
         specifier: ^3.5.0
         version: 3.5.0
@@ -105,6 +114,9 @@ importers:
       '@types/node':
         specifier: ^25.5.0
         version: 25.6.0
+      '@types/papaparse':
+        specifier: ^5.5.2
+        version: 5.5.2
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.14
@@ -2186,6 +2198,10 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
+  '@stripe/stripe-js@9.2.0':
+    resolution: {integrity: sha512-YSzLC0t6VS9MDdPTynSMqU8IxrItFUjkDORALFT6sSMR/XZ5Vgm3RDp/Gk7z727MC4A9s4MFVel0gF0c7+kdrg==}
+    engines: {node: '>=12.16'}
+
   '@supabase/auth-js@2.103.3':
     resolution: {integrity: sha512-SMDJ4vg5jLXNEHdhN4J4ujSb203WangbDw1n3VaARH0ZqM51E6lJnoUAHlpQU9N7SzP0hfgghA9IvT8c7tGRfg==}
     engines: {node: '>=20.0.0'}
@@ -2344,6 +2360,9 @@ packages:
 
   '@types/node@25.6.0':
     resolution: {integrity: sha512-+qIYRKdNYJwY3vRCZMdJbPLJAtGjQBudzZzdzwQYkEPQd+PJGixUL5QfvCLDaULoLv+RhT3LDkwEfKaAkgSmNQ==}
+
+  '@types/papaparse@5.5.2':
+    resolution: {integrity: sha512-gFnFp/JMzLHCwRf7tQHrNnfhN4eYBVYYI897CGX4MY1tzY9l2aLkVyx2IlKZ/SAqDbB3I1AOZW5gTMGGsqWliA==}
 
   '@types/pg-pool@2.0.7':
     resolution: {integrity: sha512-U4CwmGVQcbEuqpyju8/ptOKg6gEC+Tqsvj2xS9o1g71bUh8twxnC6ZL5rZKCsGN0iyH0CwgUyc9VR5owNQF9Ng==}
@@ -4397,6 +4416,9 @@ packages:
     resolution: {integrity: sha512-LaNjtRWUBY++zB5nE/NwcaoMylSPk+S+ZHNB1TzdbMJMny6dynpAGt7X/tl/QYq3TIeE6nxHppbo2LGymrG5Pw==}
     engines: {node: '>=10'}
 
+  papaparse@5.5.3:
+    resolution: {integrity: sha512-5QvjGxYVjxO59MGU2lHVYpRWBBtKHnlIAcSe1uNFCkkptUh63NFRj0FJQm7nR67puEruUci/ZkjmEFrjCAyP4A==}
+
   parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
     engines: {node: '>=6'}
@@ -5030,6 +5052,15 @@ packages:
   strip-json-comments@3.1.1:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
+
+  stripe@22.0.2:
+    resolution: {integrity: sha512-2/BLrQ3oB1zlNfeL/LfHFjTGx6EQn0j+ztrrTJHuDjV5VVIpk92oSDaxyKLUr3pG3dnee2LZqhFUv2Bf0G1/3g==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@types/node': '>=18'
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
 
   styled-jsx@5.1.6:
     resolution: {integrity: sha512-qSVyDTeMotdvQYoHWLNGwRFJHC+i+ZvdBRYosOFgC+Wg1vx4frN2/RG/NA7SYqqvKNLf39P2LSRA2pu6n0XYZA==}
@@ -7650,6 +7681,8 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
+  '@stripe/stripe-js@9.2.0': {}
+
   '@supabase/auth-js@2.103.3':
     dependencies:
       tslib: 2.8.1
@@ -7813,6 +7846,10 @@ snapshots:
   '@types/node@25.6.0':
     dependencies:
       undici-types: 7.19.2
+
+  '@types/papaparse@5.5.2':
+    dependencies:
+      '@types/node': 25.6.0
 
   '@types/pg-pool@2.0.7':
     dependencies:
@@ -9998,6 +10035,8 @@ snapshots:
     dependencies:
       p-limit: 3.1.0
 
+  papaparse@5.5.3: {}
+
   parent-module@1.0.1:
     dependencies:
       callsites: 3.1.0
@@ -10793,6 +10832,10 @@ snapshots:
   strip-final-newline@4.0.0: {}
 
   strip-json-comments@3.1.1: {}
+
+  stripe@22.0.2(@types/node@25.6.0):
+    optionalDependencies:
+      '@types/node': 25.6.0
 
   styled-jsx@5.1.6(@babel/core@7.29.0)(react@19.2.5):
     dependencies:
