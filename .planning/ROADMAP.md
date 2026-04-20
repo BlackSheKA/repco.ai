@@ -124,7 +124,7 @@ Plans:
 - [ ] 05-02-PLAN.md — 3-question onboarding wizard, Claude keyword generation, scanning animation, dashboard checklist card, middleware onboarding gate
 - [ ] 05-03-PLAN.md — Stripe billing: checkout actions, webhook handler, /billing page with plans, credit packs, history, subscription management
 - [ ] 05-04-PLAN.md — Credit economy runtime: daily burn cron, sidebar credit balance widget, dashboard credit card, upgrade prompts (banner + contextual)
-- [ ] 05-05-PLAN.md — Prospect pipeline: kanban board (@dnd-kit/react), prospect detail page, notes/tags, CSV export, dashboard stats + revenue counter
+- [x] 05-05-PLAN.md — Prospect pipeline: kanban board (@dnd-kit/react), prospect detail page, notes/tags, CSV export, dashboard stats + revenue counter
 - [ ] 05-06-PLAN.md — /live public page (10s polling, anonymized feed, aggregate stats), "Scan my product" API + form with rate limiting
 - [ ] 05-07-PLAN.md — Weekly results card (next/og 1200x630 PNG), share buttons (X/LinkedIn), daily email digest cron
 
@@ -152,5 +152,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Reddit Monitoring + Intent Feed | 4/4 | Complete   | 2026-04-17 |
 | 3. Action Engine | 3/6 | In Progress|  |
 | 4. Sequences + Reply Detection | 2/5 | In Progress|  |
-| 5. Billing + Onboarding + Growth | 0/7 | Not started | - |
+| 5. Billing + Onboarding + Growth | 5/7 | In Progress | - |
 | 6. LinkedIn | 0/1 | Not started | - |
