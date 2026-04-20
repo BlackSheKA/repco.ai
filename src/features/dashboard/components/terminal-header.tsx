@@ -49,7 +49,12 @@ function getLinePrefix(entry: TerminalEntry): {
     case "complete":
       return { symbol: "", className: "text-[#22C55E]" }
     case "found":
+    case "followup":
       return { symbol: "", className: "text-[#4338CA]" }
+    case "reply":
+      return { symbol: "", className: "text-[#22C55E]" }
+    case "inbox":
+      return { symbol: "", className: "text-amber-500" }
     case "scanning":
     case "classifying":
     case "quiet":

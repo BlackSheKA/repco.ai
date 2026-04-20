@@ -132,7 +132,7 @@ export function AgentCard({ userId, initialStats }: AgentCardProps) {
 
     const interval = setInterval(fetchContext, REFRESH_INTERVAL_MS)
 
-    // Subscribe to intent_signals for immediate state updates
+    // Subscribe to intent_signals + prospect replies for immediate state updates
     const supabase = supabaseRef.current
     const channel = supabase
       .channel("agent-card-signals")
@@ -146,6 +146,29 @@ export function AgentCard({ userId, initialStats }: AgentCardProps) {
         },
         () => {
           fetchContext()
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "prospects",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const newRow = payload.new as { pipeline_status: string | null }
+          const oldRow = payload.old as {
+            pipeline_status: string | null
+          } | null
+          // Only refetch on transition to 'replied' so the agent card flips
+          // to the Reply emotional state.
+          if (
+            newRow.pipeline_status === "replied" &&
+            (!oldRow || oldRow.pipeline_status !== "replied")
+          ) {
+            fetchContext()
+          }
         },
       )
       .subscribe()

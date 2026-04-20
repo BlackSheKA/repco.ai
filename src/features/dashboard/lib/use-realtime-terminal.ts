@@ -7,7 +7,15 @@ import { createClient } from "@/lib/supabase/client"
 export interface TerminalEntry {
   id: string
   text: string
-  type: "scanning" | "found" | "classifying" | "complete" | "quiet"
+  type:
+    | "scanning"
+    | "found"
+    | "classifying"
+    | "complete"
+    | "quiet"
+    | "followup"
+    | "reply"
+    | "inbox"
   timestamp: Date
 }
 
@@ -160,9 +168,140 @@ export function useRealtimeTerminal(userId: string) {
       )
       .subscribe()
 
+    // Subscribe to follow-up actions for this user (scheduled + sent)
+    const followupChannel = supabase
+      .channel("terminal-followups")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "actions",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const row = payload.new as {
+            id: string
+            action_type: string | null
+            sequence_step: number | null
+            prospect_id: string
+            created_at: string
+          }
+          if (row.action_type !== "followup_dm") return
+          const step = row.sequence_step ?? 1
+          const dayMap: Record<number, number> = { 1: 3, 2: 7, 3: 14 }
+          const day = dayMap[step] ?? step
+          addEntry({
+            id: `${row.id}-scheduled`,
+            text: `> Follow-up ${step} scheduled (day ${day})`,
+            type: "followup",
+            timestamp: new Date(row.created_at),
+          })
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "actions",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const row = payload.new as {
+            id: string
+            action_type: string | null
+            sequence_step: number | null
+            status: string | null
+            executed_at: string | null
+          }
+          if (row.action_type !== "followup_dm") return
+          if (row.status !== "completed") return
+          const step = row.sequence_step ?? 1
+          addEntry({
+            id: `${row.id}-sent`,
+            text: `> Follow-up ${step} sent`,
+            type: "followup",
+            timestamp: row.executed_at
+              ? new Date(row.executed_at)
+              : new Date(),
+          })
+        },
+      )
+      .subscribe()
+
+    // Subscribe to reply detections for this user
+    const replyChannel = supabase
+      .channel("terminal-replies")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "prospects",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const newRow = payload.new as {
+            id: string
+            handle: string | null
+            pipeline_status: string | null
+            replied_detected_at: string | null
+          }
+          const oldRow = payload.old as {
+            pipeline_status: string | null
+          } | null
+          if (newRow.pipeline_status !== "replied") return
+          if (oldRow && oldRow.pipeline_status === "replied") return
+          addEntry({
+            id: `${newRow.id}-reply`,
+            text: `> Reply received from u/${newRow.handle ?? "unknown"}`,
+            type: "reply",
+            timestamp: newRow.replied_detected_at
+              ? new Date(newRow.replied_detected_at)
+              : new Date(),
+          })
+        },
+      )
+      .subscribe()
+
+    // Subscribe to inbox check job_logs (reply_check type, global not per-user)
+    const inboxChannel = supabase
+      .channel("terminal-inbox")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "job_logs",
+          filter: "job_type=eq.reply_check",
+        },
+        (payload) => {
+          const row = payload.new as {
+            id: string
+            status: string | null
+            started_at: string
+            metadata: Record<string, unknown> | null
+          }
+          const isFailed = row.status === "failed"
+          addEntry({
+            id: `${row.id}-inbox-start`,
+            text: isFailed
+              ? "> Inbox check failed"
+              : "> Checking inbox for replies...",
+            type: "inbox",
+            timestamp: new Date(row.started_at),
+          })
+        },
+      )
+      .subscribe()
+
     return () => {
       supabase.removeChannel(jobChannel)
       supabase.removeChannel(signalChannel)
+      supabase.removeChannel(followupChannel)
+      supabase.removeChannel(replyChannel)
+      supabase.removeChannel(inboxChannel)
     }
   }, [userId, addEntry])
 
