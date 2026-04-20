@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 05-01-PLAN.md (billing types + credit RPC + pipeline validator)
-last_updated: "2026-04-20T11:33:52.723Z"
+stopped_at: Completed 05-02-PLAN.md (onboarding wizard + middleware gate + dashboard checklist)
+last_updated: "2026-04-20T11:48:07.769Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 33
-  completed_plans: 26
+  completed_plans: 27
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-04-16)
 ## Current Position
 
 Phase: 05 (billing-onboarding-growth) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 
 ## Performance Metrics
 
@@ -72,6 +72,7 @@ Plan: 2 of 7
 | Phase 03 P09 | 2min | 2 tasks | 2 files |
 | Phase 03 P10 | 4min | 2 tasks | 5 files |
 | Phase 05 P01 | 3min | 3 tasks | 9 files |
+| Phase 05 P02 | 6min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,7 @@ Recent decisions affecting current work:
 - [Phase 03]: [Phase 03 P09]: DM expiry aligned to 12h (create-actions.ts + expiry.ts) per CONTEXT locked decision; literal kept in-place (no shared constant) to minimize blast radius
 - [Phase 03]: [Phase 03 P10]: Save writes drafted_content (not final_content); installed zod (missing from package.json); wrapped Save label in span to satisfy >Save< acceptance grep
 - [Phase 05]: [Phase 05 P01]: Migration renumbered to 00010 (plan said 00007 but 00007-00009 already exist); SECURITY DEFINER RPCs return sentinel -1 on insufficient balance; extra-account burn uses insertion order (slice after INCLUDED_ACCOUNTS=2); pipeline validator treats 'rejected' as only reversible stage
+- [Phase 05]: [Phase 05 P02]: Wizard rendered as fixed overlay on /onboarding (bypasses inherited AppShell); scan animation shows signalCount=0 zero-state (real scan is async via 15min cron); competitor keywords seeded as reddit_keyword signals alongside generated ones; checklist Describe/Keywords treated atomic (single product_profiles gate)
 
 ### Pending Todos
 
@@ -136,5 +138,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-20
-Stopped at: Completed 05-01-PLAN.md (billing types + credit RPC + pipeline validator)
+Stopped at: Completed 05-02-PLAN.md (onboarding wizard + middleware gate + dashboard checklist)
 Resume file: None

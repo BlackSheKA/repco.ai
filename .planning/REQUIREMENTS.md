@@ -9,13 +9,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Onboarding
 
-- [ ] **ONBR-01**: User can describe their product in one sentence and get auto-generated keywords + subreddits
-- [ ] **ONBR-02**: User can specify their target customer in one sentence
-- [ ] **ONBR-03**: User can optionally name competitors (helps find "alternative to X" posts)
+- [x] **ONBR-01**: User can describe their product in one sentence and get auto-generated keywords + subreddits
+- [x] **ONBR-02**: User can specify their target customer in one sentence
+- [x] **ONBR-03**: User can optionally name competitors (helps find "alternative to X" posts)
 - [ ] **ONBR-04**: User can connect their Reddit account via GoLogin profile session
 - [ ] **ONBR-05**: User can connect their LinkedIn account via GoLogin profile session
-- [ ] **ONBR-06**: User sees live scanning animation with real signals appearing during onboarding
-- [ ] **ONBR-07**: User is redirected to dashboard with first intent signals after onboarding completes
+- [x] **ONBR-06**: User sees live scanning animation with real signals appearing during onboarding
+- [x] **ONBR-07**: User is redirected to dashboard with first intent signals after onboarding completes
 
 ### Monitoring
 
@@ -256,13 +256,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BILL-07 | Phase 5 | Complete |
 | BILL-08 | Phase 5 | Pending |
 | BILL-09 | Phase 5 | Pending |
-| ONBR-01 | Phase 5 | Pending |
-| ONBR-02 | Phase 5 | Pending |
-| ONBR-03 | Phase 5 | Pending |
+| ONBR-01 | Phase 5 | Complete |
+| ONBR-02 | Phase 5 | Complete |
+| ONBR-03 | Phase 5 | Complete |
 | ONBR-04 | Phase 5 | Pending |
 | ONBR-05 | Phase 5 | Pending |
-| ONBR-06 | Phase 5 | Pending |
-| ONBR-07 | Phase 5 | Pending |
+| ONBR-06 | Phase 5 | Complete |
+| ONBR-07 | Phase 5 | Complete |
 | GROW-01 | Phase 5 | Pending |
 | GROW-02 | Phase 5 | Pending |
 | GROW-03 | Phase 5 | Pending |
