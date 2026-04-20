@@ -1,9 +1,10 @@
 ---
-status: complete
+status: resolved
 phase: 03-action-engine
 source: [03-01-SUMMARY.md, 03-02-SUMMARY.md, 03-03-SUMMARY.md, 03-04-SUMMARY.md, 03-05-SUMMARY.md, 03-06-SUMMARY.md]
 started: 2026-04-20T08:00:00Z
-updated: 2026-04-20T08:25:00Z
+updated: 2026-04-20T10:26:00Z
+resolved_by: [03-07-SUMMARY.md, 03-08-SUMMARY.md, 03-09-SUMMARY.md, 03-10-SUMMARY.md]
 verification_mode: static_code_review
 note: User requested autonomous verification. Chrome browser locked by user session (memory: never kill), so live UI verification was not possible. Tests verified via source code inspection, DB schema probing against prod Supabase, HTTP status checks, and typecheck.
 ---
@@ -104,7 +105,7 @@ skipped: 0
 ## Gaps
 
 - truth: "Migration 00006 applied to active Supabase project — claim_action RPC callable, cooldown_until/daily_reply_limit/screenshot_url columns present, expired enum value present, Realtime publication includes actions table"
-  status: failed
+  status: resolved
   reason: "Migration 00006 not applied to project cmkifdwjunojgigrqwnr. PGRST202 on claim_action RPC, 42703 on social_accounts.cooldown_until column."
   severity: blocker
   test: 1
@@ -112,7 +113,7 @@ skipped: 0
   missing: []
 
 - truth: "Sidebar notification dot visually alerts user when any account needs attention (warning/cooldown/banned)"
-  status: failed
+  status: resolved
   reason: "AppShell renders <AppSidebar user={user} /> without passing hasAccountAlerts prop. Component supports the prop and renders the dot conditionally, but the layer above never queries or passes the flag. Always undefined → dot never shows."
   severity: major
   test: 7
@@ -124,7 +125,7 @@ skipped: 0
     - "Pass boolean to AppSidebar as hasAccountAlerts"
 
 - truth: "DM expiry aligns with expiry cron threshold (12h) so expired drafts are cleaned up on schedule"
-  status: failed
+  status: resolved
   reason: "create-actions.ts hardcodes 4h expiry (Date.now() + 4*60*60*1000), but 03-05 summary and UAT spec expected 12h. Expiry cron runs hourly with 12h threshold — DMs will expire 8h before cron inspects them (effectively harmless here since expiry is driven by expires_at column comparison in cron logic, but timing documentation is inconsistent)."
   severity: major
   test: 10
@@ -136,7 +137,7 @@ skipped: 0
     - "Or update spec to 4h and realign cron threshold"
 
 - truth: "User can save DM edits independently of approval (save, then review, then approve)"
-  status: failed
+  status: resolved
   reason: "ApprovalCard only has Edit / Discard edits / Approve / Regenerate / Reject buttons. No Save button. Edits only persist when Approve is clicked. UX confusion: user who edits and clicks Regenerate or navigates away loses edits silently."
   severity: minor
   test: 11
