@@ -55,31 +55,35 @@ export function AppSidebar({ user, hasAccountAlerts }: AppSidebarProps) {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="p-2">
-          <Image src={logo} alt="repco" height={28} priority />
-        </div>
+        <Image src={logo} alt="repco" height={32} priority className="ml-2" />
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {NAV_ITEMS.map((item) => (
-                <SidebarMenuItem key={item.label} className="relative">
-                  <SidebarMenuButton asChild isActive={isActive(item.href)}>
-                    <a href={item.href}>
-                      <item.icon />
-                      <span>{item.label}</span>
-                    </a>
-                  </SidebarMenuButton>
-                  {item.label === "Accounts" && hasAccountAlerts && (
-                    <span
-                      className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive"
-                      aria-label="Account needs attention"
-                    />
-                  )}
-                </SidebarMenuItem>
-              ))}
+              {NAV_ITEMS.map((item) => {
+                const showAlert =
+                  item.label === "Accounts" && hasAccountAlerts
+                return (
+                  <SidebarMenuItem key={item.label}>
+                    <SidebarMenuButton asChild isActive={isActive(item.href)}>
+                      <a href={item.href}>
+                        <span className="relative inline-flex">
+                          <item.icon />
+                          {showAlert && (
+                            <span
+                              className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-destructive ring-2 ring-sidebar"
+                              aria-label="Account needs attention"
+                            />
+                          )}
+                        </span>
+                        <span>{item.label}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
