@@ -73,7 +73,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **RPLY-01**: System checks DM inboxes every 2h via GoLogin + Playwright CDP + Haiku CU
 - [ ] **RPLY-02**: System matches reply sender to prospect record and updates pipeline_status to "replied"
-- [ ] **RPLY-03**: System sends email notification to user when a reply is received
+- [x] **RPLY-03**: System sends email notification to user when a reply is received
 - [ ] **RPLY-04**: System pushes reply event to dashboard via Supabase Realtime
 
 ### Anti-Ban System
@@ -132,9 +132,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Notifications
 
-- [ ] **NTFY-01**: User receives daily email digest with signal count, top signal, and pending DMs
-- [ ] **NTFY-02**: User receives email notification when a prospect replies
-- [ ] **NTFY-03**: User receives email alert when an account is flagged (warning/banned)
+- [x] **NTFY-01**: User receives daily email digest with signal count, top signal, and pending DMs
+- [x] **NTFY-02**: User receives email notification when a prospect replies
+- [x] **NTFY-03**: User receives email alert when an account is flagged (warning/banned)
 
 ### Observability
 
@@ -242,11 +242,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FLLW-05 | Phase 4 | Pending |
 | RPLY-01 | Phase 4 | Pending |
 | RPLY-02 | Phase 4 | Pending |
-| RPLY-03 | Phase 4 | Pending |
+| RPLY-03 | Phase 4 | Complete |
 | RPLY-04 | Phase 4 | Pending |
-| NTFY-01 | Phase 4 | Pending |
-| NTFY-02 | Phase 4 | Pending |
-| NTFY-03 | Phase 4 | Pending |
+| NTFY-01 | Phase 4 | Complete |
+| NTFY-02 | Phase 4 | Complete |
+| NTFY-03 | Phase 4 | Complete |
 | BILL-01 | Phase 5 | Pending |
 | BILL-02 | Phase 5 | Pending |
 | BILL-03 | Phase 5 | Pending |
