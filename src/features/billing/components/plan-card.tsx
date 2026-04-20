@@ -15,6 +15,7 @@ interface PlanCardProps {
   isPending?: boolean
 }
 
+// Badges rendered: "Save 29%" for quarterly, "Save 49%" for annual.
 const SAVINGS_BY_PERIOD: Record<PricingPlan["period"], number> = {
   monthly: 0,
   quarterly: 29,
