@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   startAccountBrowser,
+  stopAccountBrowser,
   verifyAccountSession,
 } from "@/features/accounts/actions/account-actions"
 
@@ -59,6 +60,11 @@ export function ConnectionFlow({
     }
   }, [accountId])
 
+  async function handleCancel() {
+    await stopAccountBrowser(accountId)
+    onCancel()
+  }
+
   async function handleVerify() {
     setStep(2)
     setError(null)
@@ -68,6 +74,7 @@ export function ConnectionFlow({
       setStep(3)
       if (result.success && result.verified) {
         setVerified(true)
+        await stopAccountBrowser(accountId)
         setTimeout(() => onComplete(), 2000)
       } else {
         setVerified(false)
@@ -121,7 +128,7 @@ export function ConnectionFlow({
                   >
                     Retry
                   </Button>
-                  <Button variant="ghost" onClick={onCancel}>
+                  <Button variant="ghost" onClick={handleCancel}>
                     Cancel
                   </Button>
                 </div>
@@ -153,7 +160,7 @@ export function ConnectionFlow({
                   <Button variant="outline" onClick={handleVerify}>
                     I&apos;ve logged in
                   </Button>
-                  <Button variant="ghost" onClick={onCancel}>
+                  <Button variant="ghost" onClick={handleCancel}>
                     Cancel
                   </Button>
                 </div>

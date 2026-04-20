@@ -120,6 +120,28 @@ export async function startCloudBrowser(
 }
 
 /**
+ * Stop a running GoLogin Cloud Browser session. Idempotent — returns true
+ * whether or not a session was running.
+ *
+ * @param profileId - The GoLogin profile ID
+ */
+export async function stopCloudBrowser(profileId: string): Promise<void> {
+  const response = await fetch(`${GOLOGIN_API}/browser/${profileId}/web`, {
+    method: "DELETE",
+    headers: headers(),
+  })
+
+  if (response.status === 204 || response.status === 404) {
+    return
+  }
+
+  const body = await response.text()
+  throw new Error(
+    `GoLogin stopCloudBrowser failed (${response.status}): ${body}`
+  )
+}
+
+/**
  * Get a GoLogin browser profile by ID.
  *
  * @param profileId - The GoLogin profile ID

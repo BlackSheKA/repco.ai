@@ -3,11 +3,20 @@
 import { revalidatePath } from "next/cache"
 
 import { createClient } from "@/lib/supabase/server"
-import { createProfile, startCloudBrowser } from "@/lib/gologin/client"
+import {
+  createProfile,
+  startCloudBrowser,
+  stopCloudBrowser,
+} from "@/lib/gologin/client"
 import {
   connectToProfile,
   disconnectProfile,
 } from "@/lib/gologin/adapter"
+
+const LOGIN_URLS: Record<string, string> = {
+  reddit: "https://www.reddit.com/login/",
+  linkedin: "https://www.linkedin.com/login",
+}
 
 export async function connectAccount(
   platform: "reddit" | "linkedin",
@@ -81,7 +90,7 @@ export async function startAccountBrowser(accountId: string): Promise<{
 
   const { data: account } = await supabase
     .from("social_accounts")
-    .select("gologin_profile_id")
+    .select("gologin_profile_id, platform")
     .eq("id", accountId)
     .eq("user_id", user.id)
     .single()
@@ -90,9 +99,60 @@ export async function startAccountBrowser(accountId: string): Promise<{
     return { success: false, error: "No GoLogin profile on this account" }
   }
 
+  const profileId = account.gologin_profile_id
+
   try {
-    const session = await startCloudBrowser(account.gologin_profile_id)
+    const session = await startCloudBrowser(profileId)
+
+    const loginUrl =
+      LOGIN_URLS[account.platform] ?? "https://www.google.com"
+    try {
+      const connection = await connectToProfile(profileId)
+      try {
+        await connection.page.goto(loginUrl, {
+          waitUntil: "domcontentloaded",
+          timeout: 30000,
+        })
+      } finally {
+        await disconnectProfile(connection.browser)
+      }
+    } catch {
+      // Navigate failed -- user can navigate manually in the remote browser.
+      // The remote session itself is still valid.
+    }
+
     return { success: true, url: session.remoteOrbitaUrl }
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    }
+  }
+}
+
+export async function stopAccountBrowser(
+  accountId: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { success: false, error: "Not authenticated" }
+
+  const { data: account } = await supabase
+    .from("social_accounts")
+    .select("gologin_profile_id")
+    .eq("id", accountId)
+    .eq("user_id", user.id)
+    .single()
+
+  if (!account?.gologin_profile_id) {
+    return { success: true }
+  }
+
+  try {
+    await stopCloudBrowser(account.gologin_profile_id)
+    return { success: true }
   } catch (err) {
     return {
       success: false,
