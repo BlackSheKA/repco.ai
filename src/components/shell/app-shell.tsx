@@ -11,15 +11,16 @@ interface AppShellProps {
   user: { email: string };
   terminalHeader?: React.ReactNode;
   children: React.ReactNode;
+  hasAccountAlerts?: boolean;
 }
 
-export function AppShell({ user, terminalHeader, children }: AppShellProps) {
+export function AppShell({ user, terminalHeader, children, hasAccountAlerts }: AppShellProps) {
   const initial = user.email.charAt(0).toUpperCase();
 
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <AppSidebar user={user} />
+        <AppSidebar user={user} hasAccountAlerts={hasAccountAlerts} />
         <SidebarInset>
           <header className="flex h-12 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />
