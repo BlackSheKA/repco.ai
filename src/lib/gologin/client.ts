@@ -38,7 +38,10 @@ function headers(): HeadersInit {
  * @param accountHandle - The social account handle (used in profile name)
  * @returns The GoLogin profile ID
  */
-export async function createProfile(accountHandle: string): Promise<string> {
+export async function createProfile(
+  accountHandle: string,
+  startUrl?: string
+): Promise<string> {
   const response = await fetch(`${GOLOGIN_API}/browser`, {
     method: "POST",
     headers: headers(),
@@ -46,6 +49,7 @@ export async function createProfile(accountHandle: string): Promise<string> {
       name: `repco-${accountHandle}`,
       os: "win",
       browserType: "chrome",
+      startUrl: startUrl ?? "",
       navigator: {
         userAgent:
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
@@ -102,13 +106,12 @@ export interface CloudBrowserSession {
  * @returns Session info with the remote Orbita viewer URL
  */
 export async function startCloudBrowser(
-  profileId: string,
-  startingUrl?: string
+  profileId: string
 ): Promise<CloudBrowserSession> {
   const response = await fetch(`${GOLOGIN_API}/browser/${profileId}/web`, {
     method: "POST",
     headers: headers(),
-    body: JSON.stringify(startingUrl ? { startingUrl } : {}),
+    body: JSON.stringify({}),
   })
 
   if (!response.ok) {
@@ -119,6 +122,47 @@ export async function startCloudBrowser(
   }
 
   return (await response.json()) as CloudBrowserSession
+}
+
+/**
+ * Set the profile's startUrl (homepage the browser opens on launch).
+ *
+ * The GoLogin API doesn't support PATCH — we GET the full profile, mutate
+ * startUrl, and PUT it back. Idempotent.
+ *
+ * @param profileId - The GoLogin profile ID
+ * @param startUrl - The URL to set as the profile's startUrl
+ */
+export async function setProfileStartUrl(
+  profileId: string,
+  startUrl: string
+): Promise<void> {
+  const current = await fetch(`${GOLOGIN_API}/browser/${profileId}`, {
+    method: "GET",
+    headers: headers(),
+  })
+  if (!current.ok) {
+    const body = await current.text()
+    throw new Error(
+      `GoLogin setProfileStartUrl (GET) failed (${current.status}): ${body}`
+    )
+  }
+  const profile = (await current.json()) as Record<string, unknown>
+  if (profile.startUrl === startUrl) return
+
+  const updated = { ...profile, startUrl }
+  const response = await fetch(`${GOLOGIN_API}/browser/${profileId}`, {
+    method: "PUT",
+    headers: headers(),
+    body: JSON.stringify(updated),
+  })
+
+  if (!response.ok) {
+    const body = await response.text()
+    throw new Error(
+      `GoLogin setProfileStartUrl (PUT) failed (${response.status}): ${body}`
+    )
+  }
 }
 
 /**

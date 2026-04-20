@@ -5,9 +5,15 @@ import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import {
   createProfile,
+  setProfileStartUrl,
   startCloudBrowser,
   stopCloudBrowser,
 } from "@/lib/gologin/client"
+
+const LOGIN_URLS: Record<string, string> = {
+  reddit: "https://www.reddit.com/login/",
+  linkedin: "https://www.linkedin.com/login",
+}
 
 export async function connectAccount(
   platform: "reddit" | "linkedin",
@@ -19,10 +25,10 @@ export async function connectAccount(
   } = await supabase.auth.getUser()
   if (!user) return { error: "Not authenticated" }
 
-  // 1. Create GoLogin Cloud profile
+  // 1. Create GoLogin Cloud profile with login-page startUrl
   let profileId: string
   try {
-    profileId = await createProfile(handle)
+    profileId = await createProfile(handle, LOGIN_URLS[platform])
   } catch (err) {
     return { error: `Failed to create browser profile: ${err}` }
   }
@@ -90,17 +96,17 @@ export async function startAccountBrowser(accountId: string): Promise<{
     return { success: false, error: "No GoLogin profile on this account" }
   }
 
-  const loginUrls: Record<string, string> = {
-    reddit: "https://www.reddit.com/login/",
-    linkedin: "https://www.linkedin.com/login",
-  }
-  const startingUrl = loginUrls[account.platform]
+  const loginUrl = LOGIN_URLS[account.platform]
 
   try {
-    const session = await startCloudBrowser(
-      account.gologin_profile_id,
-      startingUrl
-    )
+    if (loginUrl) {
+      try {
+        await setProfileStartUrl(account.gologin_profile_id, loginUrl)
+      } catch {
+        // Non-fatal: profile will open on its existing startUrl (maybe empty).
+      }
+    }
+    const session = await startCloudBrowser(account.gologin_profile_id)
     return { success: true, url: session.remoteOrbitaUrl }
   } catch (err) {
     return {
