@@ -11,6 +11,14 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  // Skip auth gate for API routes — they use their own authorization
+  // (Bearer secrets for webhooks + cron, service-role client for workers).
+  // Without this, Supabase Database Webhooks and Vercel cron invocations
+  // get 307-redirected to /login.
+  if (pathname.startsWith("/api/")) {
+    return response;
+  }
+
   // Unauthenticated users: redirect to /login (except auth routes)
   if (!user && pathname !== "/login" && !pathname.startsWith("/auth/")) {
     const loginUrl = request.nextUrl.clone();
