@@ -11,17 +11,22 @@ import {
 } from "@/features/actions/actions/approval-actions"
 import { useRealtimeApprovals } from "@/features/actions/lib/use-realtime-approvals"
 import type { ApprovalCardData } from "@/features/actions/lib/types"
+import { ContextualCreditPrompt } from "@/features/billing/components/contextual-credit-prompt"
+import { getActionCreditCost } from "@/features/billing/lib/credit-costs"
+import type { ActionCreditType } from "@/features/billing/lib/types"
 
 import { ApprovalCard } from "./approval-card"
 
 interface ApprovalQueueProps {
   initialApprovals: ApprovalCardData[]
   userId: string
+  creditBalance?: number
 }
 
 export function ApprovalQueue({
   initialApprovals,
   userId,
+  creditBalance,
 }: ApprovalQueueProps) {
   const approvals = useRealtimeApprovals(userId, initialApprovals)
 
@@ -29,6 +34,9 @@ export function ApprovalQueue({
     actionId: string,
     editedContent?: string,
   ) {
+    // NOTE: Credits are deducted on action completion in the worker
+    // (src/lib/action-worker/worker.ts), not at approval time. This keeps
+    // approval instant and avoids double-charging on re-queued actions.
     const result = await approveAction(actionId, editedContent)
     if (result.error) {
       toast.error(result.error)
@@ -82,16 +90,28 @@ export function ApprovalQueue({
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {approvals.map((approval) => (
-            <ApprovalCard
-              key={approval.action.id}
-              data={approval}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              onRegenerate={handleRegenerate}
-              onSave={handleSave}
-            />
-          ))}
+          {approvals.map((approval) => {
+            const actionCost = getActionCreditCost(
+              approval.action.action_type as ActionCreditType,
+            )
+            return (
+              <div key={approval.action.id}>
+                <ApprovalCard
+                  data={approval}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                  onRegenerate={handleRegenerate}
+                  onSave={handleSave}
+                />
+                {typeof creditBalance === "number" && actionCost > 0 && (
+                  <ContextualCreditPrompt
+                    actionCost={actionCost}
+                    remainingCredits={creditBalance}
+                  />
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
     </div>

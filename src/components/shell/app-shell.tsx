@@ -12,15 +12,29 @@ interface AppShellProps {
   terminalHeader?: React.ReactNode;
   children: React.ReactNode;
   hasAccountAlerts?: boolean;
+  creditBalance?: number;
+  dailyBurn?: number;
 }
 
-export function AppShell({ user, terminalHeader, children, hasAccountAlerts }: AppShellProps) {
+export function AppShell({
+  user,
+  terminalHeader,
+  children,
+  hasAccountAlerts,
+  creditBalance,
+  dailyBurn,
+}: AppShellProps) {
   const initial = user.email.charAt(0).toUpperCase();
 
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <AppSidebar user={user} hasAccountAlerts={hasAccountAlerts} />
+        <AppSidebar
+          user={user}
+          hasAccountAlerts={hasAccountAlerts}
+          creditBalance={creditBalance}
+          dailyBurn={dailyBurn}
+        />
         <SidebarInset>
           <header className="flex h-12 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
 import {
   CheckCircle,
+  CreditCard,
   LayoutDashboard,
   Radio,
   Settings,
@@ -15,6 +16,7 @@ import {
 import logoDark from "@/app/images/repco-dark-mode.svg"
 import logoLight from "@/app/images/repco-light-mode.svg"
 import { SignOutButton } from "@/features/auth/components/sign-out-button"
+import { CreditBalance } from "@/features/billing/components/credit-balance"
 import {
   Sidebar,
   SidebarContent,
@@ -31,17 +33,25 @@ const NAV_ITEMS = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/" },
   { label: "Signals", icon: Radio, href: "#" },
   { label: "Approvals", icon: CheckCircle, href: "#" },
-  { label: "Prospects", icon: Users, href: "#" },
+  { label: "Prospects", icon: Users, href: "/prospects" },
   { label: "Accounts", icon: Shield, href: "/accounts" },
+  { label: "Billing", icon: CreditCard, href: "/billing" },
   { label: "Settings", icon: Settings, href: "/settings" },
 ]
 
 interface AppSidebarProps {
   user: { email: string }
   hasAccountAlerts?: boolean
+  creditBalance?: number
+  dailyBurn?: number
 }
 
-export function AppSidebar({ user, hasAccountAlerts }: AppSidebarProps) {
+export function AppSidebar({
+  user,
+  hasAccountAlerts,
+  creditBalance,
+  dailyBurn,
+}: AppSidebarProps) {
   const pathname = usePathname()
   const { resolvedTheme } = useTheme()
   const logo = resolvedTheme === "dark" ? logoDark : logoLight
@@ -91,6 +101,12 @@ export function AppSidebar({ user, hasAccountAlerts }: AppSidebarProps) {
 
       <SidebarFooter>
         <div className="space-y-2 p-2">
+          {typeof creditBalance === "number" && (
+            <CreditBalance
+              balance={creditBalance}
+              dailyBurn={dailyBurn ?? 0}
+            />
+          )}
           <p className="truncate text-sm text-muted-foreground">
             {user.email}
           </p>

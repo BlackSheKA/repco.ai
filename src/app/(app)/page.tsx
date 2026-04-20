@@ -8,6 +8,14 @@ import { OnboardingChecklist } from "@/features/onboarding/components/onboarding
 import { InboxWarningBanner } from "@/features/sequences/components/inbox-warning-banner"
 import { RepliesSection } from "@/features/sequences/components/replies-section"
 import type { ReplyData } from "@/features/sequences/lib/use-realtime-replies"
+import { CreditCard } from "@/features/billing/components/credit-card"
+import { UpgradeBanner } from "@/features/billing/components/upgrade-banner"
+import {
+  calculateAccountBurn,
+  calculateMonitoringBurn,
+} from "@/features/billing/lib/credit-burn"
+import { getActionCreditCost } from "@/features/billing/lib/credit-costs"
+import type { ActionCreditType } from "@/features/billing/lib/types"
 import { createClient } from "@/lib/supabase/server"
 
 interface DashboardPageProps {
@@ -37,6 +45,10 @@ export default async function DashboardPage({
     { count: productProfileCount },
     { count: redditAccountCount },
     { count: completedActionCount },
+    { data: userRow },
+    { data: activeSignals },
+    { data: activeAccounts },
+    { data: recentActions },
   ] = await Promise.all([
     supabase
       .from("intent_signals")
@@ -95,7 +107,52 @@ export default async function DashboardPage({
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id)
       .eq("status", "completed"),
+    supabase
+      .from("users")
+      .select("credits_balance")
+      .eq("id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("monitoring_signals")
+      .select("signal_type, active")
+      .eq("user_id", user.id)
+      .eq("active", true),
+    supabase
+      .from("social_accounts")
+      .select("platform, active, created_at")
+      .eq("user_id", user.id)
+      .eq("active", true)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("actions")
+      .select("action_type")
+      .eq("user_id", user.id)
+      .eq("status", "completed")
+      .gte(
+        "executed_at",
+        new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      ),
   ])
+
+  // Credit burn breakdown for dashboard credit card
+  const creditBalance = (userRow?.credits_balance as number | null) ?? 0
+  const monitoringBurn = calculateMonitoringBurn(
+    (activeSignals ?? []) as { signal_type: string; active: boolean }[],
+  )
+  const accountBurn = calculateAccountBurn(
+    (activeAccounts ?? []) as { platform: string; active: boolean }[],
+  )
+  const recentActionTotal = (recentActions ?? []).reduce(
+    (sum, a) =>
+      sum + getActionCreditCost(a.action_type as ActionCreditType),
+    0,
+  )
+  const actionBurn = Math.round(recentActionTotal / 7)
+  const totalDailyBurn = monitoringBurn + accountBurn + actionBurn
+  const projectedDays =
+    totalDailyBurn > 0
+      ? Math.floor(creditBalance / totalDailyBurn)
+      : Number.POSITIVE_INFINITY
 
   const productDescribed = (productProfileCount ?? 0) > 0
   const keywordsGenerated = productDescribed
@@ -187,6 +244,7 @@ export default async function DashboardPage({
 
   return (
     <div className="flex flex-col gap-6 p-6">
+      <UpgradeBanner balance={creditBalance} />
       {showChecklist && (
         <OnboardingChecklist
           productDescribed={productDescribed}
@@ -208,12 +266,20 @@ export default async function DashboardPage({
           actionsPending: actionsPending ?? 0,
         }}
       />
+      <CreditCard
+        balance={creditBalance}
+        monitoringBurn={monitoringBurn}
+        accountBurn={accountBurn}
+        actionBurn={actionBurn}
+        projectedDays={projectedDays}
+      />
       <SignalFeed initialSignals={initialSignals ?? []} userId={user.id} />
       <RepliesSection initialReplies={replyRows} userId={user.id} />
       <div className="mt-2">
         <ApprovalQueue
           initialApprovals={approvalCards}
           userId={user.id}
+          creditBalance={creditBalance}
         />
       </div>
     </div>
