@@ -4,7 +4,13 @@ import { updateSession } from "@/lib/supabase/middleware";
 
 // Public routes that do not require authentication. These bypass the
 // auth redirect entirely.
-const PUBLIC_ROUTES = ["/live", "/api/scan", "/api/stripe/webhook", "/api/og"];
+const PUBLIC_ROUTES = [
+  "/live",
+  "/api/live",
+  "/api/scan",
+  "/api/stripe/webhook",
+  "/api/og",
+];
 
 function isPublicRoute(pathname: string): boolean {
   return PUBLIC_ROUTES.some(
