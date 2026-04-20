@@ -45,7 +45,14 @@ export async function createProfile(accountHandle: string): Promise<string> {
     body: JSON.stringify({
       name: `repco-${accountHandle}`,
       os: "win",
-      navigator: { language: "en-US,en" },
+      browserType: "chrome",
+      navigator: {
+        userAgent:
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
+        resolution: "1920x1080",
+        language: "en-US,en",
+        platform: "Win32",
+      },
       proxy: { mode: "gologin" },
     }),
   })
