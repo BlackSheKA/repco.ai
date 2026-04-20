@@ -8,6 +8,10 @@ import {
   startCloudBrowser,
   stopCloudBrowser,
 } from "@/lib/gologin/client"
+import {
+  connectToProfile,
+  disconnectProfile,
+} from "@/lib/gologin/adapter"
 
 // Login URLs shown to the user in the connection flow. GoLogin's Cloud
 // Browser web-viewer mode ignores profile startUrl, so the user navigates
@@ -101,12 +105,36 @@ export async function startAccountBrowser(accountId: string): Promise<{
     return { success: false, error: "No GoLogin profile on this account" }
   }
 
+  const loginUrl = ACCOUNT_LOGIN_URLS[account.platform]
+
   try {
     const session = await startCloudBrowser(account.gologin_profile_id)
+
+    // Navigate the just-started session to the login page so the user
+    // doesn't have to paste the URL manually. Best-effort — if CDP connect
+    // fails we still return the viewer URL and show the copy-URL fallback.
+    if (loginUrl) {
+      try {
+        const connection = await connectToProfile(
+          account.gologin_profile_id
+        )
+        try {
+          await connection.page.goto(loginUrl, {
+            waitUntil: "domcontentloaded",
+            timeout: 30000,
+          })
+        } finally {
+          await disconnectProfile(connection.browser)
+        }
+      } catch {
+        // Navigate failed — user can still paste the URL via the UI helper.
+      }
+    }
+
     return {
       success: true,
       url: session.remoteOrbitaUrl,
-      loginUrl: ACCOUNT_LOGIN_URLS[account.platform],
+      loginUrl,
     }
   } catch (err) {
     return {

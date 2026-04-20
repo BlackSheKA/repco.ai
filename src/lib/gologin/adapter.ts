@@ -14,7 +14,10 @@ import {
   type Page,
 } from "playwright-core"
 
-const GOLOGIN_CLOUD_URL = "https://cloudbrowser.gologin.com/connect"
+// wss:// (not https://) so Playwright treats this as a direct WebSocket
+// CDP endpoint instead of trying /json/version discovery, which GoLogin's
+// cloud doesn't expose.
+const GOLOGIN_CLOUD_URL = "wss://cloudbrowser.gologin.com/connect"
 
 /** Maximum number of connection retry attempts */
 const MAX_RETRIES = 3
