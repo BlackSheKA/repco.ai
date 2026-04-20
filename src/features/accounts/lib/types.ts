@@ -33,6 +33,7 @@ export interface SocialAccount {
   active_hours_start: number
   active_hours_end: number
   active: boolean
+  session_verified_at: string | null
   created_at: string
 }
 

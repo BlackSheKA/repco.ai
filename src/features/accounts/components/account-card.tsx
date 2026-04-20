@@ -1,6 +1,6 @@
 "use client"
 
-import { LogIn, MessageSquare } from "lucide-react"
+import { CheckCircle2, LogIn, MessageSquare } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -78,6 +78,10 @@ export function AccountCard({
 }: AccountCardProps) {
   const username = account.handle ?? "unknown"
   const platformLabel = PLATFORM_LABEL[account.platform] ?? account.platform
+  const verified = account.session_verified_at !== null
+  const verifiedAgo = verified
+    ? formatTimeAgo(account.session_verified_at as string)
+    : null
 
   return (
     <Card
@@ -93,22 +97,37 @@ export function AccountCard({
             <HealthBadge status={account.health_status} />
           </div>
           <span className="text-sm text-muted-foreground">
-            Last action: {formatTimeAgo(account.created_at)}
+            {verified
+              ? `Signed in ${verifiedAgo}`
+              : `Last action: ${formatTimeAgo(account.created_at)}`}
           </span>
           <div className="mt-2 flex items-center gap-2">
             <Badge variant="secondary">{platformLabel}</Badge>
+            {verified && (
+              <span
+                className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400"
+                aria-label="Session verified"
+              >
+                <CheckCircle2 className="h-3 w-3" />
+                Session active
+              </span>
+            )}
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="sm"
               className="h-7"
               onClick={() =>
                 onReconnect(account.id, account.gologin_profile_id)
               }
-              aria-label={`Log in to ${platformLabel} for ${username}`}
+              aria-label={
+                verified
+                  ? `Re-login to ${platformLabel} for ${username}`
+                  : `Log in to ${platformLabel} for ${username}`
+              }
             >
               <LogIn className="mr-1 h-3.5 w-3.5" />
-              Log in
+              {verified ? "Re-login" : "Log in"}
             </Button>
           </div>
         </div>
