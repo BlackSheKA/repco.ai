@@ -2,9 +2,12 @@
 
 import { useState, useTransition } from "react"
 import { toast } from "sonner"
-import { Plus } from "lucide-react"
+import { Loader2, Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { AccountCard } from "./account-card"
 import { ConnectionFlow } from "./connection-flow"
 import { useRealtimeAccounts } from "@/features/accounts/lib/use-realtime-accounts"
@@ -31,22 +34,35 @@ export function AccountList({
 }: AccountListProps) {
   const { accounts } = useRealtimeAccounts(userId, initialAccounts)
   const [connecting, setConnecting] = useState(false)
+  const [handleInput, setHandleInput] = useState("")
+  const [submitting, setSubmitting] = useState(false)
   const [newAccountId, setNewAccountId] = useState<string | null>(null)
   const [newProfileId, setNewProfileId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  async function handleConnect() {
+  function openConnectDialog() {
+    setHandleInput("")
     setConnecting(true)
-    const handle = prompt("Enter your Reddit username:")
-    if (!handle) {
-      setConnecting(false)
-      return
-    }
+  }
 
+  function cancelConnect() {
+    setConnecting(false)
+    setHandleInput("")
+    setNewAccountId(null)
+    setNewProfileId(null)
+  }
+
+  async function submitHandle(e: React.FormEvent) {
+    e.preventDefault()
+    const handle = handleInput.trim().replace(/^u\//, "")
+    if (!handle) return
+
+    setSubmitting(true)
     const result = await connectAccount("reddit", handle)
+    setSubmitting(false)
+
     if (result.error) {
       toast.error(result.error)
-      setConnecting(false)
       return
     }
 
@@ -87,7 +103,7 @@ export function AccountList({
           Connect a Reddit account to start sending messages. Each account
           gets a unique browser profile for safety.
         </p>
-        <Button onClick={handleConnect} disabled={isPending}>
+        <Button onClick={openConnectDialog} disabled={isPending}>
           <Plus className="mr-2 h-4 w-4" />
           Connect Reddit Account
         </Button>
@@ -95,8 +111,63 @@ export function AccountList({
     )
   }
 
+  const showHandleForm = connecting && !newAccountId && !newProfileId
+
   return (
     <div className="flex flex-col gap-4">
+      {showHandleForm && (
+        <Card>
+          <CardContent>
+            <form onSubmit={submitHandle} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <h2 className="text-lg font-semibold">
+                  Connect a Reddit account
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Enter the Reddit username you want to connect. repco will
+                  create a dedicated browser profile for this account.
+                </p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="reddit-handle">Reddit username</Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-base text-muted-foreground">u/</span>
+                  <Input
+                    id="reddit-handle"
+                    value={handleInput}
+                    onChange={(e) => setHandleInput(e.target.value)}
+                    placeholder="your_username"
+                    autoFocus
+                    disabled={submitting}
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={cancelConnect}
+                  disabled={submitting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={submitting || !handleInput.trim()}
+                >
+                  {submitting && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {submitting ? "Creating profile..." : "Continue"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
       {connecting && newAccountId && newProfileId && (
         <ConnectionFlow
           accountId={newAccountId}
@@ -107,11 +178,7 @@ export function AccountList({
             setNewProfileId(null)
             toast.success("Account connected successfully")
           }}
-          onCancel={() => {
-            setConnecting(false)
-            setNewAccountId(null)
-            setNewProfileId(null)
-          }}
+          onCancel={cancelConnect}
         />
       )}
 
@@ -134,11 +201,11 @@ export function AccountList({
         />
       ))}
 
-      {accounts.length > 0 && (
+      {accounts.length > 0 && !connecting && (
         <Button
           variant="outline"
-          onClick={handleConnect}
-          disabled={isPending || connecting}
+          onClick={openConnectDialog}
+          disabled={isPending}
           className="w-fit"
         >
           <Plus className="mr-2 h-4 w-4" />
