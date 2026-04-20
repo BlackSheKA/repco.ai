@@ -76,14 +76,22 @@ export async function connectToProfile(
 }
 
 /**
- * Safely disconnect from a GoLogin Cloud browser profile.
+ * Safely detach from a GoLogin Cloud browser session without terminating
+ * the remote browser.
  *
- * @param browser - The Playwright Browser instance to close
+ * Playwright's `browser.close()` on a CDP-connected browser sends the
+ * Chromium `Browser.close` command which terminates the underlying
+ * browser — fine for worker pipelines that own the session, fatal when
+ * the user still needs to interact with the same browser via the GoLogin
+ * web viewer. We don't have a true "disconnect only" primitive in
+ * playwright-core, so we leave the connection to garbage-collect when the
+ * request handler returns.
+ *
+ * Callers that actually want to kill the browser should use
+ * `gologin/client#stopCloudBrowser(profileId)` instead.
+ *
+ * @param _browser - The Playwright Browser instance (unused; kept for API stability)
  */
-export async function disconnectProfile(browser: Browser): Promise<void> {
-  try {
-    await browser.close()
-  } catch {
-    // Browser may already be disconnected -- ignore close errors
-  }
+export async function disconnectProfile(_browser: Browser): Promise<void> {
+  // Intentional no-op — see doc comment above.
 }
