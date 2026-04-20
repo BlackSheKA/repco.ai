@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03-07-PLAN.md (applied migrations 00006 + 00007 to cmkifdwjunojgigrqwnr, UAT Gap 1 closed)
-last_updated: "2026-04-20T08:21:43.559Z"
+stopped_at: Completed 03-08-PLAN.md (UAT Gap 2 closed - sidebar account-alert dot fully wired)
+last_updated: "2026-04-20T08:25:40.638Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 33
-  completed_plans: 22
+  completed_plans: 23
 ---
 
 # Project State
@@ -68,6 +68,7 @@ Plan: 1 of 10
 | Phase 04 P04 | 4min | 2 tasks | 6 files |
 | Phase 04-sequences-reply-detection P05 | 10min | 2 tasks | 11 files |
 | Phase 03 P07 | 4min | 1 tasks | 2 files |
+| Phase 03 P08 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,7 @@ Recent decisions affecting current work:
 - [Phase 04]: [Phase 04 P04]: Vision-only Haiku call (not computer_use loop) for inbox read; deterministic page.goto before screenshot; empty-array-on-parse-failure so malformed CU responses don't bump failure counter; finally-block disconnectProfile for guaranteed browser cleanup
 - [Phase 04-sequences-reply-detection]: [Phase 04 P05]: Edge-only reply side-effects (transition-gated toast + state prepend); AgentCard owns emotional state with its own Realtime sub (not cross-component mutation); 4 separate terminal Realtime channels (one filter per .on call); timeline takes onStopSequence callback for Phase 5 reuse
 - [Phase 03]: [Phase 03 P07]: Migration 00006 + 00007 applied via Management API with statement-by-statement schema qualification; ALTER TYPE ADD VALUE isolated in own transaction; migration files unchanged per plan rule
+- [Phase 03]: [Phase 03 P08]: hasAccountAlerts flows (app)/layout server query -> AppShell -> AppSidebar; count/head supabase query with null coalesce for fail-safe dot; Realtime dot updates deferred (page reload sufficient for MVP)
 
 ### Pending Todos
 
@@ -128,5 +130,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-20
-Stopped at: Completed 03-07-PLAN.md (applied migrations 00006 + 00007 to cmkifdwjunojgigrqwnr, UAT Gap 1 closed)
+Stopped at: Completed 03-08-PLAN.md (UAT Gap 2 closed - sidebar account-alert dot fully wired)
 Resume file: None
