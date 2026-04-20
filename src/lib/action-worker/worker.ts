@@ -23,6 +23,8 @@ import { shouldInjectNoise, generateNoiseActions } from "./noise"
 import { getWarmupState } from "@/features/accounts/lib/types"
 import { logger } from "@/lib/logger"
 import type { SocialAccount } from "@/features/accounts/lib/types"
+import { getActionCreditCost } from "@/features/billing/lib/credit-costs"
+import type { ActionCreditType } from "@/features/billing/lib/types"
 
 function createServiceClient(): SupabaseClient {
   return createClient(
@@ -210,6 +212,60 @@ export async function executeAction(
     // 14. Update status
     if (result.success) {
       await updateActionStatus(supabase, actionId, "completed", null)
+
+      // Deduct action credits on successful completion.
+      // Credit deduction must NOT block action completion -- the action already
+      // succeeded; a failed deduction is logged as a warning only.
+      try {
+        const creditCost = getActionCreditCost(
+          action.action_type as ActionCreditType,
+        )
+        if (creditCost > 0) {
+          const { data: newBalance, error: creditError } = await supabase.rpc(
+            "deduct_credits",
+            {
+              p_user_id: action.user_id,
+              p_amount: creditCost,
+              p_type: "action_spend",
+              p_description: `${action.action_type} action on ${
+                (account.platform as string) ?? "unknown"
+              }`,
+            },
+          )
+          if (creditError) {
+            logger.warn("Action credit deduction failed", {
+              actionId,
+              correlationId,
+              userId: action.user_id,
+              creditCost,
+              error: creditError.message,
+            })
+          } else if (typeof newBalance === "number" && newBalance === -1) {
+            logger.warn("Action credit deduction: insufficient credits", {
+              actionId,
+              correlationId,
+              userId: action.user_id,
+              creditCost,
+            })
+          } else {
+            logger.info("Action credits deducted", {
+              actionId,
+              correlationId,
+              userId: action.user_id,
+              creditCost,
+              newBalance,
+            })
+          }
+        }
+      } catch (creditErr) {
+        logger.warn("Action credit deduction threw", {
+          actionId,
+          correlationId,
+          error:
+            creditErr instanceof Error ? creditErr.message : String(creditErr),
+        })
+      }
+
       if (action.action_type === "dm") {
         await supabase
           .from("prospects")
