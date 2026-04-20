@@ -1,9 +1,15 @@
 ---
 phase: 03-action-engine
-verified: 2026-04-18T12:00:00Z
+verified: 2026-04-20T10:30:00Z
+reverified_after: gap_closure (plans 03-07, 03-08, 03-09, 03-10)
 status: passed
-score: 6/6 success criteria verified
+score: 6/6 success criteria verified (post-gap-closure)
 gaps: []
+prior_gaps_resolved:
+  - "UAT Gap 1 (BLOCKER): Migration 00006 applied to cmkifdwjunojgigrqwnr (7 probes pass)"
+  - "UAT Gap 2 (MAJOR, ACCT-03): hasAccountAlerts wired end-to-end from layout query → AppShell → AppSidebar"
+  - "UAT Gap 3 (MAJOR, ACTN-04/10): DM expiry aligned to 12h in create-actions.ts + expiry.ts"
+  - "UAT Gap 4 (MINOR, APRV-02/03): saveEdits server action + Save button + toast.success('Edits saved') added"
 human_verification:
   - test: "Navigate to dashboard, click Contact on a signal, verify ApprovalQueue section shows the DM draft with post context, intent score, and suggested angle"
     expected: "Approval card appears in real-time with Reddit post excerpt, flame indicator, suggested angle, and DM draft text"
