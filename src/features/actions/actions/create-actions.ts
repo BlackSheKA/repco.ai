@@ -12,16 +12,53 @@ export async function createActionsFromSignal(signalId: string) {
   } = await supabase.auth.getUser()
   if (!user) return { error: "Not authenticated" }
 
-  // 1. Get signal data
-  const { data: signal } = await supabase
-    .from("intent_signals")
-    .select("*")
-    .eq("id", signalId)
-    .eq("user_id", user.id)
-    .single()
+  // 1. Read everything we need up front. No writes yet.
+  const [{ data: signal }, { data: account }, { data: productProfile }] =
+    await Promise.all([
+      supabase
+        .from("intent_signals")
+        .select("*")
+        .eq("id", signalId)
+        .eq("user_id", user.id)
+        .single(),
+      supabase
+        .from("social_accounts")
+        .select("id,platform")
+        .eq("user_id", user.id)
+        .eq("active", true)
+        .order("created_at", { ascending: true })
+        .limit(50),
+      supabase
+        .from("product_profiles")
+        .select("description")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+    ])
+
   if (!signal) return { error: "Signal not found" }
 
-  // 2. Get or create prospect
+  const platformAccount = (account ?? []).find(
+    (a: { platform: string; id: string }) => a.platform === signal.platform,
+  )
+
+  // 2. Generate DM FIRST. If this fails (missing API key, QC rejects both
+  //    attempts, etc.) we have not yet created any records, so nothing to
+  //    roll back. This is the single most likely failure point.
+  const dmResult = await generateDM({
+    postContent: `${signal.post_content ?? ""}`,
+    productDescription: productProfile?.description ?? "A helpful product",
+    suggestedAngle: signal.suggested_angle ?? "",
+  })
+
+  if (!dmResult.passed) {
+    return {
+      error: `Could not draft a DM that passes quality control${
+        dmResult.failureReason ? ": " + dmResult.failureReason : ""
+      }`,
+    }
+  }
+
+  // 3. Only now start writing. Get or create the prospect.
   const { data: existingProspect } = await supabase
     .from("prospects")
     .select("id")
@@ -48,66 +85,40 @@ export async function createActionsFromSignal(signalId: string) {
   }
   if (!prospectId) return { error: "Failed to create prospect" }
 
-  // 3. Get user's first active account for this platform
-  const { data: account } = await supabase
-    .from("social_accounts")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("platform", signal.platform)
-    .eq("active", true)
-    .limit(1)
-    .maybeSingle()
-
   // 4. Create engage actions (auto-approved, ACTN-01)
   const engageActions = [
     {
       user_id: user.id,
       prospect_id: prospectId,
-      account_id: account?.id ?? null,
+      account_id: platformAccount?.id ?? null,
       action_type: "like" as const,
       status: "approved" as const,
     },
     {
       user_id: user.id,
       prospect_id: prospectId,
-      account_id: account?.id ?? null,
+      account_id: platformAccount?.id ?? null,
       action_type: "follow" as const,
       status: "approved" as const,
     },
   ]
   await supabase.from("actions").insert(engageActions)
 
-  // 5. Generate DM draft
-  const { data: productProfile } = await supabase
-    .from("product_profiles")
-    .select("description")
-    .eq("user_id", user.id)
-    .maybeSingle()
-
-  const dmResult = await generateDM({
-    postContent: `${signal.post_content ?? ""}`,
-    productDescription: productProfile?.description ?? "A helpful product",
-    suggestedAngle: signal.suggested_angle ?? "",
+  // 5. Create DM action (ACTN-04). 12h expiry per CONTEXT (ACTN-10).
+  const expiresAt = new Date(
+    Date.now() + 12 * 60 * 60 * 1000,
+  ).toISOString()
+  await supabase.from("actions").insert({
+    user_id: user.id,
+    prospect_id: prospectId,
+    account_id: platformAccount?.id ?? null,
+    action_type: "dm",
+    status: "pending_approval",
+    drafted_content: dmResult.content,
+    expires_at: expiresAt,
   })
 
-  // 6. Create DM action (pending_approval or drop if QC failed, ACTN-04)
-  if (dmResult.passed) {
-    // 12h expiry per phase CONTEXT decision (ACTN-10 aligned with queue-check cadence)
-    const expiresAt = new Date(
-      Date.now() + 12 * 60 * 60 * 1000,
-    ).toISOString()
-    await supabase.from("actions").insert({
-      user_id: user.id,
-      prospect_id: prospectId,
-      account_id: account?.id ?? null,
-      action_type: "dm",
-      status: "pending_approval",
-      drafted_content: dmResult.content,
-      expires_at: expiresAt,
-    })
-  }
-
-  // 7. Update signal status
+  // 6. Mark signal actioned.
   await supabase
     .from("intent_signals")
     .update({ status: "actioned" })
