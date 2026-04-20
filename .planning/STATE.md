@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 05-05-PLAN.md (prospect pipeline kanban + detail + CSV)
-last_updated: "2026-04-20T11:57:51.228Z"
+stopped_at: Completed 05-06-PLAN.md (/live public page + scan-my-product hook)
+last_updated: "2026-04-20T12:02:27.561Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 33
-  completed_plans: 30
+  completed_plans: 31
 ---
 
 # Project State
@@ -76,6 +76,7 @@ Plan: 3 of 7
 | Phase 05 P04 | 5min | 2 tasks | 12 files |
 | Phase 05-billing-onboarding-growth P05 | 6min | 2 tasks | 10 files |
 | Phase 05 P03 | 7min | 2 tasks | 10 files |
+| Phase 05-billing-onboarding-growth P06 | 10 min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -123,6 +124,7 @@ Recent decisions affecting current work:
 - [Phase 05]: [Phase 05 P04]: credit-burn cron bulk-loads users/signals/accounts (3 queries vs 3N); action credit deduction wrapped in try/catch so failures never revert completed actions; accounts sorted by created_at to match insertion-order semantics of calculateAccountBurn; ContextualCreditPrompt lives in ApprovalQueue (not ApprovalCard) to preserve card contract; 7-day smoothed action-burn estimate for projected-days
 - [Phase 05]: [Phase 05 P03]: Stripe Checkout (hosted) via server action + redirect() for subscriptions and credit packs; webhook handler uses request.text() + constructEvent, metadata-driven pack credits via add_credits RPC; Stripe v22 current_period_end moved to SubscriptionItem
 - [Phase 05-billing-onboarding-growth]: [Phase 05 P05]: Kanban optimistic update with revert-on-error + Sonner toast; Select filtered by isValidStageTransition; CSV export via Blob download client-side; dashboard+settings steps deferred per orchestrator parallel-scope boundary (tracked in deferred-items.md); sibling 05-04 race condition bundled kanban UI files into its commit (byte-identical, no conflict)
+- [Phase 05]: [Phase 05 P06]: Reddit public JSON search (not snoowrap) for anon /api/scan demo; in-memory Map rate limit (3/hr/IP); server-side anonymization boundary before JSON response; 10s setInterval polling with id-dedup instead of Realtime to keep anon-friendly
 
 ### Pending Todos
 
@@ -144,5 +146,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-20
-Stopped at: Completed 05-05-PLAN.md (prospect pipeline kanban + detail + CSV)
+Stopped at: Completed 05-06-PLAN.md (/live public page + scan-my-product hook)
 Resume file: None

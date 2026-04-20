@@ -123,9 +123,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### PLG / Growth
 
-- [ ] **GROW-01**: /live page shows public real-time feed of anonymized intent signals (polling every 10s, no auth)
-- [ ] **GROW-02**: /live page shows aggregate stats: signals last hour, signals 24h, active users, DMs sent, replies, conversion rate
-- [ ] **GROW-03**: Landing page "Scan my product" hook: user enters product description, sees real Reddit results in <5s without signup
+- [x] **GROW-01**: /live page shows public real-time feed of anonymized intent signals (polling every 10s, no auth)
+- [x] **GROW-02**: /live page shows aggregate stats: signals last hour, signals 24h, active users, DMs sent, replies, conversion rate
+- [x] **GROW-03**: Landing page "Scan my product" hook: user enters product description, sees real Reddit results in <5s without signup
 - [ ] **GROW-04**: System generates weekly shareable results card (1200x630 image) with stats
 - [ ] **GROW-05**: System sends daily email digest at 8:00 user's timezone: "X people looking for [product] yesterday"
 - [ ] **GROW-06**: Daily digest includes top signal details and count of DMs waiting for approval
@@ -263,9 +263,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ONBR-05 | Phase 5 | Pending |
 | ONBR-06 | Phase 5 | Complete |
 | ONBR-07 | Phase 5 | Complete |
-| GROW-01 | Phase 5 | Pending |
-| GROW-02 | Phase 5 | Pending |
-| GROW-03 | Phase 5 | Pending |
+| GROW-01 | Phase 5 | Complete |
+| GROW-02 | Phase 5 | Complete |
+| GROW-03 | Phase 5 | Complete |
 | GROW-04 | Phase 5 | Pending |
 | GROW-05 | Phase 5 | Pending |
 | GROW-06 | Phase 5 | Pending |
