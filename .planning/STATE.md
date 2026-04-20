@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03-08-PLAN.md (UAT Gap 2 closed - sidebar account-alert dot fully wired)
-last_updated: "2026-04-20T08:25:40.638Z"
+stopped_at: "Completed 03-09-PLAN.md (UAT Gap 3 closed: DM expiry 4h -> 12h)"
+last_updated: "2026-04-20T08:26:15.721Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 33
-  completed_plans: 23
+  completed_plans: 24
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-04-16)
 ## Current Position
 
 Phase: 03 (action-engine) — EXECUTING
-Plan: 1 of 10
+Plan: 10 of 10
 
 ## Performance Metrics
 
@@ -69,6 +69,7 @@ Plan: 1 of 10
 | Phase 04-sequences-reply-detection P05 | 10min | 2 tasks | 11 files |
 | Phase 03 P07 | 4min | 1 tasks | 2 files |
 | Phase 03 P08 | 4min | 2 tasks | 2 files |
+| Phase 03 P09 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -109,6 +110,7 @@ Recent decisions affecting current work:
 - [Phase 04-sequences-reply-detection]: [Phase 04 P05]: Edge-only reply side-effects (transition-gated toast + state prepend); AgentCard owns emotional state with its own Realtime sub (not cross-component mutation); 4 separate terminal Realtime channels (one filter per .on call); timeline takes onStopSequence callback for Phase 5 reuse
 - [Phase 03]: [Phase 03 P07]: Migration 00006 + 00007 applied via Management API with statement-by-statement schema qualification; ALTER TYPE ADD VALUE isolated in own transaction; migration files unchanged per plan rule
 - [Phase 03]: [Phase 03 P08]: hasAccountAlerts flows (app)/layout server query -> AppShell -> AppSidebar; count/head supabase query with null coalesce for fail-safe dot; Realtime dot updates deferred (page reload sufficient for MVP)
+- [Phase 03]: [Phase 03 P09]: DM expiry aligned to 12h (create-actions.ts + expiry.ts) per CONTEXT locked decision; literal kept in-place (no shared constant) to minimize blast radius
 
 ### Pending Todos
 
@@ -130,5 +132,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-20
-Stopped at: Completed 03-08-PLAN.md (UAT Gap 2 closed - sidebar account-alert dot fully wired)
+Stopped at: Completed 03-09-PLAN.md (UAT Gap 3 closed: DM expiry 4h -> 12h)
 Resume file: None
