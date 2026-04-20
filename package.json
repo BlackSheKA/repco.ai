@@ -17,6 +17,7 @@
     "@axiomhq/logging": "^0.2.0",
     "@axiomhq/nextjs": "^0.2.0",
     "@axiomhq/react": "^0.2.0",
+    "@dnd-kit/react": "^0.4.0",
     "@phosphor-icons/react": "^2.1.10",
     "@react-email/components": "^1.0.12",
     "@sentry/nextjs": "^10.49.0",
