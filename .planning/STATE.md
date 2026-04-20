@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 05-04-PLAN.md (credit burn cron + action worker deduction + credit UI)
-last_updated: "2026-04-20T11:56:37.894Z"
+stopped_at: Completed 05-05-PLAN.md (prospect pipeline kanban + detail + CSV)
+last_updated: "2026-04-20T11:57:51.228Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 33
-  completed_plans: 28
+  completed_plans: 30
 ---
 
 # Project State
@@ -74,6 +74,8 @@ Plan: 3 of 7
 | Phase 05 P01 | 3min | 3 tasks | 9 files |
 | Phase 05 P02 | 6min | 2 tasks | 10 files |
 | Phase 05 P04 | 5min | 2 tasks | 12 files |
+| Phase 05-billing-onboarding-growth P05 | 6min | 2 tasks | 10 files |
+| Phase 05 P03 | 7min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -119,6 +121,8 @@ Recent decisions affecting current work:
 - [Phase 05]: [Phase 05 P01]: Migration renumbered to 00010 (plan said 00007 but 00007-00009 already exist); SECURITY DEFINER RPCs return sentinel -1 on insufficient balance; extra-account burn uses insertion order (slice after INCLUDED_ACCOUNTS=2); pipeline validator treats 'rejected' as only reversible stage
 - [Phase 05]: [Phase 05 P02]: Wizard rendered as fixed overlay on /onboarding (bypasses inherited AppShell); scan animation shows signalCount=0 zero-state (real scan is async via 15min cron); competitor keywords seeded as reddit_keyword signals alongside generated ones; checklist Describe/Keywords treated atomic (single product_profiles gate)
 - [Phase 05]: [Phase 05 P04]: credit-burn cron bulk-loads users/signals/accounts (3 queries vs 3N); action credit deduction wrapped in try/catch so failures never revert completed actions; accounts sorted by created_at to match insertion-order semantics of calculateAccountBurn; ContextualCreditPrompt lives in ApprovalQueue (not ApprovalCard) to preserve card contract; 7-day smoothed action-burn estimate for projected-days
+- [Phase 05]: [Phase 05 P03]: Stripe Checkout (hosted) via server action + redirect() for subscriptions and credit packs; webhook handler uses request.text() + constructEvent, metadata-driven pack credits via add_credits RPC; Stripe v22 current_period_end moved to SubscriptionItem
+- [Phase 05-billing-onboarding-growth]: [Phase 05 P05]: Kanban optimistic update with revert-on-error + Sonner toast; Select filtered by isValidStageTransition; CSV export via Blob download client-side; dashboard+settings steps deferred per orchestrator parallel-scope boundary (tracked in deferred-items.md); sibling 05-04 race condition bundled kanban UI files into its commit (byte-identical, no conflict)
 
 ### Pending Todos
 
@@ -140,5 +144,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-20
-Stopped at: Completed 05-04-PLAN.md (credit burn cron + action worker deduction + credit UI)
+Stopped at: Completed 05-05-PLAN.md (prospect pipeline kanban + detail + CSV)
 Resume file: None

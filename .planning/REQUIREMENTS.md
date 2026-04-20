@@ -88,12 +88,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Prospect Pipeline
 
-- [ ] **PRSP-01**: User can view all prospects in a kanban board with stages: detected, engaged, contacted, replied, converted, rejected
-- [ ] **PRSP-02**: User can view prospect detail: platform, handle, bio, intent signal, conversation history, pipeline status
-- [ ] **PRSP-03**: User can add notes and tags to prospects
-- [ ] **PRSP-04**: User can export prospects as CSV
-- [ ] **PRSP-05**: User can manually move prospects between pipeline stages
-- [ ] **PRSP-06**: Dashboard shows total prospects count, replied count, converted count, and estimated revenue
+- [x] **PRSP-01**: User can view all prospects in a kanban board with stages: detected, engaged, contacted, replied, converted, rejected
+- [x] **PRSP-02**: User can view prospect detail: platform, handle, bio, intent signal, conversation history, pipeline status
+- [x] **PRSP-03**: User can add notes and tags to prospects
+- [x] **PRSP-04**: User can export prospects as CSV
+- [x] **PRSP-05**: User can manually move prospects between pipeline stages
+- [x] **PRSP-06**: Dashboard shows total prospects count, replied count, converted count, and estimated revenue
 
 ### Account Management
 
@@ -111,9 +111,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Billing
 
-- [ ] **BILL-01**: User can sign up for 3-day free trial without credit card (500 credits included)
-- [ ] **BILL-02**: User can subscribe to monthly ($49), quarterly ($35/msc), or annual ($25/msc) plan via Stripe Checkout
-- [ ] **BILL-03**: User can purchase credit packs: Starter 500/$29, Growth 1500/$59, Scale 5000/$149, Agency 15000/$399
+- [x] **BILL-01**: User can sign up for 3-day free trial without credit card (500 credits included)
+- [x] **BILL-02**: User can subscribe to monthly ($49), quarterly ($35/msc), or annual ($25/msc) plan via Stripe Checkout
+- [x] **BILL-03**: User can purchase credit packs: Starter 500/$29, Growth 1500/$59, Scale 5000/$149, Agency 15000/$399
 - [x] **BILL-04**: System deducts monitoring credits daily (Reddit keyword 3/day, LinkedIn keyword 6/day, subreddit watch 3/day)
 - [x] **BILL-05**: System deducts account credits daily (Reddit 3/day, LinkedIn 5/day per extra account beyond 2 included)
 - [x] **BILL-06**: System deducts action credits on completion: like/follow 0, public reply 15, DM 30, follow-up DM 20, LinkedIn connect 20
@@ -247,9 +247,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NTFY-01 | Phase 4 | Complete |
 | NTFY-02 | Phase 4 | Complete |
 | NTFY-03 | Phase 4 | Complete |
-| BILL-01 | Phase 5 | Pending |
-| BILL-02 | Phase 5 | Pending |
-| BILL-03 | Phase 5 | Pending |
+| BILL-01 | Phase 5 | Complete |
+| BILL-02 | Phase 5 | Complete |
+| BILL-03 | Phase 5 | Complete |
 | BILL-04 | Phase 5 | Complete |
 | BILL-05 | Phase 5 | Complete |
 | BILL-06 | Phase 5 | Complete |
@@ -269,12 +269,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GROW-04 | Phase 5 | Pending |
 | GROW-05 | Phase 5 | Pending |
 | GROW-06 | Phase 5 | Pending |
-| PRSP-01 | Phase 5 | Pending |
-| PRSP-02 | Phase 5 | Pending |
-| PRSP-03 | Phase 5 | Pending |
-| PRSP-04 | Phase 5 | Pending |
-| PRSP-05 | Phase 5 | Pending |
-| PRSP-06 | Phase 5 | Pending |
+| PRSP-01 | Phase 5 | Complete |
+| PRSP-02 | Phase 5 | Complete |
+| PRSP-03 | Phase 5 | Complete |
+| PRSP-04 | Phase 5 | Complete |
+| PRSP-05 | Phase 5 | Complete |
+| PRSP-06 | Phase 5 | Complete |
 | DASH-04 | Phase 5 | Pending |
 | MNTR-02 | Phase 6 | Pending |
 
