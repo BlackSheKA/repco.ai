@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04-02-PLAN.md (email notifications module)
-last_updated: "2026-04-20T06:31:13.362Z"
+stopped_at: Completed 04-01-PLAN.md (follow-up scheduler + stop-on-reply) and 04-02-PLAN.md (email notifications module)
+last_updated: "2026-04-20T08:40:00.000Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 6
@@ -63,6 +63,7 @@ Plan: 2 of 5
 | Phase 03 P06 | 6min | 3 tasks | 9 files |
 | Phase 03 P03 | 6min | 2 tasks | 16 files |
 | Phase 04 P02 | 9min | 2 tasks | 10 files |
+| Phase 04 P01 | 3min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,7 @@ Recent decisions affecting current work:
 - [Phase 03]: Sidebar uses usePathname() for dynamic active state instead of hardcoded booleans
 - [Phase 03]: Account connection uses prompt() for username input (simplified MVP)
 - [Phase 03]: SupabaseClient type annotation on createServiceClient return to resolve generic param mismatch in supabase-js 2.103
+- [Phase 04]: [Phase 04 P01]: Sequence state on prospects table (not separate); getNextFollowUpStep pure for unit testability; missed-step skip to next due step; idempotent handleReplyDetected
 - [Phase 04]: [Phase 04 P02]: No reply body in reply alert email (locked CONTEXT decision); createElement for send functions to keep .ts files and preserve React props for Vitest introspection
 
 ### Pending Todos
@@ -118,5 +120,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-20
-Stopped at: Completed 04-02-PLAN.md (email notifications module)
+Stopped at: Finalized 04-01-PLAN.md (follow-up scheduler + stop-on-reply) — was completed but lacked SUMMARY; 04-02-PLAN.md (email notifications) also complete
 Resume file: None

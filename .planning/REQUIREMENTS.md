@@ -63,10 +63,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Follow-up Sequences
 
-- [ ] **FLLW-01**: System schedules follow-up 1 at day 3 (feature/benefit angle) if no reply detected
-- [ ] **FLLW-02**: System schedules follow-up 2 at day 7 (value/insight angle) if no reply detected
-- [ ] **FLLW-03**: System schedules follow-up 3 at day 14 (low-pressure check-in) if no reply detected
-- [ ] **FLLW-04**: System stops all follow-ups immediately when any reply is detected
+- [x] **FLLW-01**: System schedules follow-up 1 at day 3 (feature/benefit angle) if no reply detected
+- [x] **FLLW-02**: System schedules follow-up 2 at day 7 (value/insight angle) if no reply detected
+- [x] **FLLW-03**: System schedules follow-up 3 at day 14 (low-pressure check-in) if no reply detected
+- [x] **FLLW-04**: System stops all follow-ups immediately when any reply is detected
 - [ ] **FLLW-05**: Each follow-up appears in approval queue for user review before sending
 
 ### Reply Detection
@@ -235,10 +235,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ACCT-02 | Phase 3 | Complete |
 | ACCT-03 | Phase 3 | Complete |
 | ACCT-04 | Phase 3 | Complete |
-| FLLW-01 | Phase 4 | Pending |
-| FLLW-02 | Phase 4 | Pending |
-| FLLW-03 | Phase 4 | Pending |
-| FLLW-04 | Phase 4 | Pending |
+| FLLW-01 | Phase 4 | Complete |
+| FLLW-02 | Phase 4 | Complete |
+| FLLW-03 | Phase 4 | Complete |
+| FLLW-04 | Phase 4 | Complete |
 | FLLW-05 | Phase 4 | Pending |
 | RPLY-01 | Phase 4 | Pending |
 | RPLY-02 | Phase 4 | Pending |

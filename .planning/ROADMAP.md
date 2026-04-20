@@ -92,11 +92,11 @@ Plans:
   4. User receives an email notification within 10 minutes of a reply being detected
   5. User receives a daily email digest at 8:00 local time with signal count, top signal, and count of DMs pending approval
   6. User receives an email alert when any connected account is flagged as warning or banned
-**Plans:** 5 plans
+**Plans:** 2/5 plans executed
 
 Plans:
-- [ ] 04-01-PLAN.md — DB migration (cancelled enum, sequence columns, user timezone), shared types, follow-up scheduling logic + stop-on-reply with TDD
-- [ ] 04-02-PLAN.md — Resend + React Email setup, 3 branded email templates (reply alert, daily digest, account warning), send functions with TDD
+- [x] 04-01-PLAN.md — DB migration (cancelled enum, sequence columns, user timezone), shared types, follow-up scheduling logic + stop-on-reply with TDD
+- [x] 04-02-PLAN.md — Resend + React Email setup, 3 branded email templates (reply alert, daily digest, account warning), send functions with TDD
 - [ ] 04-03-PLAN.md — Follow-up scheduler cron (4h cadence, DM generation), daily digest cron (timezone-aware), auto-send toggle on settings page
 - [ ] 04-04-PLAN.md — Reply detection cron (2h, GoLogin + Haiku CU inbox check), reply matching, consecutive failure tracking
 - [ ] 04-05-PLAN.md — Dashboard UI: Replies section, reply cards, sequence timeline, inbox warning banner, terminal header events
@@ -147,6 +147,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Foundation | 5/6 | Gap closure | - |
 | 2. Reddit Monitoring + Intent Feed | 4/4 | Complete   | 2026-04-17 |
 | 3. Action Engine | 3/6 | In Progress|  |
-| 4. Sequences + Reply Detection | 0/5 | Not started | - |
+| 4. Sequences + Reply Detection | 2/5 | In Progress|  |
 | 5. Billing + Onboarding + Growth | 0/7 | Not started | - |
 | 6. LinkedIn | 0/1 | Not started | - |
