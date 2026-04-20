@@ -18,6 +18,7 @@ export type ActionStatus =
   | "completed"
   | "failed"
   | "expired"
+  | "cancelled"
 
 export interface Action {
   id: string
