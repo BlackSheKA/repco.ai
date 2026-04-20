@@ -9,12 +9,10 @@ import {
   stopCloudBrowser,
 } from "@/lib/gologin/client"
 
-/**
- * Login URLs shown to the user in the connection flow. GoLogin's Cloud
- * Browser web-viewer mode ignores profile startUrl, so the user has to
- * navigate here manually — we just surface the URL in the UI.
- */
-export const ACCOUNT_LOGIN_URLS: Record<string, string> = {
+// Login URLs shown to the user in the connection flow. GoLogin's Cloud
+// Browser web-viewer mode ignores profile startUrl, so the user navigates
+// here manually — we surface the URL in the UI via startAccountBrowser return.
+const ACCOUNT_LOGIN_URLS: Record<string, string> = {
   reddit: "https://www.reddit.com/login/",
   linkedin: "https://www.linkedin.com/login",
 }
