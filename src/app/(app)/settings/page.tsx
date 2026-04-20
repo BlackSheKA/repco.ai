@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { SettingsForm } from "@/features/monitoring/components/settings-form"
 import { AutoSendToggle } from "@/features/sequences/components/auto-send-toggle"
+import { AvgDealValueForm } from "@/features/prospects/components/avg-deal-value-form"
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -28,10 +29,10 @@ export default async function SettingsPage() {
     .filter((s) => s.signal_type === "subreddit")
     .map((s) => ({ id: s.id, value: s.value }))
 
-  // Fetch user's auto-send preference
+  // Fetch user's auto-send preference and avg deal value
   const { data: userData } = await supabase
     .from("users")
-    .select("auto_send_followups")
+    .select("auto_send_followups, avg_deal_value")
     .eq("id", user.id)
     .single()
 
@@ -46,6 +47,16 @@ export default async function SettingsPage() {
         <div className="mt-4 rounded-lg bg-muted/50 p-6">
           <AutoSendToggle
             initialEnabled={userData?.auto_send_followups ?? false}
+          />
+        </div>
+      </div>
+      <div className="mt-8 max-w-[640px]">
+        <h2 className="font-sans text-xl font-semibold">Revenue Tracking</h2>
+        <div className="mt-4 rounded-lg bg-muted/50 p-6">
+          <AvgDealValueForm
+            initialValue={
+              (userData?.avg_deal_value as number | null | undefined) ?? null
+            }
           />
         </div>
       </div>
