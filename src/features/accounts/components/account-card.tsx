@@ -24,6 +24,11 @@ const PLATFORM_LABEL: Record<string, string> = {
   linkedin: "LinkedIn",
 }
 
+const PLATFORM_BADGE_CLASS: Record<string, string> = {
+  reddit: "bg-[#FF4500] text-white hover:bg-[#FF4500]/90",
+  linkedin: "bg-[#0A66C2] text-white hover:bg-[#0A66C2]/90",
+}
+
 function formatTimeAgo(dateString: string): string {
   const now = Date.now()
   const date = new Date(dateString).getTime()
@@ -102,7 +107,13 @@ export function AccountCard({
               : `Last action: ${formatTimeAgo(account.created_at)}`}
           </span>
           <div className="mt-2 flex items-center gap-2">
-            <Badge variant="secondary">{platformLabel}</Badge>
+            <Badge
+              className={`h-6 rounded-full text-sm font-medium ${
+                PLATFORM_BADGE_CLASS[account.platform] ?? ""
+              }`}
+            >
+              {platformLabel}
+            </Badge>
             {verified && (
               <span
                 className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400"
