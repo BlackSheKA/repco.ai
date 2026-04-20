@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Reddit Monitoring + Intent Feed** - snoowrap ingestion, hybrid signal classification, real-time intent feed, dashboard shell, agent persona (completed 2026-04-17)
 - [ ] **Phase 3: Action Engine** - GoLogin + Playwright + Haiku CU action execution, approval queue, anti-ban system, account management
 - [ ] **Phase 4: Sequences + Reply Detection** - 3-touch follow-up sequences, inbox reply detection, email notifications
-- [ ] **Phase 5: Billing + Onboarding + Growth** - Stripe subscription + credit economy, 3-question onboarding, landing hook, /live page, prospect pipeline
+- [x] **Phase 5: Billing + Onboarding + Growth** - Stripe subscription + credit economy, 3-question onboarding, landing hook, /live page, prospect pipeline
 - [ ] **Phase 6: LinkedIn** - Apify LinkedIn integration (additive after Reddit proven end-to-end)
 
 ## Phase Details
@@ -120,13 +120,13 @@ Plans:
 **Plans:** 7 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — DB migration (deduct_credits/add_credits RPC, onboarding + billing columns), billing types + credit cost/burn logic (TDD), prospect pipeline types + stage transitions (TDD)
-- [ ] 05-02-PLAN.md — 3-question onboarding wizard, Claude keyword generation, scanning animation, dashboard checklist card, middleware onboarding gate
-- [ ] 05-03-PLAN.md — Stripe billing: checkout actions, webhook handler, /billing page with plans, credit packs, history, subscription management
-- [ ] 05-04-PLAN.md — Credit economy runtime: daily burn cron, sidebar credit balance widget, dashboard credit card, upgrade prompts (banner + contextual)
+- [x] 05-01-PLAN.md — DB migration (deduct_credits/add_credits RPC, onboarding + billing columns), billing types + credit cost/burn logic (TDD), prospect pipeline types + stage transitions (TDD)
+- [x] 05-02-PLAN.md — 3-question onboarding wizard, Claude keyword generation, scanning animation, dashboard checklist card, middleware onboarding gate
+- [x] 05-03-PLAN.md — Stripe billing: checkout actions, webhook handler, /billing page with plans, credit packs, history, subscription management
+- [x] 05-04-PLAN.md — Credit economy runtime: daily burn cron, sidebar credit balance widget, dashboard credit card, upgrade prompts (banner + contextual)
 - [x] 05-05-PLAN.md — Prospect pipeline: kanban board (@dnd-kit/react), prospect detail page, notes/tags, CSV export, dashboard stats + revenue counter
-- [ ] 05-06-PLAN.md — /live public page (10s polling, anonymized feed, aggregate stats), "Scan my product" API + form with rate limiting
-- [ ] 05-07-PLAN.md — Weekly results card (next/og 1200x630 PNG), share buttons (X/LinkedIn), daily email digest cron
+- [x] 05-06-PLAN.md — /live public page (10s polling, anonymized feed, aggregate stats), "Scan my product" API + form with rate limiting
+- [x] 05-07-PLAN.md — Weekly results card (next/og 1200x630 PNG), share buttons (X/LinkedIn), daily email digest cron
 
 ### Phase 6: LinkedIn
 **Goal**: The system monitors LinkedIn every 2-4 hours via Apify and surfaces LinkedIn signals alongside Reddit signals in the same intent feed — extending repco's cross-platform advantage

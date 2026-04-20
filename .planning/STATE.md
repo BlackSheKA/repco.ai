@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 05-06-PLAN.md (/live public page + scan-my-product hook)
-last_updated: "2026-04-20T12:02:27.561Z"
+stopped_at: Completed 05-07-PLAN.md (results card + daily digest + DASH-04 close-out)
+last_updated: "2026-04-20T12:10:01Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 33
-  completed_plans: 31
+  completed_plans: 32
 ---
 
 # Project State
@@ -24,8 +24,8 @@ See: .planning/PROJECT.md (updated 2026-04-16)
 
 ## Current Position
 
-Phase: 05 (billing-onboarding-growth) — EXECUTING
-Plan: 3 of 7
+Phase: 05 (billing-onboarding-growth) — COMPLETE
+Plan: 7 of 7
 
 ## Performance Metrics
 
@@ -77,6 +77,7 @@ Plan: 3 of 7
 | Phase 05-billing-onboarding-growth P05 | 6min | 2 tasks | 10 files |
 | Phase 05 P03 | 7min | 2 tasks | 10 files |
 | Phase 05-billing-onboarding-growth P06 | 10 min | 2 tasks | 10 files |
+| Phase 05-billing-onboarding-growth P07 | 5min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,7 @@ Recent decisions affecting current work:
 - [Phase 05]: [Phase 05 P03]: Stripe Checkout (hosted) via server action + redirect() for subscriptions and credit packs; webhook handler uses request.text() + constructEvent, metadata-driven pack credits via add_credits RPC; Stripe v22 current_period_end moved to SubscriptionItem
 - [Phase 05-billing-onboarding-growth]: [Phase 05 P05]: Kanban optimistic update with revert-on-error + Sonner toast; Select filtered by isValidStageTransition; CSV export via Blob download client-side; dashboard+settings steps deferred per orchestrator parallel-scope boundary (tracked in deferred-items.md); sibling 05-04 race condition bundled kanban UI files into its commit (byte-identical, no conflict)
 - [Phase 05]: [Phase 05 P06]: Reddit public JSON search (not snoowrap) for anon /api/scan demo; in-memory Map rate limit (3/hr/IP); server-side anonymization boundary before JSON response; 10s setInterval polling with id-dedup instead of Realtime to keep anon-friendly
+- [Phase 05-billing-onboarding-growth]: [Phase 05 P07]: Satori-only flex layout for OG card (absolute reserved for the 4px top accent line); dashboard computes replyRate once and passes to both HTML preview and OG image URL to guarantee parity; /api/cron/digest kept separate from existing /api/cron/daily-digest per plan acceptance path; Resend optional with job_logs fallback so local/preview stay green; lucide-react lacks Linkedin icon in installed version so both share buttons use Share2 (label disambiguates); DASH-04 closed in same pass (ProspectStatsCard + AvgDealValueForm) because Task 1 already touched (app)/page.tsx
 
 ### Pending Todos
 
@@ -146,5 +148,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-20
-Stopped at: Completed 05-06-PLAN.md (/live public page + scan-my-product hook)
+Stopped at: Completed 05-07-PLAN.md (results card + daily digest + DASH-04 close-out)
 Resume file: None

@@ -107,7 +107,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DASH-01**: Dashboard displays persistent terminal header with last 5 agent actions in real-time
 - [x] **DASH-02**: Dashboard displays multi-column layout: Agent card, Found Today (intent feed), Approval Queue, Results
 - [x] **DASH-03**: Dashboard updates in real-time via Supabase Realtime for authenticated users
-- [ ] **DASH-04**: Dashboard shows revenue counter (user-configured avg deal value x conversions)
+- [x] **DASH-04**: Dashboard shows revenue counter (user-configured avg deal value x conversions)
 
 ### Billing
 
@@ -126,9 +126,9 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **GROW-01**: /live page shows public real-time feed of anonymized intent signals (polling every 10s, no auth)
 - [x] **GROW-02**: /live page shows aggregate stats: signals last hour, signals 24h, active users, DMs sent, replies, conversion rate
 - [x] **GROW-03**: Landing page "Scan my product" hook: user enters product description, sees real Reddit results in <5s without signup
-- [ ] **GROW-04**: System generates weekly shareable results card (1200x630 image) with stats
-- [ ] **GROW-05**: System sends daily email digest at 8:00 user's timezone: "X people looking for [product] yesterday"
-- [ ] **GROW-06**: Daily digest includes top signal details and count of DMs waiting for approval
+- [x] **GROW-04**: System generates weekly shareable results card (1200x630 image) with stats
+- [x] **GROW-05**: System sends daily email digest at 8:00 user's timezone: "X people looking for [product] yesterday"
+- [x] **GROW-06**: Daily digest includes top signal details and count of DMs waiting for approval
 
 ### Notifications
 
@@ -266,16 +266,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GROW-01 | Phase 5 | Complete |
 | GROW-02 | Phase 5 | Complete |
 | GROW-03 | Phase 5 | Complete |
-| GROW-04 | Phase 5 | Pending |
-| GROW-05 | Phase 5 | Pending |
-| GROW-06 | Phase 5 | Pending |
+| GROW-04 | Phase 5 | Complete |
+| GROW-05 | Phase 5 | Complete |
+| GROW-06 | Phase 5 | Complete |
 | PRSP-01 | Phase 5 | Complete |
 | PRSP-02 | Phase 5 | Complete |
 | PRSP-03 | Phase 5 | Complete |
 | PRSP-04 | Phase 5 | Complete |
 | PRSP-05 | Phase 5 | Complete |
 | PRSP-06 | Phase 5 | Complete |
-| DASH-04 | Phase 5 | Pending |
+| DASH-04 | Phase 5 | Complete |
 | MNTR-02 | Phase 6 | Pending |
 
 **Coverage:**
