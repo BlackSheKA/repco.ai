@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04-01-PLAN.md (follow-up scheduler + stop-on-reply) and 04-02-PLAN.md (email notifications module)
-last_updated: "2026-04-20T08:40:00.000Z"
+stopped_at: Completed 04-03-PLAN.md (follow-up scheduler + daily digest cron + auto-send toggle)
+last_updated: "2026-04-20T06:42:07.652Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 28
-  completed_plans: 17
+  completed_plans: 19
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-04-16)
 ## Current Position
 
 Phase: 04 (sequences-reply-detection) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 ## Performance Metrics
 
@@ -64,6 +64,7 @@ Plan: 2 of 5
 | Phase 03 P03 | 6min | 2 tasks | 16 files |
 | Phase 04 P02 | 9min | 2 tasks | 10 files |
 | Phase 04 P01 | 3min | 2 tasks | 8 files |
+| Phase 04 P03 | 3min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,7 @@ Recent decisions affecting current work:
 - [Phase 03]: SupabaseClient type annotation on createServiceClient return to resolve generic param mismatch in supabase-js 2.103
 - [Phase 04]: [Phase 04 P01]: Sequence state on prospects table (not separate); getNextFollowUpStep pure for unit testability; missed-step skip to next due step; idempotent handleReplyDetected
 - [Phase 04]: [Phase 04 P02]: No reply body in reply alert email (locked CONTEXT decision); createElement for send functions to keep .ts files and preserve React props for Vitest introspection
+- [Phase 04]: [Phase 04 P03]: Follow-up angle injected via suggestedAngle override (reuse QC pipeline); skip empty digests to avoid training users to ignore; yesterday TZ boundary via formatInTimeZone round-trip (date-fns-tz v3 dropped zonedTimeToUtc)
 
 ### Pending Todos
 
@@ -120,5 +122,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-20
-Stopped at: Finalized 04-01-PLAN.md (follow-up scheduler + stop-on-reply) — was completed but lacked SUMMARY; 04-02-PLAN.md (email notifications) also complete
+Stopped at: Completed 04-03-PLAN.md (follow-up scheduler + daily digest cron + auto-send toggle)
 Resume file: None
