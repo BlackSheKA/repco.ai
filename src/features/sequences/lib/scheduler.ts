@@ -6,6 +6,27 @@ import {
 } from "./types"
 
 /**
+ * Determine the action status to use when creating a follow-up DM.
+ *
+ * When the user has `auto_send_followups = true`, follow-ups are pre-approved
+ * and will be executed without manual approval. Otherwise they land in the
+ * approval queue.
+ */
+export function getFollowUpStatus(
+  autoSendEnabled: boolean,
+): "pending_approval" | "approved" {
+  return autoSendEnabled ? "approved" : "pending_approval"
+}
+
+/**
+ * Returns an ISO timestamp 24 hours from now, used as the `expires_at` value
+ * when creating follow-up DM actions.
+ */
+export function getFollowUpExpiresAt(): string {
+  return new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+}
+
+/**
  * Determine the next follow-up step for a prospect based on completed actions.
  *
  * Walks FOLLOW_UP_SCHEDULE in order and returns the first step that:
