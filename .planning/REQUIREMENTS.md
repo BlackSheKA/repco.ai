@@ -114,10 +114,10 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **BILL-01**: User can sign up for 3-day free trial without credit card (500 credits included)
 - [ ] **BILL-02**: User can subscribe to monthly ($49), quarterly ($35/msc), or annual ($25/msc) plan via Stripe Checkout
 - [ ] **BILL-03**: User can purchase credit packs: Starter 500/$29, Growth 1500/$59, Scale 5000/$149, Agency 15000/$399
-- [ ] **BILL-04**: System deducts monitoring credits daily (Reddit keyword 3/day, LinkedIn keyword 6/day, subreddit watch 3/day)
-- [ ] **BILL-05**: System deducts account credits daily (Reddit 3/day, LinkedIn 5/day per extra account beyond 2 included)
-- [ ] **BILL-06**: System deducts action credits on completion: like/follow 0, public reply 15, DM 30, follow-up DM 20, LinkedIn connect 20
-- [ ] **BILL-07**: System uses atomic SQL for credit deduction (no negative balance race conditions)
+- [x] **BILL-04**: System deducts monitoring credits daily (Reddit keyword 3/day, LinkedIn keyword 6/day, subreddit watch 3/day)
+- [x] **BILL-05**: System deducts account credits daily (Reddit 3/day, LinkedIn 5/day per extra account beyond 2 included)
+- [x] **BILL-06**: System deducts action credits on completion: like/follow 0, public reply 15, DM 30, follow-up DM 20, LinkedIn connect 20
+- [x] **BILL-07**: System uses atomic SQL for credit deduction (no negative balance race conditions)
 - [ ] **BILL-08**: Dashboard shows live credit burn, remaining balance, and per-action costs
 - [ ] **BILL-09**: System shows contextual upgrade prompts when credits run low
 
@@ -250,10 +250,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BILL-01 | Phase 5 | Pending |
 | BILL-02 | Phase 5 | Pending |
 | BILL-03 | Phase 5 | Pending |
-| BILL-04 | Phase 5 | Pending |
-| BILL-05 | Phase 5 | Pending |
-| BILL-06 | Phase 5 | Pending |
-| BILL-07 | Phase 5 | Pending |
+| BILL-04 | Phase 5 | Complete |
+| BILL-05 | Phase 5 | Complete |
+| BILL-06 | Phase 5 | Complete |
+| BILL-07 | Phase 5 | Complete |
 | BILL-08 | Phase 5 | Pending |
 | BILL-09 | Phase 5 | Pending |
 | ONBR-01 | Phase 5 | Pending |
