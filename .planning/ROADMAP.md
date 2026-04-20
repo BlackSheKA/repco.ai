@@ -71,7 +71,7 @@ Plans:
   4. No account can contact a prospect already contacted by another account (target isolation enforced)
   5. Each connected social account has a dedicated GoLogin Cloud profile and completes the 7-day progressive warmup before DMs are enabled
   6. User can view warmup progress, health status (healthy/warning/cooldown/banned), and remaining daily capacity for each account
-**Plans:** 3/6 plans executed
+**Plans:** 10 plans (6 original + 4 gap closure)
 
 Plans:
 - [ ] 03-01-PLAN.md — DB migration (expired enum, claim RPC, limit RPC, target isolation), GoLogin REST client + CDP adapter, shared types
@@ -80,6 +80,10 @@ Plans:
 - [ ] 03-04-PLAN.md — Anti-ban system: random delays, behavioral noise, timezone timing, target isolation, health state machine, warmup cron
 - [ ] 03-05-PLAN.md — Approval queue UI (stacked cards, inline edit, approve/reject/regenerate), Realtime updates, contact-to-action flow
 - [ ] 03-06-PLAN.md — Account management page (/accounts), health badges, warmup progress, daily limits, connection flow, sidebar update
+- [ ] 03-07-PLAN.md — Gap closure (BLOCKER): apply migration 00006 to project cmkifdwjunojgigrqwnr via Supabase Management API
+- [ ] 03-08-PLAN.md — Gap closure (MAJOR): sidebar account-alert notification dot — wire hasAccountAlerts in (app)/layout.tsx + AppShell
+- [ ] 03-09-PLAN.md — Gap closure (MAJOR): DM expiry 4h → 12h in create-actions.ts + expiry.ts
+- [ ] 03-10-PLAN.md — Gap closure (MINOR): Save button in ApprovalCard + saveEdits server action
 
 ### Phase 4: Sequences + Reply Detection
 **Goal**: Prospects who don't reply receive structured follow-ups at day 3, 7, and 14; replies are detected automatically and stop all follow-ups; users are notified by email for replies, account alerts, and daily digests
