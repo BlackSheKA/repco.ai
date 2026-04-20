@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 
 import { LiveFeed } from "@/features/growth/components/live-feed"
 import type { LiveStatsData } from "@/features/growth/components/live-stats"
+import { ScanHook } from "@/features/growth/components/scan-hook"
 import {
   anonymizeSignals,
   type IntentType,
@@ -85,6 +86,20 @@ export default async function LivePage() {
       </section>
 
       <LiveFeed initialSignals={signals} initialStats={stats} />
+
+      <section className="mx-auto flex w-full max-w-[480px] flex-col items-center gap-4 pt-6 text-center">
+        <div className="flex flex-col gap-2">
+          <h2 className="text-xl font-semibold">
+            See who is looking for your product
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Enter your product description. Real results in under 5 seconds.
+          </p>
+        </div>
+        <div className="w-full text-left">
+          <ScanHook />
+        </div>
+      </section>
     </div>
   )
 }
