@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { z } from "zod"
 
 import { createClient } from "@/lib/supabase/server"
 import { generateDM } from "@/features/actions/lib/dm-generation"
@@ -27,6 +28,39 @@ export async function approveAction(
     .from("actions")
     .update(updateData)
     .eq("id", actionId)
+    .eq("user_id", user.id)
+    .eq("status", "pending_approval")
+
+  if (error) return { error: error.message }
+  revalidatePath("/")
+  return { success: true }
+}
+
+const SaveEditsSchema = z.object({
+  actionId: z.string().uuid(),
+  editedContent: z
+    .string()
+    .trim()
+    .min(1, "Content cannot be empty")
+    .max(2000, "Content too long"),
+})
+
+export async function saveEdits(actionId: string, editedContent: string) {
+  const parsed = SaveEditsSchema.safeParse({ actionId, editedContent })
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" }
+  }
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: "Not authenticated" }
+
+  const { error } = await supabase
+    .from("actions")
+    .update({ drafted_content: parsed.data.editedContent })
+    .eq("id", parsed.data.actionId)
     .eq("user_id", user.id)
     .eq("status", "pending_approval")
 
