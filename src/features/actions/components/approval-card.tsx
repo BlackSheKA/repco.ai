@@ -15,6 +15,7 @@ interface ApprovalCardProps {
   onApprove: (id: string, editedContent?: string) => Promise<void>
   onReject: (id: string) => Promise<void>
   onRegenerate: (id: string) => Promise<void>
+  onSave: (id: string, editedContent: string) => Promise<void>
 }
 
 export function ApprovalCard({
@@ -22,6 +23,7 @@ export function ApprovalCard({
   onApprove,
   onReject,
   onRegenerate,
+  onSave,
 }: ApprovalCardProps) {
   const { action, signal } = data
   const author = signal.author_handle ?? "unknown"
@@ -48,6 +50,13 @@ export function ApprovalCard({
   function handleRegenerate() {
     startTransition(async () => {
       await onRegenerate(action.id)
+      setIsEditing(false)
+    })
+  }
+
+  function handleSave() {
+    startTransition(async () => {
+      await onSave(action.id, editedContent)
       setIsEditing(false)
     })
   }
@@ -138,6 +147,20 @@ export function ApprovalCard({
           ) : null}
           Approve
         </Button>
+        {isEditing && (
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={isPending || editedContent.trim().length === 0}
+            aria-label={`Save edits for message to ${author}`}
+            onClick={handleSave}
+          >
+            {isPending ? (
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+            ) : null}
+            <span>Save</span>
+          </Button>
+        )}
         <Button
           variant="outline"
           size="sm"

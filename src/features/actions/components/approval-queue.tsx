@@ -7,6 +7,7 @@ import {
   approveAction,
   rejectAction,
   regenerateAction,
+  saveEdits,
 } from "@/features/actions/actions/approval-actions"
 import { useRealtimeApprovals } from "@/features/actions/lib/use-realtime-approvals"
 import type { ApprovalCardData } from "@/features/actions/lib/types"
@@ -53,6 +54,15 @@ export function ApprovalQueue({
     }
   }
 
+  async function handleSave(actionId: string, editedContent: string) {
+    const result = await saveEdits(actionId, editedContent)
+    if (result.error) {
+      toast.error(result.error)
+    } else {
+      toast.success("Edits saved")
+    }
+  }
+
   return (
     <div role="region" aria-label="Approval queue">
       <div className="mb-4 flex items-center gap-2">
@@ -79,6 +89,7 @@ export function ApprovalQueue({
               onApprove={handleApprove}
               onReject={handleReject}
               onRegenerate={handleRegenerate}
+              onSave={handleSave}
             />
           ))}
         </div>
