@@ -12,12 +12,6 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 
 export interface Filters {
   platform: "all" | "reddit" | "linkedin"
@@ -74,58 +68,45 @@ export function FilterBar({ filters, onFiltersChange }: FilterBarProps) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <TooltipProvider>
-        <Select
-          value={filters.platform}
-          onValueChange={(value) =>
-            updateFilters({
-              platform: value as Filters["platform"],
-            })
-          }
+      <Select
+        value={filters.platform}
+        onValueChange={(value) =>
+          updateFilters({
+            platform: value as Filters["platform"],
+          })
+        }
+      >
+        <SelectTrigger
+          className="w-[160px]"
+          aria-label="Filter by platform"
         >
-          <SelectTrigger
-            className="w-[160px]"
-            aria-label="Filter by platform"
-          >
-            <SelectValue placeholder="All platforms" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All platforms</SelectItem>
-            <SelectItem value="reddit">Reddit</SelectItem>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div>
-                  <SelectItem value="linkedin" disabled>
-                    LinkedIn
-                  </SelectItem>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Coming in a future update</p>
-              </TooltipContent>
-            </Tooltip>
-          </SelectContent>
-        </Select>
+          <SelectValue placeholder="All platforms" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All platforms</SelectItem>
+          <SelectItem value="reddit">Reddit</SelectItem>
+          <SelectItem value="linkedin">LinkedIn</SelectItem>
+        </SelectContent>
+      </Select>
 
-        <Select
-          value={String(filters.minIntent)}
-          onValueChange={(value) =>
-            updateFilters({ minIntent: Number(value) })
-          }
+      <Select
+        value={String(filters.minIntent)}
+        onValueChange={(value) =>
+          updateFilters({ minIntent: Number(value) })
+        }
+      >
+        <SelectTrigger
+          className="w-[150px]"
+          aria-label="Filter by minimum intent strength"
         >
-          <SelectTrigger
-            className="w-[150px]"
-            aria-label="Filter by minimum intent strength"
-          >
-            <SelectValue placeholder="All strengths" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="0">All strengths</SelectItem>
-            <SelectItem value="4">4+ Warm</SelectItem>
-            <SelectItem value="7">7+ Hot</SelectItem>
-          </SelectContent>
-        </Select>
-      </TooltipProvider>
+          <SelectValue placeholder="All strengths" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="0">All strengths</SelectItem>
+          <SelectItem value="4">4+ Warm</SelectItem>
+          <SelectItem value="7">7+ Hot</SelectItem>
+        </SelectContent>
+      </Select>
 
       <div className="flex items-center gap-2">
         <Switch
