@@ -173,7 +173,7 @@ Plans:
   2. All 6 aggregate stats on `/live` (signals last hour, 24h, active users, DMs sent, replies, conversion rate) display non-zero when underlying activity exists
   3. Only `/api/cron/digest` remains registered in `vercel.json`; `/api/cron/daily-digest` is removed (or consolidated)
   4. Users with local hour=8 receive exactly one daily digest email per day
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 - [ ] 08-01-PLAN.md — Migration 00012 (live_stats seed row) + phase-08-validate.mjs script
@@ -242,7 +242,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 5. Billing + Onboarding + Growth | 5/7 | In Progress | - |
 | 6. LinkedIn | 1/1 | Complete | 2026-04-21 |
 | 7. Reply Detection Fix (GAP) | 0/1 | Pending | - |
-| 8. Public Stats + Duplicate Digest (GAP) | 2/4 | In Progress|  |
+| 8. Public Stats + Duplicate Digest (GAP) | 3/4 | In Progress|  |
 | 9. Cross-Platform Approval + Audit Trail (GAP) | 0/0 | Pending | - |
 | 10. LinkedIn Outreach Execution (GAP) | 0/0 | Pending | - |
 | 11. Nyquist Validation Compliance (GAP) | 0/0 | Pending | - |
