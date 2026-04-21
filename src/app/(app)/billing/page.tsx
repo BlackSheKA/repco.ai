@@ -16,9 +16,6 @@ import {
   PRICING_PLANS,
   type PricingPlan,
 } from "@/features/billing/lib/types"
-import {
-  calculateDailyBurn,
-} from "@/features/billing/lib/credit-burn"
 import { getInvoices } from "@/features/billing/actions/manage-subscription"
 import { BillingHistory } from "@/features/billing/components/billing-history"
 import { BillingPageClient } from "@/features/billing/components/billing-page-client"
@@ -45,35 +42,22 @@ export default async function BillingPage({
     redirect("/login")
   }
 
-  const [{ data: profile }, { data: signals }, { data: accounts }, invoices] =
-    await Promise.all([
-      supabase
-        .from("users")
-        .select(
-          "stripe_customer_id, billing_period, subscription_active, credits_balance, trial_ends_at",
-        )
-        .eq("id", user.id)
-        .single(),
-      supabase
-        .from("monitoring_signals")
-        .select("signal_type, active")
-        .eq("user_id", user.id),
-      supabase
-        .from("social_accounts")
-        .select("platform, active")
-        .eq("user_id", user.id),
-      getInvoices(),
-    ])
+  const [{ data: profile }, invoices] = await Promise.all([
+    supabase
+      .from("users")
+      .select(
+        "stripe_customer_id, billing_period, subscription_active, credits_balance, trial_ends_at",
+      )
+      .eq("id", user.id)
+      .single(),
+    getInvoices(),
+  ])
 
   const creditsBalance = (profile?.credits_balance as number | null) ?? 0
   const billingPeriod =
     (profile?.billing_period as PricingPlan["period"] | null) ?? null
   const subscriptionActive = Boolean(profile?.subscription_active)
   const trialEndsAtRaw = profile?.trial_ends_at as string | null | undefined
-
-  const dailyBurn = calculateDailyBurn(signals ?? [], accounts ?? [])
-  const projectedDays =
-    dailyBurn > 0 ? Math.floor(creditsBalance / dailyBurn) : null
 
   const now = Date.now()
   const trialEndsAt = trialEndsAtRaw ? new Date(trialEndsAtRaw).getTime() : null
@@ -86,6 +70,8 @@ export default async function BillingPage({
   const trialDaysLeft = trialEndsAt
     ? Math.max(0, Math.ceil((trialEndsAt - now) / (24 * 60 * 60 * 1000)))
     : 0
+  const canStartTrial =
+    !subscriptionActive && !trialActive && !trialExpired && !trialEndsAt
 
   const currentPlanPriceId = billingPeriod
     ? (PRICING_PLANS.find((p) => p.period === billingPeriod)?.stripePriceId ??
@@ -94,21 +80,31 @@ export default async function BillingPage({
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Billing</h1>
           <p className="text-sm text-muted-foreground">
             Manage your subscription, credits, and invoices.
           </p>
         </div>
-        {trialActive && (
-          <Badge
-            className="border-transparent text-white"
-            style={{ backgroundColor: "oklch(0.72 0.19 142)" }}
-          >
-            Trial · {trialDaysLeft} days left
-          </Badge>
-        )}
+        <div className="flex items-center gap-3">
+          {trialActive && (
+            <Badge
+              className="border-transparent text-white"
+              style={{ backgroundColor: "oklch(0.72 0.19 142)" }}
+            >
+              Trial · {trialDaysLeft} days left
+            </Badge>
+          )}
+          <Card className="px-4 py-3">
+            <p className="text-xs font-medium text-muted-foreground">
+              Credit balance
+            </p>
+            <p className="font-mono text-2xl font-semibold leading-tight">
+              {creditsBalance.toLocaleString()}
+            </p>
+          </Card>
+        </div>
       </div>
 
       {trialExpired && (
@@ -124,74 +120,30 @@ export default async function BillingPage({
         </Card>
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <Tabs defaultValue="plans" className="w-full">
-            <TabsList>
-              <TabsTrigger value="plans">Plans</TabsTrigger>
-              <TabsTrigger value="packs">Credit Packs</TabsTrigger>
-              <TabsTrigger value="history">History</TabsTrigger>
-            </TabsList>
+      <div className="flex flex-col gap-6">
+        <Tabs defaultValue="plans" className="w-full">
+          <TabsList>
+            <TabsTrigger value="plans">Plans</TabsTrigger>
+            <TabsTrigger value="packs">Credit Packs</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="plans" className="mt-4">
-              <BillingPageClient
-                view="plans"
-                plans={PRICING_PLANS}
-                packs={CREDIT_PACKS}
-                currentPlanPriceId={currentPlanPriceId}
-                subscriptionActive={subscriptionActive}
-                successParam={resolvedSearchParams.success}
-                canceledParam={resolvedSearchParams.canceled}
-              />
-            </TabsContent>
-
-            <TabsContent value="packs" className="mt-4">
-              <BillingPageClient
-                view="packs"
-                plans={PRICING_PLANS}
-                packs={CREDIT_PACKS}
-                currentPlanPriceId={currentPlanPriceId}
-                subscriptionActive={subscriptionActive}
-                successParam={resolvedSearchParams.success}
-                canceledParam={resolvedSearchParams.canceled}
-              />
-            </TabsContent>
-
-            <TabsContent value="history" className="mt-4">
-              <BillingHistory invoices={invoices} />
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <Card>
-            <CardHeader className="gap-1">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Credit balance
-              </CardTitle>
-              <p className="font-mono text-3xl font-semibold">
-                {creditsBalance.toLocaleString()}
-              </p>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Daily burn</span>
-                <span className="font-mono">
-                  {dailyBurn > 0 ? `-${dailyBurn}/day` : "—"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Projected runway</span>
-                <span className="font-mono">
-                  {projectedDays !== null ? `${projectedDays} days` : "—"}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {subscriptionActive && (
+          <TabsContent value="plans" className="mt-4">
             <BillingPageClient
-              view="cancel"
+              view="plans"
+              plans={PRICING_PLANS}
+              packs={CREDIT_PACKS}
+              currentPlanPriceId={currentPlanPriceId}
+              subscriptionActive={subscriptionActive}
+              canStartTrial={canStartTrial}
+              successParam={resolvedSearchParams.success}
+              canceledParam={resolvedSearchParams.canceled}
+            />
+          </TabsContent>
+
+          <TabsContent value="packs" className="mt-4">
+            <BillingPageClient
+              view="packs"
               plans={PRICING_PLANS}
               packs={CREDIT_PACKS}
               currentPlanPriceId={currentPlanPriceId}
@@ -199,8 +151,24 @@ export default async function BillingPage({
               successParam={resolvedSearchParams.success}
               canceledParam={resolvedSearchParams.canceled}
             />
-          )}
-        </div>
+          </TabsContent>
+
+          <TabsContent value="history" className="mt-4">
+            <BillingHistory invoices={invoices} />
+          </TabsContent>
+        </Tabs>
+
+        {subscriptionActive && (
+          <BillingPageClient
+            view="cancel"
+            plans={PRICING_PLANS}
+            packs={CREDIT_PACKS}
+            currentPlanPriceId={currentPlanPriceId}
+            subscriptionActive={subscriptionActive}
+            successParam={resolvedSearchParams.success}
+            canceledParam={resolvedSearchParams.canceled}
+          />
+        )}
       </div>
     </div>
   )
