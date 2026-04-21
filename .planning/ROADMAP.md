@@ -18,6 +18,12 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 4: Sequences + Reply Detection** - 3-touch follow-up sequences, inbox reply detection, email notifications
 - [x] **Phase 5: Billing + Onboarding + Growth** - Stripe subscription + credit economy, 3-question onboarding, landing hook, /live page, prospect pipeline
 - [x] **Phase 6: LinkedIn** - Apify LinkedIn integration (additive after Reddit proven end-to-end)
+- [ ] **Phase 7: Reply Detection Fix** (GAP CLOSURE) - Handle normalization bug unblocking RPLY-02/03/04 + FLLW-04 cascade
+- [ ] **Phase 8: Public Stats + Duplicate Digest Cleanup** (GAP CLOSURE) - live_stats write path (GROW-01), remove duplicate daily digest cron
+- [ ] **Phase 9: Cross-Platform Approval + Action Audit Trail** (GAP CLOSURE) - Platform-aware approval card + worker.ts job_logs column fix
+- [ ] **Phase 10: LinkedIn Outreach Execution** (GAP CLOSURE) - ONBR-05 GoLogin LinkedIn connection + connection_request executor arm
+- [ ] **Phase 11: Nyquist Validation Compliance** (GAP CLOSURE) - Complete 6 VALIDATION.md files + retroactive Phase 6 VERIFICATION.md
+- [ ] **Phase 12: Trial Auto-Activation + Expiry Reconciliation** (GAP CLOSURE) - BILL-01 auto-trial + ACTN-10 expiry spec reconciliation
 
 ## Phase Details
 
@@ -141,10 +147,82 @@ Plans:
 Plans:
 - [x] 06-01: Apify actor integration, LinkedIn signal ingestion, staleness alerting, feed integration
 
+### Phase 7: Reply Detection Fix
+**Goal**: Reply detection actually matches inbox senders to prospect records so RPLY-02/03/04 fire end-to-end and FLLW-04 stops pending follow-ups on reply
+**Depends on**: Phase 4
+**Requirements**: RPLY-02, RPLY-03, RPLY-04
+**Gap Closure**: Closes audit gap — handle normalization mismatch (`u/username` stored vs `username` normalized during matching) causes `matchReplyToProspect` to always return null, cascading to RPLY-03 email alerts, RPLY-04 Realtime push, and FLLW-04 follow-up cancellation
+**Success Criteria** (what must be TRUE):
+  1. Inbox sender handles are compared against `prospects.handle` in the same normalized form (either both prefixed with `u/` or both stripped) and matches succeed
+  2. When a reply is matched, `prospect.pipeline_status` transitions to `replied` and all pending follow-up actions cancel
+  3. Reply alert email (RPLY-03) dispatches within 10 minutes of reply detection
+  4. Realtime reply push (RPLY-04) fires on the `use-realtime-replies` subscription
+  5. Reply-matching unit tests use production-shaped handle fixtures (`u/` prefix) so the bug cannot regress silently
+**Plans**: TBD
+
+### Phase 8: Public Stats + Duplicate Digest Cleanup
+**Goal**: `/live` aggregate stats show real numbers (not zeros) and users receive exactly one daily digest email per day
+**Depends on**: Phase 5
+**Requirements**: GROW-01, GROW-02, NTFY-01, GROW-05
+**Gap Closure**: Closes audit gaps — `live_stats` table has no write path so all 6 aggregate metrics display 0; both `/api/cron/daily-digest` (Phase 4) and `/api/cron/digest` (Phase 5) run hourly and send duplicate emails
+**Success Criteria** (what must be TRUE):
+  1. `live_stats` row(s) are written by a cron, trigger, or signal/action event handler on a defined cadence
+  2. All 6 aggregate stats on `/live` (signals last hour, 24h, active users, DMs sent, replies, conversion rate) display non-zero when underlying activity exists
+  3. Only `/api/cron/digest` remains registered in `vercel.json`; `/api/cron/daily-digest` is removed (or consolidated)
+  4. Users with local hour=8 receive exactly one daily digest email per day
+**Plans**: TBD
+
+### Phase 9: Cross-Platform Approval + Action Audit Trail
+**Goal**: Approval queue renders correct platform badge for LinkedIn actions and action worker audit trail is written to `job_logs` correctly
+**Depends on**: Phase 6
+**Requirements**: APRV-01, OBSV-01
+**Gap Closure**: Closes audit gaps — `approval-card.tsx` hardcodes Reddit badge + `r/{subreddit}` for all platforms (LinkedIn shows `r/null`); `worker.ts` inserts non-existent `details`/`correlation_id` columns into `job_logs` and PostgREST silently drops them
+**Success Criteria** (what must be TRUE):
+  1. Approval card renders the correct platform badge (Reddit vs LinkedIn) and source label based on `action.platform` — no `r/null` regressions
+  2. `worker.ts` writes to `job_logs` using schema-valid column names only; every action execution produces a `job_logs` row with duration, status, and correlation context
+  3. Integration test or manual verification confirms action executions appear in `job_logs` queries
+**Plans**: TBD
+
+### Phase 10: LinkedIn Outreach Execution
+**Goal**: A user can connect their LinkedIn account via GoLogin and approved `connection_request` actions execute end-to-end through the action worker
+**Depends on**: Phase 6, Phase 9
+**Requirements**: ONBR-05, MNTR-02, ACTN-01, ACTN-05
+**Gap Closure**: Closes audit gap ONBR-05 (never built) + integration gap `connection_request — executor arm missing` (warmup gate blocks + no executor case arm) + resolves `TODO-phase6-connection-request.md` + Phase 6 tech debt (ActionType TS union, SQL credit cost)
+**Success Criteria** (what must be TRUE):
+  1. User can connect a LinkedIn account through the `/accounts` connection flow (GoLogin profile provisioned, session cookies captured, account reaches `healthy` state after warmup)
+  2. `worker.ts` executor has a `connection_request` arm that runs via GoLogin + Playwright + Haiku CU and stores verification screenshot
+  3. Warmup gate `allowedActions` includes `connection_request` on the appropriate warmup day
+  4. `ActionType` TypeScript union includes `connection_request` (compile-time safety)
+  5. `get_action_credit_cost` SQL returns the documented credit cost for `connection_request`
+  6. End-to-end: approved LinkedIn `connection_request` action transitions from `pending_approval` → `sent` with `job_logs` audit trail
+**Plans**: TBD
+
+### Phase 11: Nyquist Validation Compliance
+**Goal**: All 6 milestone phases have production-ready VALIDATION.md (`status: final`, `nyquist_compliant: true`) and Phase 6 has a retroactive VERIFICATION.md
+**Depends on**: Phases 1–6 complete
+**Requirements**: none directly (process/test coverage)
+**Gap Closure**: Closes tech debt — all 6 VALIDATION.md files are `status: draft`, `nyquist_compliant: false`; Phase 6 has no VERIFICATION.md (UAT passed 7/7 but process gap)
+**Success Criteria** (what must be TRUE):
+  1. Each of phases 01–06 has a VALIDATION.md with `status: final` and `nyquist_compliant: true` after running `/gsd:validate-phase N`
+  2. All identified Nyquist test coverage gaps have tests committed and passing
+  3. Phase 6 has a VERIFICATION.md summarizing goal-backward verification of MNTR-02 delivery
+**Plans**: TBD
+
+### Phase 12: Trial Auto-Activation + Expiry Reconciliation
+**Goal**: New users automatically get a 3-day free trial activated at signup, and DM expiry is reconciled between spec and code
+**Depends on**: Phase 5
+**Requirements**: BILL-01, ACTN-10
+**Gap Closure**: Closes tech debt — `startFreeTrial` exists but only runs if user manually visits `/billing`, so `trial_ends_at` is never set for most signups and credit-burn cron ignores them; ACTN-10 spec says 4h expiry but code uses 12h consistently
+**Success Criteria** (what must be TRUE):
+  1. New user signup automatically sets `trial_ends_at` = signup + 3 days (via DB trigger, signup server action, or signup hook) without requiring a `/billing` visit
+  2. Credit-burn cron applies to trial users from day 1 and trial expiration transitions work correctly
+  3. ACTN-10 expiry is reconciled — either spec updated to 12h (current code behavior) or code reduced to 4h (original spec); decision documented and requirement checkbox state matches reality
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -154,3 +232,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 4. Sequences + Reply Detection | 2/5 | In Progress|  |
 | 5. Billing + Onboarding + Growth | 5/7 | In Progress | - |
 | 6. LinkedIn | 1/1 | Complete | 2026-04-21 |
+| 7. Reply Detection Fix (GAP) | 0/0 | Pending | - |
+| 8. Public Stats + Duplicate Digest (GAP) | 0/0 | Pending | - |
+| 9. Cross-Platform Approval + Audit Trail (GAP) | 0/0 | Pending | - |
+| 10. LinkedIn Outreach Execution (GAP) | 0/0 | Pending | - |
+| 11. Nyquist Validation Compliance (GAP) | 0/0 | Pending | - |
+| 12. Trial Auto-Activation + Expiry (GAP) | 0/0 | Pending | - |
