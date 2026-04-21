@@ -4,6 +4,7 @@ export type ActionCreditType =
   | "public_reply"
   | "dm"
   | "followup_dm"
+  | "connection_request"
 
 export type CreditCostMap = Record<ActionCreditType, number>
 
@@ -13,6 +14,7 @@ export const CREDIT_COSTS: CreditCostMap = {
   public_reply: 15,
   dm: 30,
   followup_dm: 20,
+  connection_request: 20,
 } as const
 
 export type MonitoringSignalType =
