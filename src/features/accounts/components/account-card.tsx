@@ -16,7 +16,11 @@ interface AccountCardProps {
   account: SocialAccount
   usage: AccountDailyUsage
   onSkipWarmup: (accountId: string) => void
-  onReconnect: (accountId: string, profileId: string | null) => void
+  onReconnect: (
+    accountId: string,
+    profileId: string | null,
+    platform: "reddit" | "linkedin",
+  ) => void
 }
 
 const PLATFORM_LABEL: Record<string, string> = {
@@ -129,7 +133,11 @@ export function AccountCard({
               size="sm"
               className="h-7"
               onClick={() =>
-                onReconnect(account.id, account.gologin_profile_id)
+                onReconnect(
+                  account.id,
+                  account.gologin_profile_id,
+                  account.platform,
+                )
               }
               aria-label={
                 verified

@@ -37,6 +37,9 @@ export function AccountList({
   const [submitting, setSubmitting] = useState(false)
   const [newAccountId, setNewAccountId] = useState<string | null>(null)
   const [newProfileId, setNewProfileId] = useState<string | null>(null)
+  const [newAccountPlatform, setNewAccountPlatform] = useState<
+    "reddit" | "linkedin"
+  >("reddit")
   const [isPending, startTransition] = useTransition()
 
   function openConnectDialog() {
@@ -49,6 +52,7 @@ export function AccountList({
     setHandleInput("")
     setNewAccountId(null)
     setNewProfileId(null)
+    setNewAccountPlatform("reddit")
   }
 
   async function submitHandle(e: React.FormEvent) {
@@ -67,6 +71,7 @@ export function AccountList({
 
     setNewAccountId(result.accountId ?? null)
     setNewProfileId(result.profileId ?? null)
+    setNewAccountPlatform("reddit")
   }
 
   function handleSkipWarmup(accountId: string) {
@@ -80,7 +85,11 @@ export function AccountList({
     })
   }
 
-  function handleReconnect(accountId: string, profileId: string | null) {
+  function handleReconnect(
+    accountId: string,
+    profileId: string | null,
+    platform: "reddit" | "linkedin",
+  ) {
     if (!profileId) {
       toast.error("This account has no browser profile")
       return
@@ -88,6 +97,7 @@ export function AccountList({
     setConnecting(true)
     setNewAccountId(accountId)
     setNewProfileId(profileId)
+    setNewAccountPlatform(platform)
   }
 
   if (accounts.length === 0 && !connecting) {
@@ -167,6 +177,7 @@ export function AccountList({
         <ConnectionFlow
           accountId={newAccountId}
           profileId={newProfileId}
+          platform={newAccountPlatform}
           onComplete={() => {
             setConnecting(false)
             setNewAccountId(null)

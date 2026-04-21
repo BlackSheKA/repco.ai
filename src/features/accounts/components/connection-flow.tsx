@@ -21,6 +21,7 @@ import {
 interface ConnectionFlowProps {
   accountId: string
   profileId: string
+  platform: "reddit" | "linkedin"
   onComplete: () => void
   onCancel: () => void
 }
@@ -29,9 +30,11 @@ type FlowStep = 1 | 2 | 3
 
 export function ConnectionFlow({
   accountId,
+  platform,
   onComplete,
   onCancel,
 }: ConnectionFlowProps) {
+  const platformLabel = platform === "linkedin" ? "LinkedIn" : "Reddit"
   const [step, setStep] = useState<FlowStep>(1)
   const [verified, setVerified] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -175,6 +178,12 @@ export function ConnectionFlow({
                   <li>
                     Log into your account. repco never sees your password.
                   </li>
+                  {platform === "linkedin" && (
+                    <li>
+                      If LinkedIn asks for 2FA or email verification, complete
+                      it in the remote browser before clicking below.
+                    </li>
+                  )}
                   <li>
                     Come back here and click{" "}
                     <span className="font-semibold">
@@ -211,7 +220,7 @@ export function ConnectionFlow({
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             <p className="text-base">Verifying your session...</p>
             <p className="text-sm text-muted-foreground">
-              Checking Reddit login status
+              Checking {platformLabel} login status
             </p>
           </div>
         )}
