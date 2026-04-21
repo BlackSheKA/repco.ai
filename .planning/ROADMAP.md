@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 4: Sequences + Reply Detection** - 3-touch follow-up sequences, inbox reply detection, email notifications
 - [x] **Phase 5: Billing + Onboarding + Growth** - Stripe subscription + credit economy, 3-question onboarding, landing hook, /live page, prospect pipeline
 - [x] **Phase 6: LinkedIn** - Apify LinkedIn integration (additive after Reddit proven end-to-end)
-- [ ] **Phase 7: Reply Detection Fix** (GAP CLOSURE) - Handle normalization bug unblocking RPLY-02/03/04 + FLLW-04 cascade
+- [x] **Phase 7: Reply Detection Fix** (GAP CLOSURE) - Handle normalization bug unblocking RPLY-02/03/04 + FLLW-04 cascade
 - [ ] **Phase 8: Public Stats + Duplicate Digest Cleanup** (GAP CLOSURE) - live_stats write path (GROW-01), remove duplicate daily digest cron
 - [ ] **Phase 9: Cross-Platform Approval + Action Audit Trail** (GAP CLOSURE) - Platform-aware approval card + worker.ts job_logs column fix
 - [ ] **Phase 10: LinkedIn Outreach Execution** (GAP CLOSURE) - ONBR-05 GoLogin LinkedIn connection + connection_request executor arm
@@ -161,7 +161,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 07-01-PLAN.md — Extract normalizeHandle util + patch matchReplyToProspect + integration test for full cascade (RPLY-02/03/04 + FLLW-04)
+- [x] 07-01: normalizeHandle util + symmetric matchReplyToProspect + cron cascade integration test (RPLY-02/03/04 + FLLW-04 unblocked)
 
 ### Phase 8: Public Stats + Duplicate Digest Cleanup
 **Goal**: `/live` aggregate stats show real numbers (not zeros) and users receive exactly one daily digest email per day

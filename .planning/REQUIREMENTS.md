@@ -72,9 +72,9 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Reply Detection
 
 - [x] **RPLY-01**: System checks DM inboxes every 2h via GoLogin + Playwright CDP + Haiku CU
-- [ ] **RPLY-02**: System matches reply sender to prospect record and updates pipeline_status to "replied"
-- [ ] **RPLY-03**: System sends email notification to user when a reply is received
-- [ ] **RPLY-04**: System pushes reply event to dashboard via Supabase Realtime
+- [x] **RPLY-02**: System matches reply sender to prospect record and updates pipeline_status to "replied"
+- [x] **RPLY-03**: System sends email notification to user when a reply is received
+- [x] **RPLY-04**: System pushes reply event to dashboard via Supabase Realtime
 
 ### Anti-Ban System
 
@@ -241,9 +241,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FLLW-04 | Phase 4 | Complete |
 | FLLW-05 | Phase 4 | Complete |
 | RPLY-01 | Phase 4 | Complete |
-| RPLY-02 | Phase 7 | Pending |
-| RPLY-03 | Phase 7 | Pending |
-| RPLY-04 | Phase 7 | Pending |
+| RPLY-02 | Phase 7 | Complete |
+| RPLY-03 | Phase 7 | Complete |
+| RPLY-04 | Phase 7 | Complete |
 | NTFY-01 | Phase 4 | Complete |
 | NTFY-02 | Phase 4 | Complete |
 | NTFY-03 | Phase 4 | Complete |
