@@ -1,3 +1,8 @@
+> **Status: COMPLETE — Phase 10 delivered the connection_request executor arm.**
+> See `src/lib/computer-use/actions/linkedin-connect.ts` and the
+> `case "connection_request"` arm in `src/lib/action-worker/worker.ts`.
+> This file is kept for historical context only.
+
 # Phase 6 -- LinkedIn `connection_request` Executor TODO
 
 **Status:** Stub placeholder. Phase 6 writes `connection_request` rows to the
