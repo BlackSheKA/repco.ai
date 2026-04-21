@@ -1,0 +1,128 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e5]:
+      - img "repco" [ref=e7]
+      - list [ref=e11]:
+        - listitem [ref=e12]:
+          - link "Dashboard" [ref=e13] [cursor=pointer]:
+            - /url: /
+            - img [ref=e15]
+            - generic [ref=e20]: Dashboard
+        - listitem [ref=e21]:
+          - link "Signals" [ref=e22] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e24]
+            - generic [ref=e30]: Signals
+        - listitem [ref=e31]:
+          - link "Approvals" [ref=e32] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e34]
+            - generic [ref=e37]: Approvals
+        - listitem [ref=e38]:
+          - link "Prospects" [ref=e39] [cursor=pointer]:
+            - /url: /prospects
+            - img [ref=e41]
+            - generic [ref=e46]: Prospects
+        - listitem [ref=e47]:
+          - link "Accounts" [ref=e48] [cursor=pointer]:
+            - /url: /accounts
+            - img [ref=e50]
+            - generic [ref=e52]: Accounts
+        - listitem [ref=e53]:
+          - link "Billing" [ref=e54] [cursor=pointer]:
+            - /url: /billing
+            - img [ref=e56]
+            - generic [ref=e58]: Billing
+        - listitem [ref=e59]:
+          - link "Settings" [ref=e60] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e62]
+            - generic [ref=e65]: Settings
+      - generic [ref=e67]:
+        - 'link "Credits: 500, burning 72 per day" [ref=e68] [cursor=pointer]':
+          - /url: /billing
+          - text: 500 credits ·
+          - generic [ref=e69]: "-72"
+          - text: /day
+        - paragraph [ref=e70]: kamil.wandtke@outsi.com
+        - button "Sign out" [ref=e71]
+    - main [ref=e72]:
+      - generic [ref=e73]:
+        - button "Toggle Sidebar" [ref=e74]:
+          - img
+          - generic [ref=e75]: Toggle Sidebar
+        - generic [ref=e76]:
+          - button "Toggle color theme" [ref=e77]:
+            - img
+          - generic [ref=e79]: K
+      - log "Agent activity log" [ref=e80]
+      - main [ref=e82]:
+        - generic [ref=e83]:
+          - generic [ref=e85]:
+            - heading "Billing" [level=1] [ref=e86]
+            - paragraph [ref=e87]: Manage your subscription, credits, and invoices.
+          - generic [ref=e88]:
+            - generic [ref=e90]:
+              - tablist [ref=e91]:
+                - tab "Plans" [ref=e92]
+                - tab "Credit Packs" [active] [selected] [ref=e93]
+                - tab "History" [ref=e94]
+              - tabpanel "Credit Packs" [ref=e150]:
+                - generic [ref=e151]:
+                  - paragraph [ref=e152]: Need more credits? Buy a pack anytime.
+                  - generic [ref=e153]:
+                    - generic [ref=e154]:
+                      - generic [ref=e155]:
+                        - generic [ref=e156]: Starter
+                        - paragraph [ref=e157]: "500"
+                        - paragraph [ref=e158]: credits
+                      - generic [ref=e159]:
+                        - generic [ref=e160]:
+                          - generic [ref=e161]: $29
+                          - generic [ref=e162]: $0.058/credit
+                        - button "Buy credits" [ref=e163]
+                    - generic [ref=e164]:
+                      - generic [ref=e165]:
+                        - generic [ref=e166]: Growth
+                        - paragraph [ref=e167]: "1500"
+                        - paragraph [ref=e168]: credits
+                      - generic [ref=e169]:
+                        - generic [ref=e170]:
+                          - generic [ref=e171]: $59
+                          - generic [ref=e172]: $0.039/credit
+                        - button "Buy credits" [ref=e173]
+                    - generic [ref=e174]:
+                      - generic [ref=e175]:
+                        - generic [ref=e176]: Scale
+                        - paragraph [ref=e177]: "5000"
+                        - paragraph [ref=e178]: credits
+                      - generic [ref=e179]:
+                        - generic [ref=e180]:
+                          - generic [ref=e181]: $149
+                          - generic [ref=e182]: $0.030/credit
+                        - button "Buy credits" [ref=e183]
+                    - generic [ref=e184]:
+                      - generic [ref=e185]:
+                        - generic [ref=e186]: Agency
+                        - paragraph [ref=e187]: 15 000
+                        - paragraph [ref=e188]: credits
+                      - generic [ref=e189]:
+                        - generic [ref=e190]:
+                          - generic [ref=e191]: $399
+                          - generic [ref=e192]: $0.027/credit
+                        - button "Buy credits" [ref=e193]
+            - generic [ref=e130]:
+              - generic [ref=e131]:
+                - generic [ref=e132]: Credit balance
+                - paragraph [ref=e133]: "500"
+              - generic [ref=e134]:
+                - generic [ref=e135]:
+                  - generic [ref=e136]: Daily burn
+                  - generic [ref=e137]: "-72/day"
+                - generic [ref=e138]:
+                  - generic [ref=e139]: Projected runway
+                  - generic [ref=e140]: 6 days
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e146] [cursor=pointer]:
+    - img [ref=e147]
+  - alert [ref=e194]

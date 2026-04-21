@@ -1,0 +1,71 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e5]:
+      - img "repco" [ref=e7]
+      - list [ref=e11]:
+        - listitem [ref=e12]:
+          - link "Dashboard" [ref=e13] [cursor=pointer]:
+            - /url: /
+            - img [ref=e15]
+            - generic [ref=e20]: Dashboard
+        - listitem [ref=e21]:
+          - link "Signals" [ref=e22] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e24]
+            - generic [ref=e30]: Signals
+        - listitem [ref=e31]:
+          - link "Approvals" [ref=e32] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e34]
+            - generic [ref=e37]: Approvals
+        - listitem [ref=e38]:
+          - link "Prospects" [ref=e39] [cursor=pointer]:
+            - /url: /prospects
+            - img [ref=e41]
+            - generic [ref=e46]: Prospects
+        - listitem [ref=e47]:
+          - link "Accounts" [ref=e48] [cursor=pointer]:
+            - /url: /accounts
+            - img [ref=e50]
+            - generic [ref=e52]: Accounts
+        - listitem [ref=e53]:
+          - link "Billing" [ref=e54] [cursor=pointer]:
+            - /url: /billing
+            - img [ref=e56]
+            - generic [ref=e58]: Billing
+        - listitem [ref=e59]:
+          - link "Settings" [ref=e60] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e62]
+            - generic [ref=e65]: Settings
+      - generic [ref=e67]:
+        - 'link "Credits: 500, burning 0 per day" [ref=e68] [cursor=pointer]':
+          - /url: /billing
+          - text: 500 credits ·
+          - generic [ref=e69]: "-0"
+          - text: /day
+        - paragraph [ref=e70]: kamil.wandtke@outsi.com
+        - button "Sign out" [ref=e71]
+    - main [ref=e72]:
+      - generic [ref=e73]:
+        - button "Toggle Sidebar" [ref=e74]:
+          - img
+          - generic [ref=e75]: Toggle Sidebar
+        - generic [ref=e76]:
+          - button "Toggle color theme" [ref=e77]:
+            - img
+          - generic [ref=e79]: K
+      - log "Agent activity log" [ref=e80]
+      - main [ref=e82]:
+        - generic [ref=e85]:
+          - generic [ref=e86]:
+            - generic "Step 1 of 3" [ref=e87]
+            - generic "Step 2 of 3" [ref=e88]
+            - generic "Step 3 of 3" [ref=e89]
+          - heading "What does your product do?" [level=1] [ref=e90]
+          - textbox "e.g., AI-powered CRM for freelancers" [ref=e91]
+          - generic [ref=e92]:
+            - button "Next" [disabled]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e98] [cursor=pointer]:
+    - img [ref=e99]

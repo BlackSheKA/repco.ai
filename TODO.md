@@ -25,3 +25,6 @@ After all gap phases complete:
 
 /gsd:audit-milestone — re-audit to verify gaps closed
 /gsd:complete-milestone v1.0 — archive when audit passes
+
+
+/gsd:autonomous

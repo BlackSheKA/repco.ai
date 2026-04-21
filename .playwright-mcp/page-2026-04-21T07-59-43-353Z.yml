@@ -1,0 +1,23 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e251]:
+    - generic [ref=e252]:
+      - img "repco" [ref=e253]
+      - paragraph [ref=e254]: Your AI sales rep that never sleeps.
+    - generic [ref=e257]:
+      - generic [ref=e258]:
+        - heading "Welcome back" [level=1] [ref=e259]
+        - paragraph [ref=e260]: Sign in to your account
+      - generic [ref=e261]:
+        - generic [ref=e262]:
+          - generic [ref=e263]: Email address
+          - textbox "Email address" [ref=e264]:
+            - /placeholder: you@company.com
+        - button "Continue with email" [ref=e265]
+      - generic [ref=e267]: or
+      - button "Continue with Google" [ref=e268]:
+        - img
+        - text: Continue with Google
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e211] [cursor=pointer]:
+    - img [ref=e212]
+  - alert [ref=e242]: Sign in - repco

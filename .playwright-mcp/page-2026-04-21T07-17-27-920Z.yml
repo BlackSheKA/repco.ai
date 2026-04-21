@@ -1,0 +1,505 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - main:
+                  - generic:
+                    - button "Skip to content":
+                      - generic: Skip to content
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - heading "Developers" [level=1]
+                      - generic:
+                        - navigation "Developers":
+                          - generic:
+                            - generic:
+                              - generic:
+                                - tablist:
+                                  - tab "API keys" [selected]:
+                                    - generic:
+                                      - generic: API keys
+                                  - tab "Created apps":
+                                    - generic:
+                                      - generic: Created apps
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic: API keys
+                              - generic:
+                                - generic:
+                                  - link "Learn more about API authentication":
+                                    - /url: https://docs.stripe.com/keys
+                                    - generic:
+                                      - generic:
+                                        - generic:
+                                          - img
+                                        - generic: Learn more about API authentication
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic:
+                                      - generic: Restricted keys
+                                    - generic:
+                                      - generic:
+                                        - generic:
+                                          - text: Create a key with specific access limits and permissions for greater security.
+                                          - link "Learn more":
+                                            - /url: https://docs.stripe.com/keys/restricted-api-keys
+                                  - generic:
+                                    - generic:
+                                      - generic:
+                                        - button "Create restricted key":
+                                          - generic:
+                                            - generic:
+                                              - generic:
+                                                - generic:
+                                                  - img
+                                              - generic: Create restricted key
+                              - generic:
+                                - generic:
+                                  - table:
+                                    - rowgroup:
+                                      - row "Name Token Access policy Last used Created":
+                                        - cell "Name":
+                                          - generic:
+                                            - generic:
+                                              - generic: Name
+                                        - cell "Token":
+                                          - generic:
+                                            - generic:
+                                              - generic: Token
+                                        - cell "Access policy":
+                                          - generic:
+                                            - generic:
+                                              - generic: Access policy
+                                        - cell "Last used":
+                                          - generic:
+                                            - generic:
+                                              - generic: Last used
+                                        - cell
+                                        - cell "Created":
+                                          - generic:
+                                            - generic:
+                                              - generic: Created
+                                        - cell
+                                    - rowgroup:
+                                      - row "CLI key for MSI Connect Expires in 36 days rk_live_...OM2K None Mar 11 Feb 25 More options":
+                                        - cell "CLI key for MSI Connect Expires in 36 days":
+                                          - generic:
+                                            - generic:
+                                              - generic:
+                                                - generic:
+                                                  - generic [ref=e100]: CLI key for MSI
+                                                  - generic [ref=e103]: Connect
+                                                  - img [ref=e109]
+                                              - generic: Expires in 36 days
+                                        - cell "rk_live_...OM2K":
+                                          - generic [ref=e121]: rk_live_...OM2K
+                                        - cell "None":
+                                          - generic:
+                                            - generic:
+                                              - generic:
+                                                - generic: None
+                                                - button:
+                                                  - generic:
+                                                    - img
+                                        - cell "Mar 11":
+                                          - generic:
+                                            - generic: Mar 11
+                                        - cell
+                                        - cell "Feb 25":
+                                          - generic:
+                                            - generic: Feb 25
+                                        - cell "More options":
+                                          - generic:
+                                            - generic:
+                                              - generic:
+                                                - generic:
+                                                  - generic:
+                                                    - generic:
+                                                      - generic:
+                                                        - generic:
+                                                          - button "More options":
+                                                            - generic:
+                                                              - generic:
+                                                                - generic:
+                                                                  - generic:
+                                                                    - img
+                                                                - generic: More options
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic:
+                                  - generic:
+                                    - generic:
+                                      - generic: Standard keys
+                                    - generic:
+                                      - generic:
+                                        - generic:
+                                          - text: Create a key with full API access, enabling extensive interaction with your account.
+                                          - link "Learn more":
+                                            - /url: https://docs.stripe.com/keys
+                                  - generic:
+                                    - generic:
+                                      - generic:
+                                        - button "Create secret key":
+                                          - generic:
+                                            - generic:
+                                              - generic:
+                                                - generic:
+                                                  - img
+                                              - generic: Create secret key
+                              - generic:
+                                - generic:
+                                  - table:
+                                    - rowgroup:
+                                      - row "Name Token Access policy Last used Created":
+                                        - cell "Name":
+                                          - generic:
+                                            - generic:
+                                              - generic: Name
+                                        - cell "Token":
+                                          - generic:
+                                            - generic:
+                                              - generic: Token
+                                        - cell "Access policy":
+                                          - generic:
+                                            - generic:
+                                              - generic: Access policy
+                                        - cell "Last used":
+                                          - generic:
+                                            - generic:
+                                              - generic: Last used
+                                        - cell
+                                        - cell "Created":
+                                          - generic:
+                                            - generic:
+                                              - generic: Created
+                                        - cell
+                                    - rowgroup:
+                                      - row "Publishable key Click to copy — Feb 23 Feb 23 More options":
+                                        - cell "Publishable key":
+                                          - generic [ref=e214]: Publishable key
+                                        - cell "Click to copy":
+                                          - button "Click to copy" [ref=e223] [cursor=pointer]:
+                                            - generic [ref=e224]: pk_live_51T3sjALN7bOm6wseBkzt6GtO9KO17oo8mmdRCdlxtZkNUwxYbzEnretdL9JrRwz78vC9RNtRb77IL2HRS4k73uj200loUxlREg
+                                        - cell "—":
+                                          - generic:
+                                            - generic: —
+                                        - cell "Feb 23":
+                                          - generic:
+                                            - generic: Feb 23
+                                        - cell
+                                        - cell "Feb 23":
+                                          - generic:
+                                            - generic: Feb 23
+                                        - cell "More options":
+                                          - generic:
+                                            - generic:
+                                              - generic:
+                                                - generic:
+                                                  - generic:
+                                                    - generic:
+                                                      - generic:
+                                                        - generic:
+                                                          - button "More options":
+                                                            - generic:
+                                                              - generic:
+                                                                - generic:
+                                                                  - generic:
+                                                                    - img
+                                                                - generic: More options
+                                      - row "Secret key sk_live_...c5Hu None Feb 27 Feb 23 More options":
+                                        - cell "Secret key":
+                                          - generic [ref=e257]: Secret key
+                                        - cell "sk_live_...c5Hu":
+                                          - generic [ref=e265]: sk_live_...c5Hu
+                                        - cell "None":
+                                          - generic:
+                                            - generic:
+                                              - generic:
+                                                - generic: None
+                                                - button:
+                                                  - generic:
+                                                    - img
+                                        - cell "Feb 27":
+                                          - generic:
+                                            - generic: Feb 27
+                                        - cell
+                                        - cell "Feb 23":
+                                          - generic:
+                                            - generic: Feb 23
+                                        - cell "More options":
+                                          - generic:
+                                            - generic:
+                                              - generic:
+                                                - generic:
+                                                  - generic:
+                                                    - generic:
+                                                      - generic:
+                                                        - generic:
+                                                          - button "More options":
+                                                            - generic:
+                                                              - generic:
+                                                                - generic:
+                                                                  - generic:
+                                                                    - img
+                                                                - generic: More options
+                                      - row "repco.ai production sk_live_...jze2 None — Apr 21 More options":
+                                        - cell "repco.ai production":
+                                          - generic [ref=e655]: repco.ai production
+                                        - cell "sk_live_...jze2":
+                                          - generic [ref=e660]: sk_live_...jze2
+                                        - cell "None":
+                                          - generic:
+                                            - generic:
+                                              - generic:
+                                                - generic: None
+                                                - button:
+                                                  - generic:
+                                                    - img
+                                        - cell "—":
+                                          - generic:
+                                            - generic:
+                                              - generic: —
+                                        - cell
+                                        - cell "Apr 21":
+                                          - generic:
+                                            - generic: Apr 21
+                                        - cell "More options":
+                                          - generic:
+                                            - generic:
+                                              - generic:
+                                                - generic:
+                                                  - generic:
+                                                    - generic:
+                                                      - generic:
+                                                        - generic:
+                                                          - button "More options":
+                                                            - generic:
+                                                              - generic:
+                                                                - generic:
+                                                                  - generic:
+                                                                    - img
+                                                                - generic: More options
+                  - paragraph
+  - generic:
+    - generic:
+      - iframe
+    - generic:
+      - generic [ref=e304]:
+        - button "Account options and switcher, current account is repco.ai" [ref=e308] [cursor=pointer]:
+          - generic [ref=e312]: R
+          - generic [ref=e315]: repco.ai
+          - img [ref=e316]
+        - navigation [ref=e320]:
+          - region "Core navigation links" [ref=e321]:
+            - list "Core navigation links" [ref=e322]:
+              - listitem [ref=e323]:
+                - link "Home" [ref=e324] [cursor=pointer]:
+                  - /url: /acct_1T3sjALN7bOm6wse/dashboard
+                  - generic [ref=e325]:
+                    - img [ref=e327]
+                    - generic [ref=e329]: Home
+              - listitem [ref=e330]:
+                - link "Balances" [ref=e331] [cursor=pointer]:
+                  - /url: /acct_1T3sjALN7bOm6wse/balance/overview
+                  - generic [ref=e332]:
+                    - img [ref=e334]
+                    - generic [ref=e337]: Balances
+              - listitem [ref=e338]:
+                - link "Transactions" [ref=e339] [cursor=pointer]:
+                  - /url: /acct_1T3sjALN7bOm6wse/payments
+                  - generic [ref=e340]:
+                    - img [ref=e342]
+                    - generic [ref=e344]: Transactions
+              - listitem [ref=e345]:
+                - link "Customers" [ref=e346] [cursor=pointer]:
+                  - /url: /acct_1T3sjALN7bOm6wse/customers
+                  - generic [ref=e347]:
+                    - img [ref=e349]
+                    - generic [ref=e351]: Customers
+              - listitem [ref=e352]:
+                - link "Product catalog" [ref=e353] [cursor=pointer]:
+                  - /url: /acct_1T3sjALN7bOm6wse/products?active=true
+                  - generic [ref=e354]:
+                    - img [ref=e356]
+                    - generic [ref=e358]: Product catalog
+          - region "Shortcuts" [ref=e359]:
+            - generic [ref=e360]:
+              - text: Shortcuts
+              - button "Manage shortcuts" [ref=e361] [cursor=pointer]:
+                - img [ref=e362]
+            - list "Shortcuts" [ref=e364]:
+              - listitem [ref=e365]:
+                - link "Connect" [ref=e366] [cursor=pointer]:
+                  - /url: /acct_1T3sjALN7bOm6wse/connect
+                  - generic [ref=e367]:
+                    - img [ref=e369]
+                    - generic [ref=e371]: Connect
+                - button "Unpin Connect"
+              - listitem [ref=e372]:
+                - link "Subscriptions" [ref=e373] [cursor=pointer]:
+                  - /url: /acct_1T3sjALN7bOm6wse/subscriptions?status=active
+                  - generic [ref=e374]:
+                    - img [ref=e376]
+                    - generic [ref=e378]: Subscriptions
+                - button "Unpin Subscriptions"
+              - listitem [ref=e379]:
+                - link "Profiles" [ref=e380] [cursor=pointer]:
+                  - /url: /acct_1T3sjALN7bOm6wse/profiles
+                  - generic [ref=e381]:
+                    - img [ref=e383]
+                    - generic [ref=e386]: Profiles
+                - button "Pin Profiles"
+          - region "Products" [ref=e387]:
+            - generic [ref=e388]: Products
+            - list "Products" [ref=e389]:
+              - listitem [ref=e390]:
+                - button "Payments" [ref=e392] [cursor=pointer]:
+                  - generic [ref=e393]:
+                    - img [ref=e395]
+                    - generic [ref=e398]: Payments
+                  - img [ref=e400]
+              - listitem [ref=e402]:
+                - button "Billing" [ref=e404] [cursor=pointer]:
+                  - generic [ref=e405]:
+                    - img [ref=e407]
+                    - generic [ref=e410]: Billing
+                  - img [ref=e412]
+              - listitem [ref=e414]:
+                - button "Reporting" [ref=e416] [cursor=pointer]:
+                  - generic [ref=e417]:
+                    - img [ref=e419]
+                    - generic [ref=e423]: Reporting
+                  - img [ref=e425]
+              - listitem [ref=e427]:
+                - button "More" [ref=e429] [cursor=pointer]:
+                  - generic [ref=e430]:
+                    - img [ref=e432]
+                    - generic [ref=e434]: More
+                  - img [ref=e436]
+          - region "Developer links" [ref=e439]:
+            - list "Developer links"
+      - button "Toggle navigation menu" [expanded] [ref=e440] [cursor=pointer]
+      - generic [ref=e446]:
+        - search [ref=e448]:
+          - generic [ref=e450]:
+            - generic [ref=e451]:
+              - img [ref=e453]
+              - generic [ref=e456]: Search
+            - generic [ref=e457]:
+              - combobox "Search" [ref=e458]
+              - generic [ref=e461]: /
+        - generic [ref=e462]:
+          - button "Apps" [ref=e464] [cursor=pointer]:
+            - img [ref=e465]
+          - button "Help" [ref=e468] [cursor=pointer]:
+            - img [ref=e469]
+          - button "Notifications" [ref=e474] [cursor=pointer]:
+            - img [ref=e475]
+          - link "Settings" [ref=e477] [cursor=pointer]:
+            - /url: /acct_1T3sjALN7bOm6wse/settings
+            - img [ref=e478]
+          - button "Create" [ref=e482] [cursor=pointer]:
+            - img [ref=e484]
+    - generic [ref=e488]:
+      - generic [ref=e489] [cursor=pointer]:
+        - heading [level=2] [ref=e490]: Setup guide
+        - generic [ref=e491]:
+          - button [ref=e492]:
+            - img [ref=e493]
+          - generic [ref=e495]:
+            - button [ref=e496]:
+              - img
+            - button [ref=e497]:
+              - img [ref=e498]
+      - generic [ref=e503]:
+        - region [ref=e504]:
+          - generic [ref=e506]:
+            - generic [ref=e507]: "Next:"
+            - button [ref=e508] [cursor=pointer]: Choose your business model
+        - region [ref=e509]:
+          - list [ref=e511]:
+            - listitem [ref=e512]:
+              - button [ref=e513] [cursor=pointer]:
+                - progressbar [ref=e515]
+                - paragraph [ref=e519]: Choose your business model
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - button "Show Workbench":
+              - generic:
+                - generic:
+                  - button "Developers":
+                    - generic:
+                      - generic:
+                        - img
+                      - generic: Developers
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - button "Inspect":
+                        - generic:
+                          - generic:
+                            - img
+                  - generic:
+                    - button "Health":
+                      - generic:
+                        - img
+                  - generic:
+                    - button "API activity":
+                      - generic:
+                        - img
+                  - generic:
+                    - button "Event deliveries":
+                      - generic:
+                        - img
+                - generic:
+                  - generic:
+                    - button "Open Workbench"
+    - alertdialog [ref=e663]:
+      - banner [ref=e664]:
+        - heading [level=2] [ref=e665]:
+          - generic [ref=e666]: Your new API key
+        - button [ref=e667] [cursor=pointer]:
+          - img [ref=e668]
+      - article [ref=e670]:
+        - generic [ref=e671]:
+          - generic [ref=e672]:
+            - generic [ref=e673]: Keep your key safe
+            - generic [ref=e675]:
+              - generic [ref=e676]: Save and store this new key to a secure place, such as a password manager or secret store. You won’t be able to see it again.
+              - link [ref=e677] [cursor=pointer]:
+                - /url: https://docs.stripe.com/keys-best-practices
+                - generic [ref=e678]: Learn more about keeping your keys safe
+                - img [ref=e679]
+          - button [ref=e683] [cursor=pointer]:
+            - generic [ref=e684]: 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
+          - generic [ref=e686]:
+            - generic [ref=e687]: Add a note
+            - textbox [ref=e689]:
+              - /placeholder: Describe this key and the location where it’s stored.
+      - contentinfo [ref=e690]:
+        - button [ref=e692] [cursor=pointer]:
+          - generic [ref=e693]: Done
+    - tooltip "Copy to clipboard" [ref=e695]:
+      - generic [ref=e697]:
+        - img [ref=e698]
+        - generic [ref=e701]: Copy to clipboard
+  - generic:
+    - iframe

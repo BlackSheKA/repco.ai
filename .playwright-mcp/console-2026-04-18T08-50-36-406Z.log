@@ -1,0 +1,49 @@
+[    1809ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:2298
+[    1897ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:2298
+[    1986ms] [ERROR] Cannot render a sync or defer <script> outside the main document without knowing its order. Try adding async="" or moving it into the root <head> tag. @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:3128
+[    1987ms] [ERROR] In HTML, %s cannot be a child of <%s>.%s
+This will cause a hydration error.%s <script> html  
+
+  ...
+    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <script>
+                      <script>
+                      <script>
+                      <RootLayout>
+>                       <html
+>                         lang="en"
+>                         suppressHydrationWarning={true}
+>                         className="h-full antialiased geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-mo..."
+>                       >
+>                         <script dangerouslySetInnerHTML={{__html:"(function(..."}}>
+                          ...
+                  ...
+ @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:3128
+[    1998ms] [ERROR] Cannot render a sync or defer <script> outside the main document without knowing its order. Try adding async="" or moving it into the root <head> tag. @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:3128
+[    2004ms] [ERROR] Cannot render a sync or defer <script> outside the main document without knowing its order. Try adding async="" or moving it into the root <head> tag. @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:3128
+[    2010ms] [ERROR] Cannot render a sync or defer <script> outside the main document without knowing its order. Try adding async="" or moving it into the root <head> tag. @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:3128
+[    2015ms] [ERROR] Cannot render a sync or defer <script> outside the main document without knowing its order. Try adding async="" or moving it into the root <head> tag. @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:3128
+[    2020ms] [ERROR] Cannot render a sync or defer <script> outside the main document without knowing its order. Try adding async="" or moving it into the root <head> tag. @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:3128
+[    2036ms] [ERROR] Cannot render a sync or defer <script> outside the main document without knowing its order. Try adding async="" or moving it into the root <head> tag. @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:3128
+[    2048ms] [ERROR] Cannot render a sync or defer <script> outside the main document without knowing its order. Try adding async="" or moving it into the root <head> tag. @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:3128
+[    2057ms] [ERROR] Cannot render a sync or defer <script> outside the main document without knowing its order. Try adding async="" or moving it into the root <head> tag. @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:3128
+[    2407ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:2298
+[    2415ms] [LOG] [Fast Refresh] done in 111ms @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:2298
+[  158516ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:2298
+[  158526ms] [LOG] [Fast Refresh] done in 115ms @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:2298
+[  190876ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:2298
+[  190949ms] [LOG] [Fast Refresh] done in 98ms @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:2298
+[  191736ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:2298
+[  191948ms] [LOG] [Fast Refresh] done in 317ms @ http://localhost:3000/_next/static/chunks/76305_next_dist_8e39db7d._.js:2298

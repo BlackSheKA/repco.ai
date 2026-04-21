@@ -1,0 +1,105 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e5]:
+      - img "repco" [ref=e7]
+      - list [ref=e11]:
+        - listitem [ref=e12]:
+          - link "Dashboard" [ref=e13] [cursor=pointer]:
+            - /url: /
+            - img [ref=e15]
+            - generic [ref=e20]: Dashboard
+        - listitem [ref=e21]:
+          - link "Signals" [ref=e22] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e24]
+            - generic [ref=e30]: Signals
+        - listitem [ref=e31]:
+          - link "Approvals" [ref=e32] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e34]
+            - generic [ref=e37]: Approvals
+        - listitem [ref=e38]:
+          - link "Prospects" [ref=e39] [cursor=pointer]:
+            - /url: /prospects
+            - img [ref=e41]
+            - generic [ref=e46]: Prospects
+        - listitem [ref=e47]:
+          - link "Accounts" [ref=e48] [cursor=pointer]:
+            - /url: /accounts
+            - img [ref=e50]
+            - generic [ref=e52]: Accounts
+        - listitem [ref=e53]:
+          - link "Billing" [ref=e54] [cursor=pointer]:
+            - /url: /billing
+            - img [ref=e56]
+            - generic [ref=e58]: Billing
+        - listitem [ref=e59]:
+          - link "Settings" [ref=e60] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e62]
+            - generic [ref=e65]: Settings
+      - generic [ref=e67]:
+        - 'link "Credits: 500, burning 72 per day" [ref=e68] [cursor=pointer]':
+          - /url: /billing
+          - text: 500 credits ·
+          - generic [ref=e69]: "-72"
+          - text: /day
+        - paragraph [ref=e70]: kamil.wandtke@outsi.com
+        - button "Sign out" [ref=e71]
+    - main [ref=e72]:
+      - generic [ref=e73]:
+        - button "Toggle Sidebar" [ref=e74]:
+          - img
+          - generic [ref=e75]: Toggle Sidebar
+        - generic [ref=e76]:
+          - button "Toggle color theme" [ref=e77]:
+            - img
+          - generic [ref=e79]: K
+      - log "Agent activity log" [ref=e80]
+      - main [ref=e82]:
+        - generic [ref=e83]:
+          - generic [ref=e84]:
+            - generic [ref=e85]:
+              - heading "Billing" [level=1] [ref=e86]
+              - paragraph [ref=e87]: Manage your subscription, credits, and invoices.
+            - generic [ref=e89]:
+              - paragraph [ref=e90]: Credit balance
+              - paragraph [ref=e91]: "500"
+          - generic [ref=e93]:
+            - tablist [ref=e94]:
+              - tab "Plans" [selected] [ref=e95]
+              - tab "Credit Packs" [ref=e96]
+              - tab "History" [ref=e97]
+            - tabpanel "Plans" [ref=e98]:
+              - generic [ref=e99]:
+                - generic [ref=e100]:
+                  - button "monthly" [ref=e101]
+                  - button "quarterly" [ref=e102]
+                  - button "annual" [ref=e103]
+                - generic [ref=e104]:
+                  - generic [ref=e105]:
+                    - generic [ref=e106]:
+                      - generic [ref=e108]: Monthly
+                      - paragraph [ref=e109]: $49/mo
+                      - paragraph [ref=e110]: $49 billed monthly
+                    - button "Subscribe" [ref=e112]
+                  - generic [ref=e113]:
+                    - generic [ref=e114]:
+                      - generic [ref=e115]:
+                        - generic [ref=e116]: Quarterly
+                        - generic [ref=e117]: Save 29%
+                      - paragraph [ref=e118]: $35/mo, billed quarterly
+                      - paragraph [ref=e119]: $105 billed quarterly
+                    - button "Subscribe" [ref=e121]
+                  - generic [ref=e122]:
+                    - generic [ref=e123]:
+                      - generic [ref=e124]:
+                        - generic [ref=e125]: Annual
+                        - generic [ref=e126]: Save 49%
+                      - paragraph [ref=e127]: $25/mo, billed annually
+                      - paragraph [ref=e128]: $300 billed annual
+                    - button "Subscribe" [ref=e130]
+                - paragraph [ref=e131]: "Selected period: annual"
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e137] [cursor=pointer]:
+    - img [ref=e138]

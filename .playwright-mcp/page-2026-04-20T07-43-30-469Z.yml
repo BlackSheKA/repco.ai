@@ -1,0 +1,99 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e5]:
+      - img "repco" [ref=e7]
+      - list [ref=e11]:
+        - listitem [ref=e12]:
+          - link "Dashboard" [ref=e13] [cursor=pointer]:
+            - /url: /
+            - img [ref=e14]
+            - generic [ref=e19]: Dashboard
+        - listitem [ref=e20]:
+          - link "Signals" [ref=e21] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e22]
+            - generic [ref=e28]: Signals
+        - listitem [ref=e29]:
+          - link "Approvals" [ref=e30] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e31]
+            - generic [ref=e34]: Approvals
+        - listitem [ref=e35]:
+          - link "Prospects" [ref=e36] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e37]
+            - generic [ref=e42]: Prospects
+        - listitem [ref=e43]:
+          - link "Accounts" [ref=e44] [cursor=pointer]:
+            - /url: /accounts
+            - img [ref=e45]
+            - generic [ref=e47]: Accounts
+        - listitem [ref=e48]:
+          - link "Settings" [ref=e49] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e50]
+            - generic [ref=e53]: Settings
+      - generic [ref=e55]:
+        - paragraph [ref=e56]: kamil.wandtke@outsi.com
+        - button "Sign out" [ref=e57]
+    - main [ref=e58]:
+      - generic [ref=e59]:
+        - button "Toggle Sidebar" [ref=e60]:
+          - img
+          - generic [ref=e61]: Toggle Sidebar
+        - generic [ref=e62]:
+          - button "Toggle color theme" [ref=e63]:
+            - img
+          - generic [ref=e65]: K
+      - log "Agent activity log" [ref=e66]
+      - main [ref=e68]:
+        - generic [ref=e69]:
+          - status [ref=e70]:
+            - generic [ref=e71]:
+              - generic [ref=e72]:
+                - generic [ref=e74]: r
+                - generic [ref=e75]:
+                  - generic [ref=e76]: repco
+                  - generic [ref=e77]: Quiet
+                  - generic [ref=e78]: Quiet day. Keeping an eye out.
+              - generic [ref=e79]:
+                - generic [ref=e80]:
+                  - generic [ref=e81]: "0"
+                  - generic [ref=e82]: Signals found
+                - generic [ref=e83]:
+                  - generic [ref=e84]: "0"
+                  - generic [ref=e85]: Actions pending
+          - generic [ref=e86]:
+            - generic [ref=e87]:
+              - combobox "Filter by platform" [ref=e88]:
+                - img
+              - combobox [ref=e89]
+              - combobox "Filter by minimum intent strength" [ref=e90]:
+                - img
+              - combobox [ref=e91]
+              - generic [ref=e92]:
+                - switch "Show dismissed signals" [ref=e93]
+                - checkbox
+                - generic [ref=e94]: Show dismissed
+            - generic [ref=e96]:
+              - heading "No signals yet" [level=2] [ref=e97]
+              - paragraph [ref=e98]: repco is scanning Reddit for intent signals. Add keywords and subreddits in Settings to get started.
+              - link "Go to Settings" [ref=e99] [cursor=pointer]:
+                - /url: /settings
+          - region "Replies" [ref=e101]:
+            - generic [ref=e102]:
+              - heading "Replies" [level=2] [ref=e103]
+              - generic [ref=e104]: "0"
+            - generic [ref=e105]:
+              - heading "No replies yet" [level=3] [ref=e106]
+              - paragraph [ref=e107]: When a prospect replies to your DM, it will appear here. repco checks inboxes every 2 hours.
+          - region "Approval queue" [ref=e109]:
+            - generic [ref=e110]:
+              - heading "Approval Queue" [level=2] [ref=e111]
+              - generic [ref=e112]: "0"
+            - generic [ref=e113]:
+              - heading "No messages pending" [level=3] [ref=e114]
+              - paragraph [ref=e115]: When you click Contact on a signal, repco will draft a DM for your review.
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e121] [cursor=pointer]:
+    - img [ref=e122]

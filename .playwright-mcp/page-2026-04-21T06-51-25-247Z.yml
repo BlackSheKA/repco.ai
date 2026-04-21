@@ -1,0 +1,140 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - link "repco" [ref=e4] [cursor=pointer]:
+        - /url: /live
+        - img "repco" [ref=e5]
+      - link "Sign up free" [ref=e6] [cursor=pointer]:
+        - /url: /login
+    - main [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - heading "repco is watching" [level=1] [ref=e10]
+          - paragraph [ref=e11]: Real-time intent signals from across the internet
+        - generic [ref=e12]:
+          - list "Live stats" [ref=e13]:
+            - listitem [ref=e14]:
+              - generic [ref=e15]: "0"
+              - generic [ref=e16]: Last hour
+            - listitem [ref=e17]:
+              - generic [ref=e18]: "0"
+              - generic [ref=e19]: Last 24h
+            - listitem [ref=e20]:
+              - generic [ref=e21]: "0"
+              - generic [ref=e22]: Active users
+            - listitem [ref=e23]:
+              - generic [ref=e24]: "0"
+              - generic [ref=e25]: DMs sent
+            - listitem [ref=e26]:
+              - generic [ref=e27]: "0"
+              - generic [ref=e28]: Replies
+            - listitem [ref=e29]:
+              - generic [ref=e30]: 0.0%
+              - generic [ref=e31]: Conversion rate
+          - generic [ref=e53]: No signals yet. Fresh ones appear here in real time.
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - heading "See who is looking for your product" [level=2] [ref=e41]
+            - paragraph [ref=e42]: Enter your product description. Real results in under 5 seconds.
+          - generic [ref=e44]:
+            - generic [ref=e45]:
+              - generic [ref=e46]:
+                - generic [ref=e47]: What does your product do?
+                - textbox "What does your product do?" [ref=e48]:
+                  - /placeholder: e.g., AI-powered CRM for freelancers
+                  - text: AI-powered sales tool that monitors Reddit for product intent signals
+              - generic [ref=e49]:
+                - generic [ref=e50]: Competitor (optional)
+                - textbox "Competitor (optional)" [ref=e51]:
+                  - /placeholder: e.g., HubSpot
+                  - text: HubSpot
+              - button "Scan now" [ref=e52]
+            - generic [ref=e64]:
+              - heading "Found 10 people looking for something like yours" [level=3] [ref=e65]
+              - generic [ref=e66]:
+                - generic [ref=e67]:
+                  - generic [ref=e68]:
+                    - generic [ref=e69]:
+                      - generic [ref=e70]: Reddit
+                      - generic [ref=e71]: r/u_TheLotStore
+                    - generic [ref=e72]: 7/10
+                  - paragraph [ref=e73]: "Locating the Ideal Location: Land Sales Near Me"
+                  - paragraph [ref=e74]: "Discovering the Perfect Spot: Land Transactions Nearby\\ \\ Are you searching for acreage to construct your dream residence or initiate a fresh enterprise? The pursuit for the perfect spot can be an exhilarating yet challenging endeavor. W..."
+                - generic [ref=e75]:
+                  - generic [ref=e76]:
+                    - generic [ref=e77]:
+                      - generic [ref=e78]: Reddit
+                      - generic [ref=e79]: r/u_NoPossession6313
+                    - generic [ref=e80]: 5/10
+                  - paragraph [ref=e81]: How Corporate Wellness Programs Reduce Burnout in Bangalore Workplaces
+                  - paragraph [ref=e82]: Burnout is no longer just a buzzword in Bangalore’s corporate world—it has become a real and growing concern affecting employees across industries. From IT professionals and startup teams to sales and corporate executives, many employees...
+                - generic [ref=e83]:
+                  - generic [ref=e84]:
+                    - generic [ref=e85]:
+                      - generic [ref=e86]: Reddit
+                      - generic [ref=e87]: r/DigitalMarketingHack
+                    - generic [ref=e88]: 5/10
+                  - paragraph [ref=e89]: "How Google Ads Works in 2026: The Ultimate Guide for Beginners and Experts"
+                  - paragraph [ref=e90]: "# Introduction to How Google Ads Works in 2026 **How Google Ads works in 2026** is a crucial topic for businesses aiming to grow online through paid advertising. With advanced AI, automation, and smarter targeting, Google Ads has evolve..."
+                - generic [ref=e91]:
+                  - generic [ref=e92]:
+                    - generic [ref=e93]:
+                      - generic [ref=e94]: Reddit
+                      - generic [ref=e95]: r/AISEOInsider
+                    - generic [ref=e96]: 5/10
+                  - paragraph [ref=e97]: Claude Code Design Tool Makes Building Pages And Prototypes Easier
+                  - paragraph [ref=e98]: Claude Code Design tool is one of the fastest ways to turn a rough idea into something visual that you can actually use. Most people do not need more inspiration anymore because they need a faster path from thinking to shipping. If you...
+                - generic [ref=e99]:
+                  - generic [ref=e100]:
+                    - generic [ref=e101]:
+                      - generic [ref=e102]: Reddit
+                      - generic [ref=e103]: r/laundry
+                    - generic [ref=e104]: 5/10
+                  - paragraph [ref=e105]: Speed queen laundry machine distributors
+                  - paragraph [ref=e106]: In the fast-growing commercial laundry industry, choosing the right equipment is not just a matter of convenience—it directly impacts efficiency, profitability, and customer satisfaction. Among the many brands available today, Speed Quee...
+                - generic [ref=e107]:
+                  - generic [ref=e108]:
+                    - generic [ref=e109]:
+                      - generic [ref=e110]: Reddit
+                      - generic [ref=e111]: r/Topagencies
+                    - generic [ref=e112]: 5/10
+                  - paragraph [ref=e113]: Top PPC Services Agencies in Munich - Package, Pricing &amp; Cost Guide
+                  - paragraph [ref=e114]: Munich is Germany's most economically powerful city — home to BMW, Siemens, MAN, Allianz, and one of Europe's densest concentrations of premium automotive, financial, healthcare, real estate, and technology businesses. Its digital advert...
+                - generic [ref=e115]:
+                  - generic [ref=e116]:
+                    - generic [ref=e117]:
+                      - generic [ref=e118]: Reddit
+                      - generic [ref=e119]: r/BadmintonIndia
+                    - generic [ref=e120]: 5/10
+                  - paragraph [ref=e121]: "FS: Jnice Black Panther 4U -10 anniversary LTD ( IYKUK ) racket"
+                  - paragraph [ref=e122]: "FS JNICE Black Panther 10th Anniversary (4U) IYKYK!! JNICE Black Panther 10th Anniversary (4U) – For Sale Super super clean zero marks scuffs scratches! •IMO highlights: • Lightweight feel with a fast, smooth swing • Medium-stiff..."
+                - generic [ref=e123]:
+                  - generic [ref=e124]:
+                    - generic [ref=e125]:
+                      - generic [ref=e126]: Reddit
+                      - generic [ref=e127]: r/copytradingforum
+                    - generic [ref=e128]: 5/10
+                  - paragraph [ref=e129]: Trade Ideas Spring Sale 2026 | 30% off
+                  - paragraph [ref=e130]: "[Trade Ideas](https://tradingplatforms.ai/trade-ideas-spring-sale) is offering **30% off Premium Annual** subscriptions and **25% off Premium Monthly subscriptions** from April 20 to April 27, 2026, in a limited seven-day sale available ..."
+                - generic [ref=e131]:
+                  - generic [ref=e132]:
+                    - generic [ref=e133]:
+                      - generic [ref=e134]: Reddit
+                      - generic [ref=e135]: r/u_Both-Ear-1593
+                    - generic [ref=e136]: 5/10
+                  - paragraph [ref=e137]: "WooCommerce vs Shopify: Which Platform Truly Supports Long-Term Growth for Modern Brands?"
+                  - paragraph [ref=e138]: https://preview.redd.it/ztb29xugghwg1.jpg?width=1536&amp;format=pjpg&amp;auto=webp&amp;s=62ff51809134cfe481362390d43560e68058866c In the competitive world of digital commerce, selecting the right eCommerce platform is no longer a techni...
+                - generic [ref=e139]:
+                  - generic [ref=e140]:
+                    - generic [ref=e141]:
+                      - generic [ref=e142]: Reddit
+                      - generic [ref=e143]: r/TrendNowOrg
+                    - generic [ref=e144]: 5/10
+                  - paragraph [ref=e145]: "What the Mainstream AI Stack Doesn't Cover: Specialized Productivity Tools in 2026"
+                  - paragraph [ref=e146]: "# Introduction As Microsoft 365 Copilot, ChatGPT, and Slack AI become standard organizational infrastructure, a second layer of change is taking shape. In specific workflows that general-purpose tools reach poorly — systematic literatur..."
+              - link "Sign up to contact them" [ref=e147] [cursor=pointer]:
+                - /url: /login
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e59] [cursor=pointer]:
+    - img [ref=e60]
+  - alert [ref=e63]

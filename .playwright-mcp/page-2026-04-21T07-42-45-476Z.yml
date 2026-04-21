@@ -1,0 +1,78 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e188]:
+      - img "repco" [ref=e190]
+      - list [ref=e194]:
+        - listitem [ref=e195]:
+          - link "Dashboard" [ref=e196] [cursor=pointer]:
+            - /url: /
+            - img [ref=e198]
+            - generic [ref=e203]: Dashboard
+        - listitem [ref=e204]:
+          - link "Signals" [ref=e205] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e207]
+            - generic [ref=e213]: Signals
+        - listitem [ref=e214]:
+          - link "Approvals" [ref=e215] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e217]
+            - generic [ref=e220]: Approvals
+        - listitem [ref=e221]:
+          - link "Prospects" [ref=e222] [cursor=pointer]:
+            - /url: /prospects
+            - img [ref=e224]
+            - generic [ref=e229]: Prospects
+        - listitem [ref=e230]:
+          - link "Accounts" [ref=e231] [cursor=pointer]:
+            - /url: /accounts
+            - img [ref=e233]
+            - generic [ref=e235]: Accounts
+        - listitem [ref=e236]:
+          - link "Billing" [ref=e237] [cursor=pointer]:
+            - /url: /billing
+            - img [ref=e239]
+            - generic [ref=e241]: Billing
+        - listitem [ref=e242]:
+          - link "Settings" [ref=e243] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e245]
+            - generic [ref=e248]: Settings
+      - generic [ref=e250]:
+        - 'link "Credits: 500, burning 72 per day" [ref=e251] [cursor=pointer]':
+          - /url: /billing
+          - text: 500 credits ·
+          - generic [ref=e252]: "-72"
+          - text: /day
+        - paragraph [ref=e253]: kamil.wandtke@outsi.com
+        - button "Sign out" [ref=e254]
+    - main [ref=e72]:
+      - generic [ref=e73]:
+        - button "Toggle Sidebar" [ref=e74]:
+          - img
+          - generic [ref=e75]: Toggle Sidebar
+        - generic [ref=e76]:
+          - button "Toggle color theme" [ref=e77]:
+            - img
+          - generic [ref=e79]: K
+      - log "Agent activity log" [ref=e80]
+      - main [ref=e82]:
+        - generic [ref=e83]:
+          - generic [ref=e84]:
+            - generic [ref=e85]:
+              - heading "Billing" [level=1] [ref=e86]
+              - paragraph [ref=e87]: Manage your subscription, credits, and invoices.
+            - generic [ref=e89]:
+              - paragraph [ref=e90]: Credit balance
+              - paragraph [ref=e91]: "500"
+          - generic [ref=e93]:
+            - tablist [ref=e94]:
+              - tab "Plans" [ref=e95]
+              - tab "Credit Packs" [ref=e96]
+              - tab "History" [active] [selected] [ref=e97]
+            - tabpanel "History" [ref=e255]:
+              - generic [ref=e256]: No billing history yet
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e137] [cursor=pointer]:
+    - img [ref=e138]
+  - alert [ref=e141]

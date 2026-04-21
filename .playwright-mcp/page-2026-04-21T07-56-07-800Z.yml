@@ -1,0 +1,96 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e189]:
+      - img "repco" [ref=e191]
+      - list [ref=e195]:
+        - listitem [ref=e196]:
+          - link "Dashboard" [ref=e197] [cursor=pointer]:
+            - /url: /
+            - img [ref=e199]
+            - generic [ref=e204]: Dashboard
+        - listitem [ref=e205]:
+          - link "Signals" [ref=e206] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e208]
+            - generic [ref=e214]: Signals
+        - listitem [ref=e215]:
+          - link "Approvals" [ref=e216] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e218]
+            - generic [ref=e221]: Approvals
+        - listitem [ref=e222]:
+          - link "Prospects" [ref=e223] [cursor=pointer]:
+            - /url: /prospects
+            - img [ref=e225]
+            - generic [ref=e230]: Prospects
+        - listitem [ref=e231]:
+          - link "Accounts" [ref=e232] [cursor=pointer]:
+            - /url: /accounts
+            - img [ref=e234]
+            - generic [ref=e236]: Accounts
+        - listitem [ref=e237]:
+          - link "Billing" [ref=e238] [cursor=pointer]:
+            - /url: /billing
+            - img [ref=e240]
+            - generic [ref=e242]: Billing
+        - listitem [ref=e243]:
+          - link "Settings" [ref=e244] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e246]
+            - generic [ref=e249]: Settings
+      - generic [ref=e251]:
+        - 'link "Credits: 500, burning 72 per day" [ref=e252] [cursor=pointer]':
+          - /url: /billing
+          - text: 500 credits ·
+          - generic [ref=e253]: "-72"
+          - text: /day
+        - paragraph [ref=e254]: kamil.wandtke@outsi.com
+        - button "Sign out" [ref=e255]
+    - main [ref=e72]:
+      - generic [ref=e73]:
+        - button "Toggle Sidebar" [ref=e74]:
+          - img
+          - generic [ref=e75]: Toggle Sidebar
+        - generic [ref=e76]:
+          - button "Toggle color theme" [ref=e77]:
+            - img
+          - generic [ref=e79]: K
+      - log "Agent activity log" [ref=e80]
+      - main [ref=e82]:
+        - generic [ref=e300]:
+          - link "Back to prospects" [ref=e301] [cursor=pointer]:
+            - /url: /prospects
+            - img [ref=e302]
+            - text: Back to prospects
+          - generic [ref=e304]:
+            - generic [ref=e305]:
+              - heading "Conversation history" [level=2] [ref=e306]
+              - paragraph [ref=e307]: No messages yet.
+            - generic [ref=e308]:
+              - generic [ref=e309]:
+                - generic [ref=e310]:
+                  - generic [ref=e311]: reddit
+                  - generic [ref=e312]: test_saas_founder
+                - paragraph [ref=e313]: Looking for HubSpot alternatives
+              - generic [ref=e314]:
+                - heading "Pipeline status" [level=3] [ref=e315]
+                - generic [ref=e316]:
+                  - generic [ref=e317]: Engaged
+                  - combobox [ref=e318]:
+                    - generic: Move to...
+                    - img
+              - generic [ref=e319]:
+                - heading "Notes" [level=3] [ref=e320]
+                - textbox "Add notes about this prospect..." [ref=e321]
+                - paragraph [ref=e322]: Auto-saves on blur
+              - generic [ref=e323]:
+                - heading "Tags" [level=3] [ref=e324]
+                - textbox "comma, separated, tags" [ref=e325]: hot-lead, saas
+                - generic [ref=e326]:
+                  - generic [ref=e327]: hot-lead
+                  - generic [ref=e328]: saas
+                - button "Save tags" [ref=e329]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e183] [cursor=pointer]:
+    - img [ref=e184]
+  - alert [ref=e256]: repco

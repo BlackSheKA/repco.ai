@@ -1,0 +1,42 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - progressbar [ref=e6]
+      - main [ref=e14]:
+        - generic [ref=e15]:
+          - generic [ref=e18]:
+            - img [ref=e20]
+            - generic [ref=e25]: Zaloguj się przez Google
+          - generic [ref=e26]:
+            - heading "Zaloguj się" [level=1] [ref=e27]
+            - generic [ref=e29]:
+              - text: Przejdź do aplikacji
+              - button "cmkifdwjunojgigrqwnr.supabase.co" [ref=e30] [cursor=pointer]
+        - generic [ref=e38]:
+          - generic [ref=e43]:
+            - textbox "Adres e-mail lub telefon" [active] [ref=e44]
+            - generic: Adres e-mail lub telefon
+          - button "Nie pamiętasz adresu?" [ref=e48] [cursor=pointer]
+        - generic [ref=e50]:
+          - button "Dalej" [ref=e54]:
+            - generic [ref=e57]: Dalej
+          - button "Utwórz konto" [ref=e62]:
+            - generic [ref=e65]: Utwórz konto
+    - contentinfo [ref=e69]:
+      - combobox "Zmień język polski" [ref=e73] [cursor=pointer]:
+        - generic:
+          - generic: polski
+        - generic:
+          - img
+      - list [ref=e75]:
+        - listitem [ref=e76]:
+          - link "Pomoc" [ref=e77] [cursor=pointer]:
+            - /url: https://support.google.com/accounts?hl=pl&p=account_iph
+        - listitem [ref=e78]:
+          - link "Prywatność" [ref=e79] [cursor=pointer]:
+            - /url: https://accounts.google.com/TOS?loc=PL&hl=pl&privacy=true
+        - listitem [ref=e80]:
+          - link "Warunki" [ref=e81] [cursor=pointer]:
+            - /url: https://accounts.google.com/TOS?loc=PL&hl=pl
+  - iframe [ref=e82]:
+    

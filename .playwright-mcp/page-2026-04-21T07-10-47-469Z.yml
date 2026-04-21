@@ -1,0 +1,264 @@
+- generic:
+  - generic:
+    - navigation:
+      - complementary:
+        - generic:
+          - button:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+                    - text: o
+                - generic:
+                  - generic: outsi
+                  - generic: Pro
+            - generic:
+              - img
+        - navigation:
+          - list:
+            - listitem:
+              - link:
+                - /url: /emails
+                - generic:
+                  - img
+                - text: Emails
+            - listitem:
+              - link:
+                - /url: /broadcasts
+                - generic:
+                  - img
+                - text: Broadcasts
+            - listitem:
+              - link:
+                - /url: /automations
+                - generic:
+                  - img
+                - text: Automations
+            - listitem:
+              - link:
+                - /url: /templates
+                - generic:
+                  - img
+                - text: Templates
+            - listitem:
+              - link:
+                - /url: /audience
+                - generic:
+                  - img
+                - text: Audience
+            - listitem:
+              - link:
+                - /url: /metrics
+                - generic:
+                  - img
+                - text: Metrics
+            - listitem:
+              - link:
+                - /url: /domains
+                - generic:
+                  - img
+                - text: Domains
+            - listitem:
+              - link:
+                - /url: /logs
+                - generic:
+                  - img
+                - text: Logs
+            - listitem:
+              - link:
+                - /url: /api-keys
+                - generic:
+                  - img
+                - text: API Keys
+            - listitem:
+              - link:
+                - /url: /webhooks
+                - generic:
+                  - img
+                - text: Webhooks
+            - listitem:
+              - link:
+                - /url: /settings
+                - generic:
+                  - img
+                - text: Settings
+        - button:
+          - generic:
+            - generic:
+              - generic:
+                - generic: k
+              - generic: kamil.wandtke@outsi.com
+          - generic:
+            - img
+    - generic:
+      - generic:
+        - generic:
+          - button:
+            - generic: Feedback
+            - generic:
+              - generic: F
+          - link:
+            - /url: /help
+            - text: Help
+          - link:
+            - /url: https://resend.com/docs/dashboard/api-keys/introduction
+            - text: Docs
+      - generic:
+        - generic:
+          - heading [level=1]: API Keys
+          - generic:
+            - button [expanded]:
+              - generic:
+                - img
+              - generic: Create API Key
+            - button:
+              - generic:
+                - img
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - img
+                - textbox:
+                  - /placeholder: Search...
+              - combobox:
+                - generic: All Permissions
+                - img
+            - button:
+              - generic:
+                - generic:
+                  - img
+          - generic:
+            - generic:
+              - generic:
+                - table:
+                  - rowgroup:
+                    - row:
+                      - columnheader:
+                        - generic:
+                          - generic:
+                            - checkbox
+                          - text: Name
+                      - columnheader: Token
+                      - columnheader: Permission
+                      - columnheader: Last Used
+                      - columnheader: Created
+                      - columnheader
+                  - rowgroup:
+                    - row:
+                      - cell:
+                        - generic:
+                          - generic:
+                            - checkbox
+                          - link:
+                            - /url: /api-keys/7ac8c135-bbbf-4a3c-9add-43ca5a391d10
+                            - generic:
+                              - img
+                              - img
+                          - link:
+                            - /url: /api-keys/7ac8c135-bbbf-4a3c-9add-43ca5a391d10
+                            - text: ChatThis.ai (Prod)
+                      - cell:
+                        - button:
+                          - generic: re_gCYocvDx...
+                      - cell: Full access
+                      - cell:
+                        - button:
+                          - link:
+                            - /url: /logs/3b983404-dde4-4b96-ba82-c6f1b073457d
+                            - generic:
+                              - time: about 1 month ago
+                          - img
+                      - cell:
+                        - time: about 1 month ago
+                      - cell:
+                        - button:
+                          - img
+                    - row:
+                      - cell:
+                        - generic:
+                          - generic:
+                            - checkbox
+                          - link:
+                            - /url: /api-keys/42d79569-ecda-4d8a-9dd9-d79991e67cde
+                            - generic:
+                              - img
+                              - img
+                          - link:
+                            - /url: /api-keys/42d79569-ecda-4d8a-9dd9-d79991e67cde
+                            - text: PostedFor prod
+                      - cell:
+                        - button:
+                          - generic: re_RR2K1hb5...
+                      - cell: Full access
+                      - cell:
+                        - button:
+                          - link:
+                            - /url: /logs/4b464067-1497-402b-83aa-eb4b8629231e
+                            - generic:
+                              - time: about 1 month ago
+                          - img
+                      - cell:
+                        - time: about 2 months ago
+                      - cell:
+                        - button:
+                          - img
+                    - row:
+                      - cell:
+                        - generic:
+                          - generic:
+                            - checkbox
+                          - link:
+                            - /url: /api-keys/ae93a7dc-ba3b-412a-9204-da5d45fcd191
+                            - generic:
+                              - img
+                              - img
+                          - link:
+                            - /url: /api-keys/ae93a7dc-ba3b-412a-9204-da5d45fcd191
+                            - text: PostedFor dev
+                      - cell:
+                        - button:
+                          - generic: re_9ux4rYGg...
+                      - cell: Full access
+                      - cell:
+                        - button:
+                          - link:
+                            - /url: /logs/6d6119ac-3dd2-4e35-8afe-2c4f3e650375
+                            - generic:
+                              - time: about 2 months ago
+                          - img
+                      - cell:
+                        - time: about 2 months ago
+                      - cell:
+                        - button:
+                          - img
+            - generic:
+              - generic:
+                - text: Page 1 – 1 of 3 keys –
+                - generic:
+                  - combobox
+                  - img
+  - region "Notifications alt+T"
+  - alert
+  - dialog "View API Key" [active] [ref=e596]:
+    - heading "View API Key" [level=2] [ref=e597]
+    - alert [ref=e598]:
+      - img [ref=e600]
+      - generic [ref=e603]: You can only see this key once. Store it safely.
+    - generic [ref=e604]:
+      - generic [ref=e605]: API Key
+      - generic [ref=e606]:
+        - textbox "API Key" [ref=e607]: re_NSMDVQAv_FndesUJWj7a9R4g5PDTes3Qs
+        - generic [ref=e608]:
+          - button "Show value" [ref=e609] [cursor=pointer]:
+            - img [ref=e610]
+          - button "Copy to clipboard" [ref=e613] [cursor=pointer]:
+            - img [ref=e615]
+    - button "Done" [ref=e618] [cursor=pointer]:
+      - generic [ref=e619]: Done
+    - button "Close dialog" [ref=e592] [cursor=pointer]:
+      - img [ref=e593]

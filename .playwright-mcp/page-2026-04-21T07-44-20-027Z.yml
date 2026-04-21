@@ -1,0 +1,192 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e5]:
+      - img "repco" [ref=e7]
+      - list [ref=e11]:
+        - listitem [ref=e12]:
+          - link "Dashboard" [ref=e13] [cursor=pointer]:
+            - /url: /
+            - img [ref=e15]
+            - generic [ref=e20]: Dashboard
+        - listitem [ref=e21]:
+          - link "Signals" [ref=e22] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e24]
+            - generic [ref=e30]: Signals
+        - listitem [ref=e31]:
+          - link "Approvals" [ref=e32] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e34]
+            - generic [ref=e37]: Approvals
+        - listitem [ref=e38]:
+          - link "Prospects" [ref=e39] [cursor=pointer]:
+            - /url: /prospects
+            - img [ref=e41]
+            - generic [ref=e46]: Prospects
+        - listitem [ref=e47]:
+          - link "Accounts" [ref=e48] [cursor=pointer]:
+            - /url: /accounts
+            - img [ref=e50]
+            - generic [ref=e52]: Accounts
+        - listitem [ref=e53]:
+          - link "Billing" [ref=e54] [cursor=pointer]:
+            - /url: /billing
+            - img [ref=e56]
+            - generic [ref=e58]: Billing
+        - listitem [ref=e59]:
+          - link "Settings" [ref=e60] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e62]
+            - generic [ref=e65]: Settings
+      - generic [ref=e67]:
+        - 'link "Credits: 500, burning 72 per day" [ref=e68] [cursor=pointer]':
+          - /url: /billing
+          - text: 500 credits ·
+          - generic [ref=e69]: "-72"
+          - text: /day
+        - paragraph [ref=e70]: kamil.wandtke@outsi.com
+        - button "Sign out" [ref=e71]
+    - main [ref=e72]:
+      - generic [ref=e73]:
+        - button "Toggle Sidebar" [ref=e74]:
+          - img
+          - generic [ref=e75]: Toggle Sidebar
+        - generic [ref=e76]:
+          - button "Toggle color theme" [ref=e77]:
+            - img
+          - generic [ref=e79]: K
+      - log "Agent activity log" [ref=e80]
+      - main [ref=e82]:
+        - generic [ref=e83]:
+          - heading "Settings" [level=1] [ref=e84]
+          - generic [ref=e86]:
+            - generic [ref=e87]:
+              - heading "Keywords" [level=2] [ref=e88]
+              - paragraph [ref=e89]: Posts containing these words will be detected as signals.
+              - generic [ref=e90]:
+                - textbox "Add a keyword..." [ref=e91]
+                - button "Add Keyword" [disabled]
+              - generic [ref=e92]:
+                - generic [ref=e93]:
+                  - text: automate outreach
+                  - button "Remove keyword automate outreach" [ref=e94]:
+                    - img [ref=e95]
+                - generic [ref=e98]:
+                  - text: find leads on reddit
+                  - button "Remove keyword find leads on reddit" [ref=e99]:
+                    - img [ref=e100]
+                - generic [ref=e103]:
+                  - text: tired of cold outreach
+                  - button "Remove keyword tired of cold outreach" [ref=e104]:
+                    - img [ref=e105]
+                - generic [ref=e108]:
+                  - text: how to get first customers
+                  - button "Remove keyword how to get first customers" [ref=e109]:
+                    - img [ref=e110]
+                - generic [ref=e113]:
+                  - text: sales without sdr
+                  - button "Remove keyword sales without sdr" [ref=e114]:
+                    - img [ref=e115]
+                - generic [ref=e118]:
+                  - text: automate prospecting
+                  - button "Remove keyword automate prospecting" [ref=e119]:
+                    - img [ref=e120]
+                - generic [ref=e123]:
+                  - text: reddit lead generation
+                  - button "Remove keyword reddit lead generation" [ref=e124]:
+                    - img [ref=e125]
+                - generic [ref=e128]:
+                  - text: inbound leads not enough
+                  - button "Remove keyword inbound leads not enough" [ref=e129]:
+                    - img [ref=e130]
+                - generic [ref=e133]:
+                  - text: how to find saas customers
+                  - button "Remove keyword how to find saas customers" [ref=e134]:
+                    - img [ref=e135]
+                - generic [ref=e138]:
+                  - text: manual outreach not scaling
+                  - button "Remove keyword manual outreach not scaling" [ref=e139]:
+                    - img [ref=e140]
+                - generic [ref=e143]:
+                  - text: hubspot alternative
+                  - button "Remove keyword hubspot alternative" [ref=e144]:
+                    - img [ref=e145]
+                - generic [ref=e148]:
+                  - text: hubspot too expensive
+                  - button "Remove keyword hubspot too expensive" [ref=e149]:
+                    - img [ref=e150]
+                - generic [ref=e153]:
+                  - text: hubspot vs
+                  - button "Remove keyword hubspot vs" [ref=e154]:
+                    - img [ref=e155]
+                - generic [ref=e158]:
+                  - text: apollo.io alternative
+                  - button "Remove keyword apollo.io alternative" [ref=e159]:
+                    - img [ref=e160]
+                - generic [ref=e163]:
+                  - text: apollo.io vs
+                  - button "Remove keyword apollo.io vs" [ref=e164]:
+                    - img [ref=e165]
+                - generic [ref=e168]:
+                  - text: alternative to apollo
+                  - button "Remove keyword alternative to apollo" [ref=e169]:
+                    - img [ref=e170]
+                - generic [ref=e173]:
+                  - text: outreach alternative
+                  - button "Remove keyword outreach alternative" [ref=e174]:
+                    - img [ref=e175]
+                - generic [ref=e178]:
+                  - text: outreach vs
+                  - button "Remove keyword outreach vs" [ref=e179]:
+                    - img [ref=e180]
+                - generic [ref=e183]:
+                  - text: alternative to outreach
+                  - button "Remove keyword alternative to outreach" [ref=e184]:
+                    - img [ref=e185]
+            - generic [ref=e188]:
+              - heading "Subreddits" [level=2] [ref=e189]
+              - paragraph [ref=e190]: Reddit communities to monitor for intent signals.
+              - generic [ref=e191]:
+                - textbox "r/subreddit" [ref=e192]
+                - button "Add Subreddit" [disabled]
+              - generic [ref=e193]:
+                - generic [ref=e194]:
+                  - text: r/saas
+                  - button "Remove subreddit r/saas" [ref=e195]:
+                    - img [ref=e196]
+                - generic [ref=e199]:
+                  - text: r/startups
+                  - button "Remove subreddit r/startups" [ref=e200]:
+                    - img [ref=e201]
+                - generic [ref=e204]:
+                  - text: r/entrepreneur
+                  - button "Remove subreddit r/entrepreneur" [ref=e205]:
+                    - img [ref=e206]
+                - generic [ref=e209]:
+                  - text: r/indiehackers
+                  - button "Remove subreddit r/indiehackers" [ref=e210]:
+                    - img [ref=e211]
+                - generic [ref=e214]:
+                  - text: r/smallbusiness
+                  - button "Remove subreddit r/smallbusiness" [ref=e215]:
+                    - img [ref=e216]
+          - generic [ref=e219]:
+            - heading "Follow-up Sequences" [level=2] [ref=e220]
+            - generic [ref=e222]:
+              - generic [ref=e223]:
+                - text: Auto-send follow-ups
+                - paragraph [ref=e224]: "When enabled, follow-up messages send automatically without your approval. Default cadence: day 3, 7, and 14."
+              - switch "Auto-send follow-ups" [ref=e225]
+              - checkbox
+          - generic [ref=e226]:
+            - heading "Revenue Tracking" [level=2] [ref=e227]
+            - generic [ref=e229]:
+              - generic [ref=e230]:
+                - generic [ref=e231]: Average deal value (USD)
+                - paragraph [ref=e232]: Used to estimate revenue on the dashboard from converted prospects.
+              - generic [ref=e233]:
+                - spinbutton "Average deal value (USD)" [ref=e234]
+                - button "Save" [ref=e235]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e241] [cursor=pointer]:
+    - img [ref=e242]

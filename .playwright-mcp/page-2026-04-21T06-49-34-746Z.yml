@@ -1,0 +1,47 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - link "repco" [ref=e4] [cursor=pointer]:
+        - /url: /live
+        - img "repco" [ref=e5]
+      - link "Sign up free" [ref=e6] [cursor=pointer]:
+        - /url: /login
+    - main [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - heading "repco is watching" [level=1] [ref=e10]
+          - paragraph [ref=e11]: Real-time intent signals from across the internet
+        - list "Live stats" [ref=e13]:
+          - listitem [ref=e14]:
+            - generic [ref=e15]: "0"
+            - generic [ref=e16]: Last hour
+          - listitem [ref=e17]:
+            - generic [ref=e18]: "0"
+            - generic [ref=e19]: Last 24h
+          - listitem [ref=e20]:
+            - generic [ref=e21]: "0"
+            - generic [ref=e22]: Active users
+          - listitem [ref=e23]:
+            - generic [ref=e24]: "0"
+            - generic [ref=e25]: DMs sent
+          - listitem [ref=e26]:
+            - generic [ref=e27]: "0"
+            - generic [ref=e28]: Replies
+          - listitem [ref=e29]:
+            - generic [ref=e30]: 0.0%
+            - generic [ref=e31]: Conversion rate
+        - generic [ref=e39]:
+          - generic [ref=e40]:
+            - heading "See who is looking for your product" [level=2] [ref=e41]
+            - paragraph [ref=e42]: Enter your product description. Real results in under 5 seconds.
+          - generic [ref=e45]:
+            - generic [ref=e46]:
+              - generic [ref=e47]: What does your product do?
+              - textbox "What does your product do?" [ref=e48]:
+                - /placeholder: e.g., AI-powered CRM for freelancers
+            - generic [ref=e49]:
+              - generic [ref=e50]: Competitor (optional)
+              - textbox "Competitor (optional)" [ref=e51]:
+                - /placeholder: e.g., HubSpot
+            - button "Scan now" [ref=e52]
+  - region "Notifications alt+T"

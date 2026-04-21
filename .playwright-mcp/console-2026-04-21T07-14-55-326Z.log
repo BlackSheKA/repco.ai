@@ -1,0 +1,3 @@
+[    1911ms] [LOG] JQMIGRATE: Migrate is installed with logging active, version 1.4.1 @ https://b.stripecdn.com/dashboard-fe-statics-srv/assets/login.m9dn02awx8injwpn.js:190
+[    3038ms] [LOG] recaptchacompat disabled @ https://b.stripecdn.com/dashboard-fe-statics-srv/assets/login.m9dn02awx8injwpn.js:53
+[    7781ms] [WARNING] Scripts may close only the windows that were opened by them. @ https://b.stripecdn.com/dashboard-fe-statics-srv/assets/login.k3bldeja3ukn07rl.js:4410

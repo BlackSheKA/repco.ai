@@ -1,0 +1,101 @@
+- generic:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic: repco
+          - generic:
+            - generic:
+              - generic:
+                - list:
+                  - listitem:
+                    - link:
+                      - /url: /
+                      - img
+                      - generic: Dashboard
+                  - listitem:
+                    - link:
+                      - /url: "#"
+                      - img
+                      - generic: Signals
+                  - listitem:
+                    - link:
+                      - /url: "#"
+                      - img
+                      - generic: Approvals
+                  - listitem:
+                    - link:
+                      - /url: "#"
+                      - img
+                      - generic: Prospects
+                  - listitem:
+                    - link:
+                      - /url: "#"
+                      - img
+                      - generic: Accounts
+                  - listitem:
+                    - link:
+                      - /url: /settings
+                      - img
+                      - generic: Settings
+          - generic:
+            - generic:
+              - paragraph: kamil.wandtke@gmail.com
+              - button: Sign out
+    - main:
+      - generic:
+        - button:
+          - img
+          - generic: Toggle Sidebar
+        - generic:
+          - button:
+            - img
+          - generic:
+            - generic: K
+      - log "Agent activity log"
+      - main:
+        - generic:
+          - status:
+            - generic:
+              - generic:
+                - generic:
+                  - generic: r
+                - generic:
+                  - generic: repco
+                  - generic: Quiet
+                  - generic: Quiet day. Keeping an eye out.
+              - generic:
+                - generic:
+                  - generic: "0"
+                  - generic: Signals found
+                - generic:
+                  - generic: "0"
+                  - generic: Actions pending
+          - generic:
+            - generic:
+              - combobox:
+                - generic: All platforms
+                - img
+              - combobox:
+                - generic: All strengths
+                - img
+              - generic:
+                - switch
+                - generic: Show dismissed
+            - generic:
+              - generic:
+                - heading [level=2]: No signals yet
+                - paragraph: repco is scanning Reddit for intent signals. Add keywords and subreddits in Settings to get started.
+                - link:
+                  - /url: /settings
+                  - text: Go to Settings
+  - region "Notifications alt+T"
+  - alert
+  - alertdialog "Sign out of repco?" [ref=e122]:
+    - generic [ref=e123]:
+      - heading "Sign out of repco?" [level=2] [ref=e124]
+      - paragraph [ref=e125]: You'll need to sign in again to access your workspace.
+    - generic [ref=e126]:
+      - button "Stay signed in" [active] [ref=e127]
+      - button "Sign out" [ref=e128]

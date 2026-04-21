@@ -1,0 +1,172 @@
+- generic:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - img
+          - generic:
+            - generic:
+              - generic:
+                - list:
+                  - listitem:
+                    - link:
+                      - /url: /
+                      - generic:
+                        - img
+                      - generic: Dashboard
+                  - listitem:
+                    - link:
+                      - /url: "#"
+                      - generic:
+                        - img
+                      - generic: Signals
+                  - listitem:
+                    - link:
+                      - /url: "#"
+                      - generic:
+                        - img
+                      - generic: Approvals
+                  - listitem:
+                    - link:
+                      - /url: /prospects
+                      - generic:
+                        - img
+                      - generic: Prospects
+                  - listitem:
+                    - link:
+                      - /url: /accounts
+                      - generic:
+                        - img
+                      - generic: Accounts
+                  - listitem:
+                    - link:
+                      - /url: /billing
+                      - generic:
+                        - img
+                      - generic: Billing
+                  - listitem:
+                    - link:
+                      - /url: /settings
+                      - generic:
+                        - img
+                      - generic: Settings
+          - generic:
+            - generic:
+              - link:
+                - /url: /billing
+                - text: 500 credits ·
+                - generic: "-72"
+                - text: /day
+              - paragraph: kamil.wandtke@outsi.com
+              - button: Sign out
+    - main:
+      - generic:
+        - button:
+          - img
+          - generic: Toggle Sidebar
+        - generic:
+          - button:
+            - img
+          - generic:
+            - generic: K
+      - log "Agent activity log"
+      - main:
+        - generic:
+          - generic:
+            - heading [level=1]: Prospects
+            - button:
+              - img
+              - text: Export CSV
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - heading [level=2]: Detected
+                      - generic: "1"
+                    - generic:
+                      - article:
+                        - generic:
+                          - generic:
+                            - button:
+                              - img
+                            - generic:
+                              - generic:
+                                - generic: test_saas_founder
+                                - generic: reddit
+                        - generic:
+                          - combobox [expanded]:
+                            - generic: Move to...
+                            - img
+                  - generic:
+                    - generic:
+                      - heading [level=2]: Engaged
+                      - generic: "0"
+                    - generic:
+                      - paragraph: No prospects
+                  - generic:
+                    - generic:
+                      - heading [level=2]: Contacted
+                      - generic: "1"
+                    - generic:
+                      - article:
+                        - generic:
+                          - generic:
+                            - button:
+                              - img
+                            - generic:
+                              - generic:
+                                - generic: test_marketer
+                                - generic: reddit
+                        - generic:
+                          - combobox:
+                            - generic: Move to...
+                            - img
+                  - generic:
+                    - generic:
+                      - heading [level=2]: Replied
+                      - generic: "1"
+                    - generic:
+                      - article:
+                        - generic:
+                          - generic:
+                            - button:
+                              - img
+                            - generic:
+                              - generic:
+                                - generic: test_buyer
+                                - generic: reddit
+                        - generic:
+                          - combobox:
+                            - generic: Move to...
+                            - img
+                  - generic:
+                    - generic:
+                      - heading [level=2]: Converted
+                      - generic: "0"
+                    - generic:
+                      - paragraph: No prospects
+                  - generic:
+                    - generic:
+                      - heading [level=2]: Rejected
+                      - generic: "0"
+                    - generic:
+                      - paragraph: No prospects
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e183] [cursor=pointer]:
+    - img [ref=e184]
+  - alert
+  - status
+  - listbox [ref=e258]:
+    - option "Engaged" [active] [ref=e259]:
+      - generic [ref=e260]: Engaged
+    - option "Contacted" [ref=e261]:
+      - generic [ref=e262]: Contacted
+    - option "Replied" [ref=e263]:
+      - generic [ref=e264]: Replied
+    - option "Converted" [ref=e265]:
+      - generic [ref=e266]: Converted
+    - option "Rejected" [ref=e267]:
+      - generic [ref=e268]: Rejected

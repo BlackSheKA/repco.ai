@@ -1,0 +1,72 @@
+- generic [ref=e1]:
+  - generic [ref=e29]:
+    - generic [ref=e32]:
+      - img "repco" [ref=e34]
+      - list [ref=e38]:
+        - listitem [ref=e39]:
+          - link "Dashboard" [ref=e40] [cursor=pointer]:
+            - /url: /
+            - img [ref=e42]
+            - generic [ref=e47]: Dashboard
+        - listitem [ref=e48]:
+          - link "Signals" [ref=e49] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e51]
+            - generic [ref=e57]: Signals
+        - listitem [ref=e58]:
+          - link "Approvals" [ref=e59] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e61]
+            - generic [ref=e64]: Approvals
+        - listitem [ref=e65]:
+          - link "Prospects" [ref=e66] [cursor=pointer]:
+            - /url: /prospects
+            - img [ref=e68]
+            - generic [ref=e73]: Prospects
+        - listitem [ref=e74]:
+          - link "Accounts" [ref=e75] [cursor=pointer]:
+            - /url: /accounts
+            - img [ref=e77]
+            - generic [ref=e79]: Accounts
+        - listitem [ref=e80]:
+          - link "Billing" [ref=e81] [cursor=pointer]:
+            - /url: /billing
+            - img [ref=e83]
+            - generic [ref=e85]: Billing
+        - listitem [ref=e86]:
+          - link "Settings" [ref=e87] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e89]
+            - generic [ref=e92]: Settings
+      - generic [ref=e94]:
+        - 'link "Credits: 500, burning 0 per day" [ref=e95] [cursor=pointer]':
+          - /url: /billing
+          - text: 500 credits ·
+          - generic [ref=e96]: "-0"
+          - text: /day
+        - paragraph [ref=e97]: uat-test-20260421@test.repco.ai
+        - button "Sign out" [ref=e98]
+    - main [ref=e99]:
+      - generic [ref=e100]:
+        - button "Toggle Sidebar" [ref=e101]:
+          - img
+          - generic [ref=e102]: Toggle Sidebar
+        - generic [ref=e103]:
+          - button "Toggle color theme" [ref=e104]:
+            - img
+          - generic [ref=e106]: U
+      - log "Agent activity log" [ref=e107]
+      - main [ref=e109]:
+        - generic [ref=e122]:
+          - generic [ref=e123]:
+            - generic "Step 1 of 3" [ref=e124]
+            - generic "Step 2 of 3" [ref=e125]
+            - generic "Step 3 of 3" [ref=e126]
+          - heading "Who is your ideal customer?" [level=1] [ref=e127]
+          - textbox "e.g., Solo founders looking for their first 100 users" [active] [ref=e128]
+          - generic [ref=e129]:
+            - button "Next" [disabled]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e25] [cursor=pointer]:
+    - img [ref=e26]
+  - alert [ref=e120]: Welcome to repco

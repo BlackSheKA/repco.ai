@@ -1,0 +1,174 @@
+- generic:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic: repco
+          - generic:
+            - generic:
+              - generic:
+                - list:
+                  - listitem:
+                    - link:
+                      - /url: /
+                      - img
+                      - generic: Dashboard
+                  - listitem:
+                    - link:
+                      - /url: "#"
+                      - img
+                      - generic: Signals
+                  - listitem:
+                    - link:
+                      - /url: "#"
+                      - img
+                      - generic: Approvals
+                  - listitem:
+                    - link:
+                      - /url: "#"
+                      - img
+                      - generic: Prospects
+                  - listitem:
+                    - link:
+                      - /url: "#"
+                      - img
+                      - generic: Accounts
+                  - listitem:
+                    - link:
+                      - /url: /settings
+                      - img
+                      - generic: Settings
+          - generic:
+            - generic:
+              - paragraph: kamil.wandtke@gmail.com
+              - button: Sign out
+    - main:
+      - generic:
+        - button:
+          - img
+          - generic: Toggle Sidebar
+        - generic:
+          - button:
+            - img
+          - generic:
+            - generic: K
+      - log "Agent activity log"
+      - main:
+        - generic:
+          - status:
+            - generic:
+              - generic:
+                - generic:
+                  - generic: r
+                - generic:
+                  - generic: repco
+                  - generic: Found one
+                  - generic: New high-intent signal detected.
+              - generic:
+                - generic:
+                  - generic: "3"
+                  - generic: Signals found
+                - generic:
+                  - generic: "0"
+                  - generic: Actions pending
+          - generic:
+            - generic:
+              - combobox:
+                - generic: All platforms
+                - img
+              - combobox [expanded]:
+                - generic: All strengths
+                - img
+              - generic:
+                - switch
+                - generic: Show dismissed
+            - generic:
+              - generic:
+                - article:
+                  - generic:
+                    - generic:
+                      - generic: Reddit
+                      - generic: Entrepreneur
+                      - generic: ·
+                      - generic: u/indie_dev_mike
+                    - generic: less than a minute ago
+                  - paragraph: Best cold DM strategies that actually work? Response rate is terrible.
+                  - generic:
+                    - generic:
+                      - img
+                      - generic: 4/10
+                    - link:
+                      - /url: https://reddit.com/r/Entrepreneur/comments/uat3/cold_dms
+                      - text: View on Reddit
+                      - img
+                    - generic:
+                      - button: Contact
+                      - button: Dismiss
+              - generic:
+                - article:
+                  - generic:
+                    - generic:
+                      - generic: Reddit
+                      - generic: startups
+                      - generic: ·
+                      - generic: u/growth_hacker_42
+                    - generic: less than a minute ago
+                  - paragraph: Comparing automated outreach tools for B2B SaaS. Phantom Buster vs custom scrapers?
+                  - generic:
+                    - generic:
+                      - img
+                      - generic: 6/10
+                    - link:
+                      - /url: https://reddit.com/r/startups/comments/uat2/outreach
+                      - text: View on Reddit
+                      - img
+                    - generic:
+                      - button: Contact
+                      - button: Dismiss
+              - generic:
+                - article:
+                  - generic:
+                    - generic:
+                      - generic: Reddit
+                      - generic: SaaS
+                      - generic: ·
+                      - generic: u/startup_founder_99
+                    - generic: less than a minute ago
+                  - paragraph: Looking for an AI sales tool that monitors Reddit for leads automatically. Any recs?
+                  - generic:
+                    - generic:
+                      - img
+                      - generic: 9/10
+                    - link:
+                      - /url: https://reddit.com/r/SaaS/comments/uat1/ai_sales
+                      - text: View on Reddit
+                      - img
+                    - generic:
+                      - button: Contact
+                      - button: Dismiss
+  - region "Notifications alt+T"
+  - generic [ref=e170] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e171]:
+      - img [ref=e172]
+    - generic [ref=e175]:
+      - button "Open issues overlay" [ref=e176]:
+        - generic [ref=e177]:
+          - generic [ref=e178]: "1"
+          - generic [ref=e179]: "2"
+        - generic [ref=e180]:
+          - text: Issue
+          - generic [ref=e181]: s
+      - button "Collapse issues badge" [ref=e182]:
+        - img [ref=e183]
+  - alert
+  - listbox [ref=e186]:
+    - option "All strengths" [active] [selected] [ref=e187]:
+      - generic:
+        - generic:
+          - img
+      - generic [ref=e188]: All strengths
+    - option "4+ Warm" [ref=e189]:
+      - generic [ref=e190]: 4+ Warm
+    - option "7+ Hot" [ref=e191]:
+      - generic [ref=e192]: 7+ Hot

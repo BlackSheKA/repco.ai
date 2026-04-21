@@ -1,0 +1,206 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e5]:
+      - img "repco" [ref=e7]
+      - list [ref=e11]:
+        - listitem [ref=e12]:
+          - link "Dashboard" [ref=e13] [cursor=pointer]:
+            - /url: /
+            - img [ref=e15]
+            - generic [ref=e20]: Dashboard
+        - listitem [ref=e21]:
+          - link "Signals" [ref=e22] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e24]
+            - generic [ref=e30]: Signals
+        - listitem [ref=e31]:
+          - link "Approvals" [ref=e32] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e34]
+            - generic [ref=e37]: Approvals
+        - listitem [ref=e38]:
+          - link "Prospects" [ref=e39] [cursor=pointer]:
+            - /url: /prospects
+            - img [ref=e41]
+            - generic [ref=e46]: Prospects
+        - listitem [ref=e47]:
+          - link "Accounts" [ref=e48] [cursor=pointer]:
+            - /url: /accounts
+            - img [ref=e50]
+            - generic [ref=e52]: Accounts
+        - listitem [ref=e53]:
+          - link "Billing" [ref=e54] [cursor=pointer]:
+            - /url: /billing
+            - img [ref=e56]
+            - generic [ref=e58]: Billing
+        - listitem [ref=e59]:
+          - link "Settings" [ref=e60] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e62]
+            - generic [ref=e65]: Settings
+      - generic [ref=e67]:
+        - 'link "Credits: 500, burning 0 per day" [ref=e68] [cursor=pointer]':
+          - /url: /billing
+          - text: 500 credits ·
+          - generic [ref=e69]: "-0"
+          - text: /day
+        - paragraph [ref=e70]: test@repco.ai
+        - button "Sign out" [ref=e71]
+    - main [ref=e72]:
+      - generic [ref=e73]:
+        - button "Toggle Sidebar" [ref=e74]:
+          - img
+          - generic [ref=e75]: Toggle Sidebar
+        - generic [ref=e76]:
+          - button "Toggle color theme" [ref=e77]:
+            - img
+          - generic [ref=e79]: T
+      - log "Agent activity log" [ref=e80]:
+        - generic [ref=e207]: "> No new signals this scan"
+      - main [ref=e82]:
+        - generic [ref=e83]:
+          - generic [ref=e208]:
+            - generic [ref=e209]:
+              - heading "Get started" [level=2] [ref=e210]
+              - generic [ref=e211]: 0/4
+            - progressbar [ref=e212]
+            - list [ref=e214]:
+              - listitem [ref=e215]:
+                - img [ref=e217]
+                - generic [ref=e219]: Describe your product
+              - listitem [ref=e220]:
+                - img [ref=e222]
+                - generic [ref=e224]: Keywords generated
+              - listitem [ref=e225]:
+                - img [ref=e227]
+                - link "Connect Reddit account" [ref=e229] [cursor=pointer]:
+                  - /url: /accounts
+              - listitem [ref=e230]:
+                - img [ref=e232]
+                - link "Approve your first DM" [ref=e234] [cursor=pointer]:
+                  - /url: /#approvals
+          - status [ref=e84]:
+            - generic [ref=e85]:
+              - generic [ref=e86]:
+                - generic [ref=e88]: r
+                - generic [ref=e89]:
+                  - generic [ref=e90]: repco
+                  - generic [ref=e91]: Quiet
+                  - generic [ref=e92]: All caught up. Watching for signals.
+              - generic [ref=e93]:
+                - generic [ref=e94]:
+                  - generic [ref=e95]: "0"
+                  - generic [ref=e96]: Signals found
+                - generic [ref=e97]:
+                  - generic [ref=e98]: "0"
+                  - generic [ref=e99]: Actions pending
+          - generic [ref=e100]:
+            - generic [ref=e102]: Credit Balance
+            - generic [ref=e103]:
+              - generic [ref=e104]: "500"
+              - generic [ref=e105]:
+                - generic [ref=e106]:
+                  - generic [ref=e107]: Monitoring
+                  - generic [ref=e108]: "-0/day"
+                - generic [ref=e109]:
+                  - generic [ref=e110]: Accounts
+                  - generic [ref=e111]: "-0/day"
+                - generic [ref=e112]:
+                  - generic [ref=e113]: Actions
+                  - generic [ref=e114]: ~0/day (avg)
+                - generic [ref=e115]:
+                  - generic [ref=e116]: Total
+                  - generic [ref=e117]: "-0/day"
+              - generic [ref=e118]: No burn yet
+          - generic [ref=e119]:
+            - generic [ref=e121]: Prospects
+            - generic [ref=e122]:
+              - generic [ref=e123]:
+                - generic [ref=e124]:
+                  - generic [ref=e125]: "0"
+                  - generic [ref=e126]: Total
+                - generic [ref=e127]:
+                  - generic [ref=e128]: "0"
+                  - generic [ref=e129]: Replied
+                - generic [ref=e130]:
+                  - generic [ref=e131]: "0"
+                  - generic [ref=e132]: Converted
+              - generic [ref=e133]:
+                - generic [ref=e134]: Est. revenue
+                - generic [ref=e135]:
+                  - text: Set your average deal value in
+                  - link "Settings" [ref=e136] [cursor=pointer]:
+                    - /url: /settings
+                  - text: to see estimated revenue.
+              - link "View pipeline" [ref=e137] [cursor=pointer]:
+                - /url: /prospects
+          - generic [ref=e139]:
+            - generic "Weekly results preview" [ref=e140]:
+              - generic [ref=e142]: repco weekly
+              - generic [ref=e143]:
+                - generic [ref=e144]:
+                  - generic [ref=e145]: "0"
+                  - generic [ref=e146]: Posts scanned
+                - generic [ref=e147]:
+                  - generic [ref=e148]: "0"
+                  - generic [ref=e149]: Signals
+                - generic [ref=e150]:
+                  - generic [ref=e151]: "0"
+                  - generic [ref=e152]: DMs sent
+                - generic [ref=e153]:
+                  - generic [ref=e154]: "0"
+                  - generic [ref=e155]: Replies
+                - generic [ref=e156]:
+                  - generic [ref=e157]: 0%
+                  - generic [ref=e158]: Reply rate
+                - generic [ref=e159]:
+                  - generic [ref=e160]: "0"
+                  - generic [ref=e161]: Conversions
+              - generic [ref=e162]: repco.ai
+            - generic [ref=e163]:
+              - button "Download image" [ref=e164]:
+                - img
+                - text: Download image
+              - button "Share to X" [ref=e165]:
+                - img
+                - text: Share to X
+              - button "Share to LinkedIn" [ref=e166]:
+                - img
+                - text: Share to LinkedIn
+          - generic [ref=e167]:
+            - status [ref=e235]:
+              - img [ref=e236]
+              - generic [ref=e238]: "LinkedIn monitoring delayed — last successful check: 9h ago"
+            - generic [ref=e169]:
+              - combobox "Filter by platform" [ref=e170]:
+                - generic: All platforms
+                - img
+              - combobox "Filter by minimum intent strength" [ref=e172]:
+                - generic: All strengths
+                - img
+              - generic [ref=e174]:
+                - switch "Show dismissed signals" [ref=e175]
+                - generic [ref=e176]: Show dismissed
+            - generic [ref=e178]:
+              - heading "No signals yet" [level=2] [ref=e179]
+              - paragraph [ref=e180]: repco is scanning Reddit for intent signals. Add keywords and subreddits in Settings to get started.
+              - link "Go to Settings" [ref=e181] [cursor=pointer]:
+                - /url: /settings
+          - region "Replies" [ref=e183]:
+            - generic [ref=e184]:
+              - heading "Replies" [level=2] [ref=e185]
+              - generic [ref=e186]: "0"
+            - generic [ref=e187]:
+              - heading "No replies yet" [level=3] [ref=e188]
+              - paragraph [ref=e189]: When a prospect replies to your DM, it will appear here. repco checks inboxes every 2 hours.
+          - region "Approval queue" [ref=e191]:
+            - generic [ref=e192]:
+              - heading "Approval Queue" [level=2] [ref=e193]
+              - generic [ref=e194]: "0"
+            - generic [ref=e195]:
+              - heading "No messages pending" [level=3] [ref=e196]
+              - paragraph [ref=e197]: When you click Contact on a signal, repco will draft a DM for your review.
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e203] [cursor=pointer]:
+    - img [ref=e204]
+  - alert [ref=e239]

@@ -1,0 +1,132 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e5]:
+      - img "repco" [ref=e7]
+      - list [ref=e11]:
+        - listitem [ref=e12]:
+          - link "Dashboard" [ref=e13] [cursor=pointer]:
+            - /url: /
+            - img [ref=e15]
+            - generic [ref=e20]: Dashboard
+        - listitem [ref=e21]:
+          - link "Signals" [ref=e22] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e24]
+            - generic [ref=e30]: Signals
+        - listitem [ref=e31]:
+          - link "Approvals" [ref=e32] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e34]
+            - generic [ref=e37]: Approvals
+        - listitem [ref=e38]:
+          - link "Prospects" [ref=e39] [cursor=pointer]:
+            - /url: /prospects
+            - img [ref=e41]
+            - generic [ref=e46]: Prospects
+        - listitem [ref=e47]:
+          - link "Accounts" [ref=e48] [cursor=pointer]:
+            - /url: /accounts
+            - img [ref=e50]
+            - generic [ref=e52]: Accounts
+        - listitem [ref=e53]:
+          - link "Billing" [ref=e54] [cursor=pointer]:
+            - /url: /billing
+            - img [ref=e56]
+            - generic [ref=e58]: Billing
+        - listitem [ref=e59]:
+          - link "Settings" [ref=e60] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e62]
+            - generic [ref=e65]: Settings
+      - generic [ref=e67]:
+        - 'link "Credits: 500, burning 72 per day" [ref=e68] [cursor=pointer]':
+          - /url: /billing
+          - text: 500 credits ·
+          - generic [ref=e69]: "-72"
+          - text: /day
+        - paragraph [ref=e70]: kamil.wandtke@outsi.com
+        - button "Sign out" [ref=e71]
+    - main [ref=e72]:
+      - generic [ref=e73]:
+        - button "Toggle Sidebar" [ref=e74]:
+          - img
+          - generic [ref=e75]: Toggle Sidebar
+        - generic [ref=e76]:
+          - button "Toggle color theme" [ref=e77]:
+            - img
+          - generic [ref=e79]: K
+      - log "Agent activity log" [ref=e80]
+      - main [ref=e82]:
+        - generic [ref=e83]:
+          - generic [ref=e84]:
+            - heading "Prospects" [level=1] [ref=e85]
+            - button "Export CSV" [ref=e86]:
+              - img
+              - text: Export CSV
+          - generic [ref=e90]:
+            - generic [ref=e91]:
+              - generic [ref=e92]:
+                - heading "Detected" [level=2] [ref=e93]
+                - generic [ref=e94]: "0"
+              - paragraph [ref=e96]: No prospects
+            - generic [ref=e97]:
+              - generic [ref=e98]:
+                - heading "Engaged" [level=2] [ref=e99]
+                - generic [ref=e100]: "1"
+              - article "Prospect test_saas_founder" [ref=e102] [cursor=pointer]:
+                - generic [ref=e104]:
+                  - button "Drag handle" [ref=e105]:
+                    - img [ref=e106]
+                  - generic [ref=e114]:
+                    - generic [ref=e115]: test_saas_founder
+                    - generic [ref=e116]: reddit
+                - generic [ref=e117]:
+                  - combobox "Move to stage" [ref=e118]:
+                    - generic: Move to...
+                    - img
+                  - combobox [ref=e119]
+            - generic [ref=e120]:
+              - generic [ref=e121]:
+                - heading "Contacted" [level=2] [ref=e122]
+                - generic [ref=e123]: "1"
+              - article "Prospect test_marketer" [ref=e125] [cursor=pointer]:
+                - generic [ref=e127]:
+                  - button "Drag handle" [ref=e128]:
+                    - img [ref=e129]
+                  - generic [ref=e137]:
+                    - generic [ref=e138]: test_marketer
+                    - generic [ref=e139]: reddit
+                - generic [ref=e140]:
+                  - combobox "Move to stage" [ref=e141]:
+                    - generic: Move to...
+                    - img
+                  - combobox [ref=e142]
+            - generic [ref=e143]:
+              - generic [ref=e144]:
+                - heading "Replied" [level=2] [ref=e145]
+                - generic [ref=e146]: "1"
+              - article "Prospect test_buyer" [ref=e148] [cursor=pointer]:
+                - generic [ref=e150]:
+                  - button "Drag handle" [ref=e151]:
+                    - img [ref=e152]
+                  - generic [ref=e160]:
+                    - generic [ref=e161]: test_buyer
+                    - generic [ref=e162]: reddit
+                - generic [ref=e163]:
+                  - combobox "Move to stage" [ref=e164]:
+                    - generic: Move to...
+                    - img
+                  - combobox [ref=e165]
+            - generic [ref=e166]:
+              - generic [ref=e167]:
+                - heading "Converted" [level=2] [ref=e168]
+                - generic [ref=e169]: "0"
+              - paragraph [ref=e171]: No prospects
+            - generic [ref=e172]:
+              - generic [ref=e173]:
+                - heading "Rejected" [level=2] [ref=e174]
+                - generic [ref=e175]: "0"
+              - paragraph [ref=e177]: No prospects
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e183] [cursor=pointer]:
+    - img [ref=e184]

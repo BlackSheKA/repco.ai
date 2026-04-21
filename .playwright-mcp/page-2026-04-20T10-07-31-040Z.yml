@@ -1,0 +1,113 @@
+- generic [ref=e1]:
+  - generic [ref=e106] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e107]:
+      - img [ref=e108]
+    - generic [ref=e111]:
+      - button "Open issues overlay" [ref=e112]:
+        - generic [ref=e113]:
+          - generic [ref=e114]: "0"
+          - generic [ref=e115]: "1"
+        - generic [ref=e116]: Issue
+      - button "Collapse issues badge" [ref=e117]:
+        - img [ref=e118]
+  - generic [ref=e120]:
+    - generic [ref=e123]:
+      - img "repco" [ref=e125]
+      - list [ref=e129]:
+        - listitem [ref=e130]:
+          - link "Dashboard" [ref=e131] [cursor=pointer]:
+            - /url: /
+            - img [ref=e132]
+            - generic [ref=e137]: Dashboard
+        - listitem [ref=e138]:
+          - link "Signals" [ref=e139] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e140]
+            - generic [ref=e146]: Signals
+        - listitem [ref=e147]:
+          - link "Approvals" [ref=e148] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e149]
+            - generic [ref=e152]: Approvals
+        - listitem [ref=e153]:
+          - link "Prospects" [ref=e154] [cursor=pointer]:
+            - /url: "#"
+            - img [ref=e155]
+            - generic [ref=e160]: Prospects
+        - listitem [ref=e161]:
+          - link "Accounts" [ref=e162] [cursor=pointer]:
+            - /url: /accounts
+            - img [ref=e163]
+            - generic [ref=e165]: Accounts
+        - listitem [ref=e166]:
+          - link "Settings" [ref=e167] [cursor=pointer]:
+            - /url: /settings
+            - img [ref=e168]
+            - generic [ref=e171]: Settings
+      - generic [ref=e173]:
+        - paragraph [ref=e174]: kamil.wandtke@outsi.com
+        - button "Sign out" [ref=e175]
+    - main [ref=e176]:
+      - generic [ref=e177]:
+        - button "Toggle Sidebar" [ref=e178]:
+          - img
+          - generic [ref=e179]: Toggle Sidebar
+        - generic [ref=e180]:
+          - button "Toggle color theme" [ref=e181]:
+            - img
+          - generic [ref=e183]: K
+      - log "Agent activity log" [ref=e184]
+      - main [ref=e186]:
+        - generic [ref=e187]:
+          - heading "Accounts" [level=1] [ref=e188]
+          - generic [ref=e189]:
+            - generic [ref=e222]:
+              - generic [ref=e223]: Step 1 of 3
+              - generic [ref=e224]:
+                - list [ref=e229]:
+                  - listitem [ref=e230]: Click Open remote browser below — a new tab opens with the GoLogin cloud browser.
+                  - listitem [ref=e231]:
+                    - text: "Paste this URL into that browser's address bar and press Enter:"
+                    - generic [ref=e232]:
+                      - code [ref=e233]: https://www.reddit.com/login/
+                      - button "Copy login URL" [ref=e234]:
+                        - img
+                  - listitem [ref=e235]: Log into your account. repco never sees your password.
+                  - listitem [ref=e236]: Come back here and click I've logged in.
+                - generic [ref=e237]:
+                  - link "Open remote browser" [active] [ref=e238] [cursor=pointer]:
+                    - /url: https://cloudbrowser.gologin.com/browsers/69e5eccb61d9a2b926fe4e65/ZgYMaB2jb7W2MrQZhsuZ/
+                    - img
+                    - text: Open remote browser
+                  - button "I've logged in" [ref=e239]
+                  - button "Cancel" [ref=e240]
+            - article "Account Electrical_Teach4075" [ref=e190]:
+              - generic [ref=e191]:
+                - generic [ref=e192]:
+                  - generic [ref=e193]:
+                    - img [ref=e194]
+                    - generic [ref=e196]: Electrical_Teach4075
+                    - 'generic "Health status: warmup" [ref=e197]': Warming up
+                  - generic [ref=e198]: "Last action: 59m ago"
+                  - generic [ref=e199]:
+                    - generic [ref=e200]: Reddit
+                    - button "Log in to Reddit for Electrical_Teach4075" [ref=e201]:
+                      - img
+                      - text: Log in
+                - generic [ref=e203]:
+                  - generic [ref=e204]: "Warmup: Day 1 of 7"
+                  - progressbar "Warmup progress for Electrical_Teach4075" [ref=e205]:
+                    - progressbar [ref=e206]
+                  - button "Skip warmup" [ref=e208]
+                - generic [ref=e209]:
+                  - generic "0 of 8 DMs used today" [ref=e210]:
+                    - generic [ref=e211]: 0/8
+                    - generic [ref=e212]: DMs
+                  - generic "0 of 20 Engage used today" [ref=e213]:
+                    - generic [ref=e214]: 0/20
+                    - generic [ref=e215]: Engage
+                  - generic "0 of 5 Replies used today" [ref=e216]:
+                    - generic [ref=e217]: 0/5
+                    - generic [ref=e218]: Replies
+  - region "Notifications alt+T"
+  - alert [ref=e220]

@@ -1,0 +1,2 @@
+[   39193ms] [WARNING] Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}. @ https://resend.com/relay-qWzP/static/posthog-recorder.js?v=1.369.3:0
+[   63019ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) @ https://resend.com/api-keys?new=true:0
