@@ -16,4 +16,9 @@ export interface IntentSignal {
   is_public: boolean
   dismissed_at: string | null
   detected_at: string
+  // Phase 6 — LinkedIn-specific (nullable for Reddit rows)
+  author_headline: string | null
+  author_company: string | null
+  post_type: "post" | "article" | null
+  apify_run_id: string | null
 }
