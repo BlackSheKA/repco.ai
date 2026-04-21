@@ -26,7 +26,15 @@ function makePost(
 }
 
 // Minimal Supabase admin stub
-function makeSupabaseStub(upsertData: { id: string }[] = [{ id: "sig-1" }]) {
+type SupabaseStub = {
+  from: ReturnType<typeof vi.fn>
+  _upsertChain: {
+    upsert: ReturnType<typeof vi.fn>
+    select: ReturnType<typeof vi.fn>
+  }
+}
+
+function makeSupabaseStub(upsertData: { id: string }[] = [{ id: "sig-1" }]): SupabaseStub {
   const selectChain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
@@ -42,7 +50,7 @@ function makeSupabaseStub(upsertData: { id: string }[] = [{ id: "sig-1" }]) {
       return selectChain
     }),
     _upsertChain: upsertChain,
-  } as unknown as ReturnType<typeof makeSupabaseStub>
+  } as unknown as SupabaseStub
 }
 
 describe("runIngestionForUser — 48h freshness filter (MNTR-05)", () => {
