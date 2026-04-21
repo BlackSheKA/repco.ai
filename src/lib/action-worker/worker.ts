@@ -46,6 +46,20 @@ export async function executeAction(
   }
   const action = claim.action!
 
+  // Shared pipeline state for single job_logs insert in finally
+  const startMs = Date.now()
+  let runStatus: "completed" | "failed" = "failed"
+  let runError: string | null = null
+  let cuSteps: number | null = null
+  let screenshotCount: number | null = null
+  let runPlatform: string | null = null
+  const runActionType: string | null = action.action_type as string
+  const runUserId: string | null = action.user_id as string | null
+  const runActionId: string | null = actionId
+
+  // Connection must be declared before try so finally can access it
+  let connection: Awaited<ReturnType<typeof connectToProfile>> | undefined
+
   // 2. Get social account
   const { data: account } = await supabase
     .from("social_accounts")
@@ -53,109 +67,143 @@ export async function executeAction(
     .eq("id", action.account_id)
     .single<SocialAccount>()
 
+  // 3. Check GoLogin profile — must exist before active-hours check (both are pre-try)
   if (!account?.gologin_profile_id) {
-    await updateActionStatus(supabase, actionId, "failed", "No GoLogin profile")
-    return { success: false, error: "No GoLogin profile" }
+    // This is a configuration error — log it in job_logs via the try/finally below
+    // by falling through to the try block with earlyReturn set
   }
 
-  // 3. ANTI-BAN: Check active hours (ABAN-05)
-  if (
-    !isWithinActiveHours(
-      account.timezone,
-      account.active_hours_start,
-      account.active_hours_end,
-    )
-  ) {
-    await updateActionStatus(supabase, actionId, "approved", null) // Re-queue
-    logger.info("Action deferred: outside active hours", {
-      actionId,
-      correlationId,
-      timezone: account.timezone,
-    })
-    return { success: false, error: "Outside active hours -- re-queued" }
-  }
-
-  // 4. ANTI-BAN: Check warmup gate (ABAN-02)
-  const warmup = getWarmupState(account.warmup_day, account.warmup_completed_at)
-  if (
-    !warmup.allowedActions.includes(
-      action.action_type as
-        | "dm"
-        | "like"
-        | "follow"
-        | "public_reply",
-    )
-  ) {
-    await updateActionStatus(
-      supabase,
-      actionId,
-      "failed",
-      `Warmup day ${warmup.day}: ${action.action_type} not yet allowed`,
-    )
-    return {
-      success: false,
-      error: `Warmup gate: ${action.action_type} not allowed on day ${warmup.day}`,
+  // 4. ANTI-BAN: Check active hours (ABAN-05) — re-queue path does NOT log to job_logs.
+  //    Only check if account exists and has a profile (otherwise fall to try block for logging).
+  if (account?.gologin_profile_id) {
+    if (
+      !isWithinActiveHours(
+        account.timezone ?? "UTC",
+        account.active_hours_start ?? 8,
+        account.active_hours_end ?? 22,
+      )
+    ) {
+      await updateActionStatus(supabase, actionId, "approved", null) // Re-queue
+      logger.info("Action deferred: outside active hours", {
+        actionId,
+        correlationId,
+        timezone: account.timezone,
+      })
+      return { success: false, error: "Outside active hours -- re-queued" }
     }
   }
 
-  // 5. ANTI-BAN: Target isolation (ABAN-06)
-  const target = await checkAndAssignTarget(
-    supabase,
-    action.prospect_id,
-    action.account_id!,
-  )
-  if (!target.allowed) {
-    await updateActionStatus(
-      supabase,
-      actionId,
-      "failed",
-      target.error ?? "Target isolation blocked",
-    )
-    return { success: false, error: target.error ?? "Target isolation blocked" }
-  }
-
-  // 6. Check daily limits
-  const withinLimits = await checkAndIncrementLimit(
-    supabase,
-    action.account_id!,
-    action.action_type,
-  )
-  if (!withinLimits) {
-    await updateActionStatus(supabase, actionId, "failed", "Daily limit reached")
-    return { success: false, error: "Daily limit reached" }
-  }
-
-  // 7. ANTI-BAN: Random delay before execution (ABAN-03)
-  const delay = randomDelay()
-  logger.info("Anti-ban delay", {
-    actionId,
-    correlationId,
-    delaySeconds: delay,
-  })
-  await sleep(delay)
-
-  // 8. Connect GoLogin profile
-  let connection
   try {
-    connection = await connectToProfile(account.gologin_profile_id)
-  } catch (err) {
-    await updateActionStatus(
-      supabase,
-      actionId,
-      "failed",
-      `GoLogin connection failed: ${err}`,
-    )
-    return { success: false, error: "GoLogin connection failed" }
-  }
+    // Early-return flag: set to non-null to short-circuit remaining pipeline steps
+    let earlyReturn: { success: boolean; error?: string } | null = null
 
-  try {
-    // 9. Navigate to Reddit
+    // 5. Check GoLogin profile (failed accounts log via finally block)
+    if (!account?.gologin_profile_id) {
+      runError = "No GoLogin profile"
+      runStatus = "failed"
+      await updateActionStatus(supabase, actionId, "failed", runError)
+      earlyReturn = { success: false, error: runError }
+    }
+
+    if (!earlyReturn) {
+      // Set platform now that we know account is valid
+      runPlatform = account!.platform as string
+
+      // 5. ANTI-BAN: Check warmup gate (ABAN-02)
+      const warmup = getWarmupState(
+        account!.warmup_day,
+        account!.warmup_completed_at,
+      )
+      if (
+        !warmup.allowedActions.includes(
+          action.action_type as "dm" | "like" | "follow" | "public_reply",
+        )
+      ) {
+        runError = `Warmup day ${warmup.day}: ${action.action_type} not yet allowed`
+        runStatus = "failed"
+        await updateActionStatus(
+          supabase,
+          actionId,
+          "failed",
+          `Warmup day ${warmup.day}: ${action.action_type} not yet allowed`,
+        )
+        earlyReturn = {
+          success: false,
+          error: `Warmup gate: ${action.action_type} not allowed on day ${warmup.day}`,
+        }
+      }
+    }
+
+    if (!earlyReturn) {
+      // 6. ANTI-BAN: Target isolation (ABAN-06)
+      const target = await checkAndAssignTarget(
+        supabase,
+        action.prospect_id,
+        action.account_id!,
+      )
+      if (!target.allowed) {
+        runError = target.error ?? "Target isolation blocked"
+        runStatus = "failed"
+        await updateActionStatus(
+          supabase,
+          actionId,
+          "failed",
+          runError,
+        )
+        earlyReturn = { success: false, error: runError }
+      }
+    }
+
+    if (!earlyReturn) {
+      // 7. Check daily limits
+      const withinLimits = await checkAndIncrementLimit(
+        supabase,
+        action.account_id!,
+        action.action_type,
+      )
+      if (!withinLimits) {
+        runError = "Daily limit reached"
+        runStatus = "failed"
+        await updateActionStatus(supabase, actionId, "failed", runError)
+        earlyReturn = { success: false, error: runError }
+      }
+    }
+
+    if (earlyReturn) {
+      return earlyReturn
+    }
+
+    // 8. ANTI-BAN: Random delay before execution (ABAN-03)
+    const delay = randomDelay()
+    logger.info("Anti-ban delay", {
+      actionId,
+      correlationId,
+      delaySeconds: delay,
+    })
+    await sleep(delay)
+
+    // 9. Connect GoLogin profile
+    try {
+      connection = await connectToProfile(account!.gologin_profile_id!)
+    } catch (err) {
+      runError = `GoLogin connection failed: ${err}`
+      runStatus = "failed"
+      await updateActionStatus(
+        supabase,
+        actionId,
+        "failed",
+        runError,
+      )
+      return { success: false, error: "GoLogin connection failed" }
+    }
+
+    // 10. Navigate to Reddit
     await connection.page.goto("https://www.reddit.com", {
       waitUntil: "domcontentloaded",
       timeout: 30000,
     })
 
-    // 10. ANTI-BAN: Inject behavioral noise before real action (ABAN-04)
+    // 11. ANTI-BAN: Inject behavioral noise before real action (ABAN-04)
     if (shouldInjectNoise()) {
       const noisePrompts = generateNoiseActions()
       for (const noisePrompt of noisePrompts) {
@@ -164,7 +212,7 @@ export async function executeAction(
       }
     }
 
-    // 11. Build CU prompt based on action type
+    // 12. Build CU prompt based on action type
     let prompt: string
     const prospect = await supabase
       .from("prospects")
@@ -194,10 +242,14 @@ export async function executeAction(
       prompt = `Perform a public reply action for ${handle}`
     }
 
-    // 12. Execute CU action
+    // 13. Execute CU action
     const result = await executeCUAction(connection.page, prompt)
 
-    // 13. Upload final screenshot
+    // Capture CU telemetry for metadata
+    cuSteps = result.steps
+    screenshotCount = result.screenshots.length
+
+    // 14. Upload final screenshot
     if (result.screenshots.length > 0) {
       const lastScreenshot = result.screenshots[result.screenshots.length - 1]
       const url = await uploadScreenshot(actionId, lastScreenshot, result.steps)
@@ -209,8 +261,10 @@ export async function executeAction(
       }
     }
 
-    // 14. Update status
+    // 15. Update status
     if (result.success) {
+      runStatus = "completed"
+      runError = null
       await updateActionStatus(supabase, actionId, "completed", null)
 
       // Deduct action credits on successful completion.
@@ -228,7 +282,7 @@ export async function executeAction(
               p_amount: creditCost,
               p_type: "action_spend",
               p_description: `${action.action_type} action on ${
-                (account.platform as string) ?? "unknown"
+                (account!.platform as string) ?? "unknown"
               }`,
             },
           )
@@ -281,26 +335,45 @@ export async function executeAction(
           .eq("id", action.prospect_id)
       }
     } else {
+      runStatus = "failed"
+      runError = result.error ?? "CU action failed"
       await updateActionStatus(
         supabase,
         actionId,
         "failed",
-        result.error ?? "CU action failed",
+        runError,
       )
     }
 
-    // 15. Log to job_logs
-    await supabase.from("job_logs").insert({
-      job_type: "action",
-      status: result.success ? "completed" : "failed",
-      duration_ms: 0,
-      details: { actionId, steps: result.steps, error: result.error },
-      correlation_id: correlationId,
-    })
-
     return { success: result.success, error: result.error }
+  } catch (err) {
+    runError = err instanceof Error ? err.message : String(err)
+    runStatus = "failed"
+    return { success: false, error: runError }
   } finally {
-    await disconnectProfile(connection.browser)
+    if (connection?.browser) {
+      await disconnectProfile(connection.browser)
+    }
+    const finishMs = Date.now()
+    await supabase.from("job_logs").insert({
+      job_type: "action" as const,
+      status: runStatus,
+      user_id: runUserId,
+      action_id: runActionId,
+      started_at: new Date(startMs).toISOString(),
+      finished_at: new Date(finishMs).toISOString(),
+      duration_ms: finishMs - startMs,
+      error: runError,
+      metadata: {
+        correlation_id: correlationId,
+        platform: runPlatform,
+        action_type: runActionType,
+        ...(cuSteps !== null ? { cu_steps: cuSteps } : {}),
+        ...(screenshotCount !== null
+          ? { screenshot_count: screenshotCount }
+          : {}),
+      },
+    })
   }
 }
 
