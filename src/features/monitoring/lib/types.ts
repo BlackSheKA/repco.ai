@@ -33,3 +33,29 @@ export interface MonitoringConfig {
   productName: string
   productDescription: string
 }
+
+// ---------------------------------------------------------------------------
+// Phase 6 — LinkedIn
+// ---------------------------------------------------------------------------
+
+export interface LinkedInPost {
+  url: string
+  text: string
+  postedAt: string // ISO 8601
+  reactions: number
+  comments: number
+  author: {
+    name: string
+    headline: string | null
+    company: string | null
+    profileUrl: string
+    urn: string
+  }
+  postType: "post" | "article" | null
+  contentLanguage: string | null
+}
+
+export interface LinkedInSearchResult {
+  posts: LinkedInPost[]
+  apifyRunId: string
+}
