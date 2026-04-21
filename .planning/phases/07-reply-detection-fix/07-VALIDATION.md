@@ -19,7 +19,7 @@ created: 2026-04-21
 |----------|-------|
 | **Framework** | vitest 4.1.4 (happy-dom) |
 | **Config file** | `vitest.config.ts` (already present) |
-| **Quick run command** | `pnpm test -- --run src/lib/handles/normalize.test.ts src/lib/reply-detection/reply-matching.test.ts` |
+| **Quick run command** | `pnpm test -- --run src/lib/handles/__tests__/normalize.test.ts src/features/sequences/lib/__tests__/reply-matching.test.ts` |
 | **Full suite command** | `pnpm test -- --run` |
 | **Estimated runtime** | ~8 seconds |
 
@@ -38,9 +38,9 @@ created: 2026-04-21
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 07-01-01 | 01 | 0 | RPLY-02 | unit | `pnpm test -- --run src/lib/handles/normalize.test.ts` | ❌ W0 | ⬜ pending |
-| 07-01-02 | 01 | 1 | RPLY-02 | unit | `pnpm test -- --run src/lib/reply-detection/reply-matching.test.ts` | ✅ | ⬜ pending |
-| 07-01-03 | 01 | 1 | RPLY-02, RPLY-03, RPLY-04 | integration | `pnpm test -- --run src/lib/reply-detection/handle-reply-detected.test.ts` | ❌ W0 | ⬜ pending |
+| 07-01-01 | 01 | 0 | RPLY-02 | unit | `pnpm test -- --run src/lib/handles/__tests__/normalize.test.ts` | ❌ W0 | ⬜ pending |
+| 07-01-02 | 01 | 1 | RPLY-02 | unit | `pnpm test -- --run src/features/sequences/lib/__tests__/reply-matching.test.ts` | ✅ | ⬜ pending |
+| 07-01-03 | 01 | 1 | RPLY-02, RPLY-03, RPLY-04, FLLW-04 | integration | `pnpm test -- --run src/app/api/cron/check-replies/__tests__/route.test.ts` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,8 +49,8 @@ created: 2026-04-21
 ## Wave 0 Requirements
 
 - [ ] `src/lib/handles/normalize.ts` — `normalizeHandle(raw, platform)` utility
-- [ ] `src/lib/handles/normalize.test.ts` — unit tests covering Reddit (`u/` strip + lowercase) and LinkedIn (lowercase only)
-- [ ] `src/lib/reply-detection/handle-reply-detected.test.ts` — integration test stub exercising match → `pipeline_status=replied` → follow-up cancel → Resend call → Realtime emit
+- [ ] `src/lib/handles/__tests__/normalize.test.ts` — unit tests covering Reddit (`u/` strip + lowercase) and LinkedIn (lowercase only)
+- [ ] `src/app/api/cron/check-replies/__tests__/route.test.ts` — integration test exercising match → `pipeline_status=replied` → follow-up cancel → Resend call → Realtime emit
 
 ---
 
@@ -67,7 +67,7 @@ created: 2026-04-21
 
 - [ ] All tasks have `<automated>` verify or Wave 0 dependencies
 - [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references (`normalize.ts`, `handle-reply-detected.test.ts`)
+- [ ] Wave 0 covers all MISSING references (`src/lib/handles/normalize.ts`, `src/lib/handles/__tests__/normalize.test.ts`, `src/app/api/cron/check-replies/__tests__/route.test.ts`)
 - [ ] No watch-mode flags (always `--run`)
 - [ ] Feedback latency < 15s
 - [ ] `nyquist_compliant: true` set in frontmatter
