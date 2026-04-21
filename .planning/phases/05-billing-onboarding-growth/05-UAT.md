@@ -3,7 +3,7 @@ status: complete
 phase: 05-billing-onboarding-growth
 source: 05-01-SUMMARY.md, 05-02-SUMMARY.md, 05-03-SUMMARY.md, 05-04-SUMMARY.md, 05-05-SUMMARY.md, 05-06-SUMMARY.md, 05-07-SUMMARY.md
 started: 2026-04-21T00:00:00Z
-updated: 2026-04-21T07:50:00Z
+updated: 2026-04-21T08:02:00Z
 ---
 
 ## Current Test
@@ -18,8 +18,8 @@ result: pass
 
 ### 2. Onboarding Wizard Flow
 expected: The /onboarding page shows a full-screen overlay wizard with 3 steps: (1) Describe your product — text input, Enter to advance; (2) Who are your competitors? — textarea, Enter to advance; (3) Claude generates keywords/subreddits and a scan animation plays (typing effect cycling through subreddits for 3-5s) before revealing a signal count or zero-state message. On completion, user lands on /?onboarded=true.
-result: skipped
-reason: Requires fresh account (no onboarding_completed_at); current account already onboarded.
+result: pass
+note: Actual wizard has 3 content steps (Product / Ideal customer / Competitors) + Claude generation + scan animation. Verified end-to-end with new account uat-test-20260421@test.repco.ai; landed on /?onboarded=true with 2/4 checklist complete and 500 trial credits.
 
 ### 3. Onboarding Checklist on Dashboard
 expected: After landing on /?onboarded=true, the dashboard shows an OnboardingChecklist card with a progress bar (0/4–4/4) and 4 items: Connect a Reddit account, Describe your product, Keywords generated, Get your first signal. Items that are complete show a checkmark. When all 4 are complete, a Dismiss button appears; clicking it hides the checklist permanently (localStorage).
@@ -37,8 +37,8 @@ severity: major
 
 ### 6. Stripe Checkout
 expected: Clicking Subscribe on a plan card (or Buy credits on a pack) redirects to Stripe's hosted Checkout page in the same tab. The Stripe session is created via the server action; the URL shows checkout.stripe.com. (Full end-to-end Stripe transaction is optional to complete — redirect occurring is sufficient.)
-result: skipped
-reason: Stripe env vars not configured in dev environment; buttons exist but redirect would fail.
+result: pass
+note: Clicking Subscribe on Monthly plan redirected to checkout.stripe.com/c/pay/cs_test_... showing "$49,00 USD / month", "repco.ai Pro (Monthly) subscription — 2500 credits/mo", email prefilled.
 
 ### 7. Credit Balance Sidebar Widget
 expected: The app sidebar footer area shows a CreditBalance widget displaying the user's current credit balance as a monospace number. The number turns orange when < 100 and red when < 50. Clicking it navigates to /billing.
@@ -58,17 +58,18 @@ result: pass
 
 ### 11. Move Prospect Stage
 expected: Using the "Move to…" Select dropdown on a prospect card shows only valid stage transitions (e.g. you cannot move backward from "replied" to "new_lead"). Selecting a valid stage updates the card's column immediately (optimistic UI). If the move fails, the card reverts and a toast error appears.
-result: skipped
-reason: No prospects in database to test with.
+result: pass
+note: Dropdown on 'Detected' card offered only forward stages (Engaged/Contacted/Replied/Converted/Rejected) — no backward moves. Selecting Engaged moved card to Engaged column instantly. Verified with test prospect test_saas_founder.
 
 ### 12. Prospect Detail Page
 expected: Clicking a prospect card navigates to /prospects/[id]. The page shows a two-column layout (above lg): left 2/3 has conversation history, right 1/3 has contact info, notes textarea (auto-saves on blur), and tags input (saves on Enter or blur). An intent signal card shows intent strength and suggested angle.
-result: skipped
-reason: No prospects in database to test with.
+result: pass
+note: Clicking test_saas_founder navigated to /prospects/daf7ee9a-cb30-442e-b9e2-bdcc089ddf43. Left column: 'Conversation history' with 'No messages yet'. Right column: contact info, Pipeline status 'Engaged' + Move-to dropdown, Notes textarea with 'Auto-saves on blur' hint, Tags input with chips and 'Save tags' button, 'Back to prospects' link.
 
 ### 13. CSV Export
 expected: On the /prospects page, clicking "Export CSV" downloads a file named with today's date (e.g. prospects-2026-04-21.csv) containing columns: handle, platform, pipeline_status, display_name, bio, notes, tags, created_at.
 result: pass
+note: Download triggered filename prospects-2026-04-21.csv with exact column order as spec. All 3 test prospects present with tags comma-separated ("hot-lead, saas", "buyer, q4").
 
 ### 14. /live Public Page (No Auth)
 expected: Visiting /live in an incognito window (no login) renders the page without a redirect. The page shows: repco logo + "Sign up free" button in a minimal header, a 6-metric stat bar (Posts scanned / Signals / Active users / DMs sent / Reply rate / Conversion rate), and an anonymized signal feed that refreshes every 10 seconds. No author handles, post URLs, or subreddit names are visible — only generic intent descriptions.
@@ -93,10 +94,10 @@ result: pass
 ## Summary
 
 total: 18
-passed: 12
+passed: 17
 issues: 1
 pending: 0
-skipped: 5
+skipped: 0
 
 ## Gaps
 
