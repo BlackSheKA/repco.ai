@@ -28,23 +28,24 @@ People who are actively looking for your product get a personalized, relevant DM
 - [x] FLLW-01 through FLLW-05: 3-touch follow-up sequences (day 3/7/14), auto-send toggle, cancellation — Validated in Phase 4: Sequences + Reply Detection
 - [x] RPLY-01 through RPLY-04: Reply detection via GoLogin + Playwright + Haiku vision, stop-on-reply, inbox failure tracking — Validated in Phase 4
 - [x] NTFY-01 through NTFY-03: Email notifications (reply alert, daily digest, account warning) via Resend + React Email — Validated in Phase 4
+- [x] Onboarding: 3-question flow (product, customer, competitor) with Claude keyword generation — Validated in Phase 5: Billing + Onboarding + Growth
+- [x] Prospect database: pipeline kanban (6 stages), CSV export, drag-drop — Validated in Phase 5
+- [x] /live page: public real-time feed of intent signals (10s polling) — Validated in Phase 5
+- [x] "Scan my product" landing hook: real Reddit search + rate-limited (3/hr) — Validated in Phase 5
+- [x] Weekly results card: 1200x630 OG image + X/LinkedIn share intents — Validated in Phase 5
+- [x] Stripe billing: 3 subscription tiers + 4 credit packs, hosted Checkout + webhook — Validated in Phase 5
+- [x] Credit economy: daily burn cron (monitoring + account) + action-level deduction — Validated in Phase 5
 
 ### Active
 
-- [ ] Onboarding: 3-question flow (product, customer, competitor) that auto-generates keywords and subreddits
 - [ ] Action engine: event-driven (Supabase DB Webhook -> Vercel Function -> GoLogin -> Playwright CDP -> Claude Haiku CU)
 - [ ] Human-in-the-loop: DM + public reply require approval; like + follow auto-approved
 - [ ] DM generation: Claude Sonnet 4.6, max 3 sentences, references specific post, quality control pass
 - [ ] Anti-ban system: GoLogin Cloud profiles, behavioral noise, warmup protocol (7 days), rate limiting
 - [ ] Dashboard: multi-column layout with persistent terminal header, agent card, intent feed, approval queue, results
-- [ ] Prospect database: pipeline kanban (detected -> engaged -> contacted -> replied -> converted -> rejected), CSV export
 - [ ] Account health monitoring: warmup progress, health status, daily limits
-- [ ] /live page: public real-time feed of intent signals (polling, no auth required)
-- [ ] "Scan my product" landing page hook: real Reddit search results before signup
-- [ ] Weekly results card: shareable 1200x630 image with stats
-- [ ] Stripe billing: subscription (monthly/quarterly/annual) + credit packs (one-time)
-- [ ] Credit economy: 3-layer (monitoring burn + account burn + action cost)
 - [ ] Warmup scheduler: 7-day progressive warmup protocol per account
+- [ ] LinkedIn integration (Phase 6)
 
 ### Out of Scope
 
@@ -92,4 +93,4 @@ People who are actively looking for your product get a personalized, relevant DM
 | Event-driven actions (DB Webhook) over polling | Zero empty invocations, fires only on user approval | — Pending |
 
 ---
-*Last updated: 2026-04-20 — Phase 4 Sequences + Reply Detection complete*
+*Last updated: 2026-04-21 — Phase 5 Billing + Onboarding + Growth complete (7/7 plans, 8/10 UAT tests pass + 2 partial; Stripe + Resend wired, products created in test + live mode, webhook endpoints live; trial-start UI button deferred to follow-up)*
