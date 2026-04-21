@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest"
+import { afterEach, describe, it, expect, vi } from "vitest"
 import { expireStaleActions } from "../expiry"
 
 function createMockSupabase(options: {
@@ -80,5 +80,42 @@ describe("expireStaleActions", () => {
 
     expect(result.expiredCount).toBe(1)
     expect(supabase.from).toHaveBeenCalledWith("prospects")
+  })
+
+  describe("12h expiry boundary", () => {
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it("does NOT expire an action created 11h59m ago", async () => {
+      const now = new Date("2024-01-01T12:00:00.000Z").getTime()
+      vi.useFakeTimers()
+      vi.setSystemTime(now)
+
+      // 11h59m ago = 719 minutes = 43140 seconds before now
+      // This is NEWER than the 12h cutoff — should not be expired
+      const supabase = createMockSupabase({ selectData: [] })
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await expireStaleActions(supabase as any)
+
+      expect(result.expiredCount).toBe(0)
+    })
+
+    it("DOES expire an action created 12h01m ago", async () => {
+      const now = new Date("2024-01-01T12:00:00.000Z").getTime()
+      vi.useFakeTimers()
+      vi.setSystemTime(now)
+
+      // 12h01m ago is OLDER than the 12h cutoff — should be expired
+      const supabase = createMockSupabase({
+        selectData: [{ id: "a-stale", prospect_id: "p-stale" }],
+      })
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await expireStaleActions(supabase as any)
+
+      expect(result.expiredCount).toBe(1)
+    })
   })
 })
