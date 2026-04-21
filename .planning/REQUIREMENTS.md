@@ -52,7 +52,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **ACTN-07**: System takes screenshot after action execution for verification
 - [x] **ACTN-08**: System limits Haiku CU to max 15 steps per action with stuck detection (3 identical screenshots = abort)
 - [x] **ACTN-09**: System enforces daily action limits per account (DM: 8, engage: 20, public reply: 5)
-- [x] **ACTN-10**: Action expires after 4h if not approved (post becomes stale)
+- [x] **ACTN-10**: Action expires after 12h if not approved (post becomes stale)
 
 ### Approval Queue
 
