@@ -1,0 +1,82 @@
+[
+  {
+    "url": "https://www.linkedin.com/posts/jane-smith_hiring-activity-7000000000000000001-abc1",
+    "text": "We're hiring a senior backend engineer to join our distributed platform team. You'll work on high-throughput data pipelines and API infrastructure. Drop a comment if you're interested or know someone great for the role!",
+    "postedAt": "2026-04-20T08:12:00.000Z",
+    "reactions": 42,
+    "comments": 7,
+    "author": {
+      "name": "Jane Smith",
+      "headline": "VP Engineering at Acme",
+      "company": "Acme Corp",
+      "profileUrl": "https://www.linkedin.com/in/jane-smith/",
+      "urn": "urn:li:person:abc123"
+    },
+    "postType": "post",
+    "contentLanguage": "en"
+  },
+  {
+    "url": "https://www.linkedin.com/posts/john-doe_ai-activity-7000000000000000002-abc2",
+    "text": "Hot take on #AI tooling!",
+    "postedAt": "2026-04-20T10:00:00.000Z",
+    "reactions": 5,
+    "comments": 1,
+    "author": {
+      "name": "John Doe",
+      "headline": "Indie Hacker",
+      "company": null,
+      "profileUrl": "https://www.linkedin.com/in/john-doe/",
+      "urn": "urn:li:person:def456"
+    },
+    "postType": "post",
+    "contentLanguage": "en"
+  },
+  {
+    "url": "https://www.linkedin.com/posts/sara-chen_building-ai-copilots-long-form-activity-7000000000000000003-abc3",
+    "text": "Long-form thoughts on building AI copilots for sales teams. Over the last year I've shipped three production systems that combine LLM routing with human approval queues. Here's what I learned about latency, cost, and user trust. @acme has nailed the human-in-the-loop pattern; others are still figuring it out.",
+    "postedAt": "2026-04-20T12:30:00.000Z",
+    "reactions": 120,
+    "comments": 22,
+    "author": {
+      "name": "Sara Chen",
+      "headline": "Founder at Copilot Labs",
+      "company": "Copilot Labs",
+      "profileUrl": "https://www.linkedin.com/in/sara-chen/",
+      "urn": "urn:li:person:ghi789"
+    },
+    "postType": "article",
+    "contentLanguage": "en"
+  },
+  {
+    "url": "https://www.linkedin.com/posts/alex-no-headline_product-activity-7000000000000000004-abc4",
+    "text": "Thinking about product-led growth strategies for B2B SaaS. The keyword here is ai and how to make it useful for buyers early in the funnel. What tools are you using?",
+    "postedAt": "2026-04-20T14:45:00.000Z",
+    "reactions": 18,
+    "comments": 3,
+    "author": {
+      "name": "Alex Park",
+      "headline": null,
+      "company": null,
+      "profileUrl": "https://www.linkedin.com/in/alex-park/",
+      "urn": "urn:li:person:jkl012"
+    },
+    "postType": "post",
+    "contentLanguage": "en"
+  },
+  {
+    "url": "https://www.linkedin.com/posts/mira-roy_saas-activity-7000000000000000005-abc5",
+    "text": "Looking for #SaaS tools that help with pipeline visibility. Anyone tried @Acme or a similar alternative? Would love recommendations from practitioners.",
+    "postedAt": "2026-04-20T16:20:00.000Z",
+    "reactions": 9,
+    "comments": 4,
+    "author": {
+      "name": "Mira Roy",
+      "headline": "Head of RevOps at ExampleCo",
+      "company": "ExampleCo",
+      "profileUrl": "https://www.linkedin.com/in/mira-roy/",
+      "urn": "urn:li:person:mno345"
+    },
+    "postType": "post",
+    "contentLanguage": "en"
+  }
+]

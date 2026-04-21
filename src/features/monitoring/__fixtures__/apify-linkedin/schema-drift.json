@@ -1,0 +1,30 @@
+[
+  {
+    "url": "https://www.linkedin.com/posts/drift-1_schemachange-activity-9000000000000000001-dr01",
+    "text": "Posted content without a headline on the author object (schema drift).",
+    "postedAt": "2026-04-20T10:00:00.000Z",
+    "reactions": 3,
+    "comments": 0,
+    "author": {
+      "name": "Drift One",
+      "company": null,
+      "profileUrl": "https://www.linkedin.com/in/drift-1/",
+      "urn": "urn:li:person:drift001"
+    },
+    "contentLanguage": "en"
+  },
+  {
+    "url": "https://www.linkedin.com/posts/drift-2_schemachange-activity-9000000000000000002-dr02",
+    "text": "Another post. Missing postType and headline — older actor build or degraded response.",
+    "postedAt": "2026-04-20T10:30:00.000Z",
+    "reactions": 1,
+    "comments": 0,
+    "author": {
+      "name": "Drift Two",
+      "company": "DriftCo",
+      "profileUrl": "https://www.linkedin.com/in/drift-2/",
+      "urn": "urn:li:person:drift002"
+    },
+    "contentLanguage": "en"
+  }
+]
