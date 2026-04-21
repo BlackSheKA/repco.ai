@@ -22,7 +22,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 8: Public Stats + Duplicate Digest Cleanup** (GAP CLOSURE) - live_stats write path (GROW-01), remove duplicate daily digest cron (completed 2026-04-21)
 - [x] **Phase 9: Cross-Platform Approval + Action Audit Trail** (GAP CLOSURE) - Platform-aware approval card + worker.ts job_logs column fix (completed 2026-04-21)
 - [x] **Phase 10: LinkedIn Outreach Execution** (GAP CLOSURE) - ONBR-05 GoLogin LinkedIn connection + connection_request executor arm (completed 2026-04-21)
-- [ ] **Phase 11: Nyquist Validation Compliance** (GAP CLOSURE) - Complete 6 VALIDATION.md files + retroactive Phase 6 VERIFICATION.md
+- [x] **Phase 11: Nyquist Validation Compliance** (GAP CLOSURE) - Complete 6 VALIDATION.md files + retroactive Phase 6 VERIFICATION.md (completed 2026-04-21)
 - [ ] **Phase 12: Trial Auto-Activation + Expiry Reconciliation** (GAP CLOSURE) - BILL-01 auto-trial + ACTN-10 expiry spec reconciliation
 
 ## Phase Details
@@ -255,5 +255,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 8. Public Stats + Duplicate Digest (GAP) | 4/4 | Complete   | 2026-04-21 |
 | 9. Cross-Platform Approval + Audit Trail (GAP) | 2/2 | Complete   | 2026-04-21 |
 | 10. LinkedIn Outreach Execution (GAP) | 4/4 | Complete    | 2026-04-21 |
-| 11. Nyquist Validation Compliance (GAP) | 0/0 | Pending | - |
+| 11. Nyquist Validation Compliance (GAP) | 0/0 | Complete    | 2026-04-21 |
 | 12. Trial Auto-Activation + Expiry (GAP) | 0/0 | Pending | - |
