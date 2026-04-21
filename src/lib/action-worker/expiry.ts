@@ -14,11 +14,12 @@ export async function expireStaleActions(
     Date.now() - 12 * 60 * 60 * 1000,
   ).toISOString()
 
-  // Find stale actions
+  // Find stale actions — connection_request rows do NOT expire (LinkedIn requests sit indefinitely).
   const { data: staleActions, error: selectError } = await supabase
     .from("actions")
     .select("id, prospect_id")
     .eq("status", "pending_approval")
+    .neq("action_type", "connection_request")
     .lt("created_at", twelveHoursAgo)
 
   if (selectError) {

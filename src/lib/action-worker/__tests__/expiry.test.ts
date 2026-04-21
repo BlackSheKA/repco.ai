@@ -25,9 +25,11 @@ function createMockSupabase(options: {
         return {
           select: vi.fn().mockReturnValue({
             eq: vi.fn().mockReturnValue({
-              lt: vi.fn().mockResolvedValue({
-                data: options.selectData,
-                error: options.selectError ?? null,
+              neq: vi.fn().mockReturnValue({
+                lt: vi.fn().mockResolvedValue({
+                  data: options.selectData,
+                  error: options.selectError ?? null,
+                }),
               }),
             }),
           }),
