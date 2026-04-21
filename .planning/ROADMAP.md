@@ -236,7 +236,12 @@ Plans:
   1. New user signup automatically sets `trial_ends_at` = signup + 3 days (via DB trigger, signup server action, or signup hook) without requiring a `/billing` visit
   2. Credit-burn cron applies to trial users from day 1 and trial expiration transitions work correctly
   3. ACTN-10 expiry is reconciled — either spec updated to 12h (current code behavior) or code reduced to 4h (original spec); decision documented and requirement checkbox state matches reality
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — Migration 00015: auto-trial trigger (handle_new_user + credit_transactions) + backfill existing users
+- [ ] 12-02-PLAN.md — ACTN-10 reconciliation: spec update to 12h + 12h boundary tests + audit row closure
+- [ ] 12-03-PLAN.md — Billing UI cleanup: delete startFreeTrial action, remove canStartTrial CTA from billing page
 
 ## Progress
 
