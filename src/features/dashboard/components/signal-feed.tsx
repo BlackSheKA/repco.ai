@@ -15,6 +15,7 @@ import {
   getFiltersFromParams,
   type Filters,
 } from "./filter-bar"
+import { StalenessBanner } from "./staleness-banner"
 import { useRealtimeSignals } from "../lib/use-realtime-signals"
 import {
   contactSignal,
@@ -213,7 +214,10 @@ export function SignalFeed({ initialSignals, userId }: SignalFeedProps) {
 
   return (
     <div>
-      <FilterBar filters={filters} onFiltersChange={setFilters} />
+      <StalenessBanner />
+      <div className="mt-2">
+        <FilterBar filters={filters} onFiltersChange={setFilters} />
+      </div>
 
       <div className="mt-4 flex flex-col gap-4">
         {isEmpty && isNoSignalsAtAll && (
