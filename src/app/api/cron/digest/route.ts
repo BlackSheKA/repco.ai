@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { formatInTimeZone } from "date-fns-tz"
-import { Resend } from "resend"
 
 import { logger } from "@/lib/logger"
+import { sendDailyDigest } from "@/features/notifications/lib/send-daily-digest"
 
 export const runtime = "nodejs"
 export const maxDuration = 60
@@ -14,60 +14,6 @@ interface UserRow {
   timezone: string | null
   subscription_active: boolean | null
   trial_ends_at: string | null
-}
-
-interface IntentSignalRow {
-  id: string
-  post_content: string | null
-  post_url: string | null
-  intent_strength: number | null
-}
-
-function buildHtml(opts: {
-  productName: string
-  signalCount: number
-  topSignal: IntentSignalRow | null
-  pendingCount: number
-  dashboardUrl: string
-}): string {
-  const { productName, signalCount, topSignal, pendingCount, dashboardUrl } =
-    opts
-
-  const excerpt =
-    topSignal?.post_content && topSignal.post_content.trim().length > 0
-      ? topSignal.post_content.replace(/\s+/g, " ").trim().slice(0, 100)
-      : null
-
-  const topSignalLine =
-    topSignal && excerpt
-      ? `<p style="margin:16px 0;color:#44403c;">Top signal: ${excerpt}${
-          excerpt.length === 100 ? "..." : ""
-        } (intent: ${topSignal.intent_strength ?? "?"}/10)</p>`
-      : ""
-
-  const pendingLine =
-    pendingCount > 0
-      ? `<p style="margin:16px 0;color:#44403c;">${pendingCount} DM${
-          pendingCount === 1 ? "" : "s"
-        } waiting for your approval</p>`
-      : ""
-
-  return `<!DOCTYPE html>
-<html>
-<body style="margin:0;padding:24px;font-family:Inter,Arial,sans-serif;background:#fafaf9;color:#1c1917;">
-  <div style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:8px;padding:32px;">
-    <h1 style="font-size:20px;font-weight:600;margin:0 0 16px 0;">Your ${productName} digest</h1>
-    <p style="margin:16px 0;color:#1c1917;">${signalCount} intent signal${
-      signalCount === 1 ? "" : "s"
-    } detected in the last 24 hours</p>
-    ${topSignalLine}
-    ${pendingLine}
-    <p style="margin:24px 0 0 0;">
-      <a href="${dashboardUrl}" style="display:inline-block;background:#4338CA;color:#ffffff;padding:10px 16px;border-radius:6px;text-decoration:none;font-weight:500;">View dashboard</a>
-    </p>
-  </div>
-</body>
-</html>`
 }
 
 export async function GET(request: Request) {
@@ -88,13 +34,6 @@ export async function GET(request: Request) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   )
-
-  const resendKey = process.env.RESEND_API_KEY
-  const resend = resendKey ? new Resend(resendKey) : null
-  const fromAddress =
-    process.env.RESEND_FROM_ADDRESS ?? "repco <noreply@repco.ai>"
-  const dashboardUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://repco.ai"
 
   let sent = 0
   let skipped = 0
@@ -128,9 +67,6 @@ export async function GET(request: Request) {
     const users = [...byId.values()]
 
     const now = new Date()
-    const twentyFourHoursAgoIso = new Date(
-      now.getTime() - 24 * 60 * 60 * 1000,
-    ).toISOString()
 
     for (const user of users) {
       try {
@@ -148,29 +84,39 @@ export async function GET(request: Request) {
           continue
         }
 
-        // Last 24h intent signals count
+        // Compute yesterday's TZ-aware boundaries for this user
+        const yesterdayDateStr = formatInTimeZone(
+          new Date(now.getTime() - 24 * 60 * 60 * 1000),
+          tz,
+          "yyyy-MM-dd",
+        )
+        const startOfYesterdayLocalUtc = new Date(
+          formatInTimeZone(
+            new Date(`${yesterdayDateStr}T00:00:00`),
+            tz,
+            "yyyy-MM-dd'T'HH:mm:ssXXX",
+          ),
+        ).toISOString()
+        const todayDateStr = formatInTimeZone(now, tz, "yyyy-MM-dd")
+        const endOfYesterdayLocalUtc = new Date(
+          formatInTimeZone(
+            new Date(`${todayDateStr}T00:00:00`),
+            tz,
+            "yyyy-MM-dd'T'HH:mm:ssXXX",
+          ),
+        ).toISOString()
+
+        // Yesterday's intent signals count
         const { count: signalCountRaw, error: signalCountErr } = await supabase
           .from("intent_signals")
           .select("id", { count: "exact", head: true })
           .eq("user_id", user.id)
-          .gte("detected_at", twentyFourHoursAgoIso)
+          .gte("detected_at", startOfYesterdayLocalUtc)
+          .lt("detected_at", endOfYesterdayLocalUtc)
 
         if (signalCountErr) throw signalCountErr
 
         const signalCount = signalCountRaw ?? 0
-
-        // Top signal by intent_strength in last 24h
-        const { data: topSignals, error: topErr } = await supabase
-          .from("intent_signals")
-          .select("id, post_content, post_url, intent_strength")
-          .eq("user_id", user.id)
-          .gte("detected_at", twentyFourHoursAgoIso)
-          .order("intent_strength", { ascending: false })
-          .limit(1)
-
-        if (topErr) throw topErr
-
-        const topSignal = (topSignals?.[0] as IntentSignalRow | undefined) ?? null
 
         // Pending DM approvals
         const { count: pendingCountRaw, error: pendingErr } = await supabase
@@ -183,6 +129,35 @@ export async function GET(request: Request) {
 
         const pendingCount = pendingCountRaw ?? 0
 
+        // Yesterday's replies
+        const { count: replyCountRaw } = await supabase
+          .from("prospects")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .gte("replied_detected_at", startOfYesterdayLocalUtc)
+          .lt("replied_detected_at", endOfYesterdayLocalUtc)
+
+        const replyCount = replyCountRaw ?? 0
+
+        // Top 3 signals by intent_strength from yesterday
+        const { data: topSignalsRaw, error: topErr } = await supabase
+          .from("intent_signals")
+          .select("post_content, post_url, intent_strength")
+          .eq("user_id", user.id)
+          .gte("detected_at", startOfYesterdayLocalUtc)
+          .lt("detected_at", endOfYesterdayLocalUtc)
+          .order("intent_strength", { ascending: false })
+          .limit(3)
+
+        if (topErr) throw topErr
+
+        const topSignals = (topSignalsRaw ?? []).map((s) => {
+          const match = s.post_url?.match(/reddit\.com\/r\/([^/]+)/)
+          const subreddit = match ? match[1] : "unknown"
+          const excerpt = (s.post_content ?? "").slice(0, 200)
+          return { excerpt, subreddit, intentStrength: s.intent_strength ?? 0 }
+        })
+
         // Product name
         const { data: profiles } = await supabase
           .from("product_profiles")
@@ -193,70 +168,20 @@ export async function GET(request: Request) {
         const productName = profiles?.[0]?.name ?? "your product"
 
         // Skip empty digests
-        if (signalCount === 0 && pendingCount === 0) {
+        if (signalCount === 0 && pendingCount === 0 && replyCount === 0) {
           skipped += 1
           continue
         }
 
-        const subject = `${signalCount} people looking for ${productName} yesterday`
-        const html = buildHtml({
-          productName,
-          signalCount,
-          topSignal,
-          pendingCount,
-          dashboardUrl,
-        })
-
-        if (resend) {
-          try {
-            const { error: sendErr } = await resend.emails.send({
-              from: fromAddress,
-              to: user.email,
-              subject,
-              html,
-            })
-            if (sendErr) throw sendErr
-
-            sent += 1
-
-            await supabase.from("job_logs").insert({
-              job_type: "monitor" as const,
-              status: "completed" as const,
-              user_id: user.id,
-              started_at: startedAt.toISOString(),
-              finished_at: new Date().toISOString(),
-              metadata: {
-                cron: "digest",
-                email: user.email,
-                signal_count: signalCount,
-                pending_count: pendingCount,
-                correlation_id: correlationId,
-              },
-            })
-          } catch (sendErr) {
-            failed += 1
-            logger.error("Digest send failed", {
-              correlationId,
-              userId: user.id,
-              error:
-                sendErr instanceof Error
-                  ? sendErr
-                  : new Error(String(sendErr)),
-              errorMessage:
-                sendErr instanceof Error ? sendErr.message : String(sendErr),
-            })
-          }
-        } else {
-          // Fallback: Resend not configured, log the digest payload
-          logger.info("Digest fallback (no RESEND_API_KEY)", {
-            correlationId,
-            userId: user.id,
-            email: user.email,
-            subject,
+        try {
+          await sendDailyDigest(user.email, {
             signalCount,
             pendingCount,
+            replyCount,
+            topSignals,
+            productName,
           })
-
+          sent += 1
           await supabase.from("job_logs").insert({
             job_type: "monitor" as const,
             status: "completed" as const,
@@ -265,23 +190,33 @@ export async function GET(request: Request) {
             finished_at: new Date().toISOString(),
             metadata: {
               cron: "digest",
-              mode: "fallback_log",
               email: user.email,
-              subject,
               signal_count: signalCount,
               pending_count: pendingCount,
+              reply_count: replyCount,
               correlation_id: correlationId,
             },
           })
-
-          sent += 1
+        } catch (sendErr) {
+          failed += 1
+          logger.error("Digest send failed", {
+            correlationId,
+            userId: user.id,
+            error:
+              sendErr instanceof Error
+                ? sendErr
+                : new Error(String(sendErr)),
+            errorMessage:
+              sendErr instanceof Error ? sendErr.message : String(sendErr),
+          })
         }
       } catch (userErr) {
         failed += 1
         logger.error("Digest failed for user", {
           correlationId,
           userId: user.id,
-          error: userErr instanceof Error ? userErr : new Error(String(userErr)),
+          error:
+            userErr instanceof Error ? userErr : new Error(String(userErr)),
           errorMessage:
             userErr instanceof Error ? userErr.message : String(userErr),
         })
