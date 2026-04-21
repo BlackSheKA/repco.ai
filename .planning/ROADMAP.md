@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: LinkedIn** - Apify LinkedIn integration (additive after Reddit proven end-to-end)
 - [x] **Phase 7: Reply Detection Fix** (GAP CLOSURE) - Handle normalization bug unblocking RPLY-02/03/04 + FLLW-04 cascade
 - [x] **Phase 8: Public Stats + Duplicate Digest Cleanup** (GAP CLOSURE) - live_stats write path (GROW-01), remove duplicate daily digest cron (completed 2026-04-21)
-- [ ] **Phase 9: Cross-Platform Approval + Action Audit Trail** (GAP CLOSURE) - Platform-aware approval card + worker.ts job_logs column fix
+- [x] **Phase 9: Cross-Platform Approval + Action Audit Trail** (GAP CLOSURE) - Platform-aware approval card + worker.ts job_logs column fix (completed 2026-04-21)
 - [ ] **Phase 10: LinkedIn Outreach Execution** (GAP CLOSURE) - ONBR-05 GoLogin LinkedIn connection + connection_request executor arm
 - [ ] **Phase 11: Nyquist Validation Compliance** (GAP CLOSURE) - Complete 6 VALIDATION.md files + retroactive Phase 6 VERIFICATION.md
 - [ ] **Phase 12: Trial Auto-Activation + Expiry Reconciliation** (GAP CLOSURE) - BILL-01 auto-trial + ACTN-10 expiry spec reconciliation
@@ -190,7 +190,7 @@ Plans:
   1. Approval card renders the correct platform badge (Reddit vs LinkedIn) and source label based on `action.platform` — no `r/null` regressions
   2. `worker.ts` writes to `job_logs` using schema-valid column names only; every action execution produces a `job_logs` row with duration, status, and correlation context
   3. Integration test or manual verification confirms action executions appear in `job_logs` queries
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 09-01-PLAN.md — Platform-aware approval card: LinkedIn badge (#0A66C2), no subreddit span, no u/ prefix
@@ -247,7 +247,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 6. LinkedIn | 1/1 | Complete | 2026-04-21 |
 | 7. Reply Detection Fix (GAP) | 0/1 | Pending | - |
 | 8. Public Stats + Duplicate Digest (GAP) | 4/4 | Complete   | 2026-04-21 |
-| 9. Cross-Platform Approval + Audit Trail (GAP) | 1/2 | In Progress|  |
+| 9. Cross-Platform Approval + Audit Trail (GAP) | 2/2 | Complete   | 2026-04-21 |
 | 10. LinkedIn Outreach Execution (GAP) | 0/0 | Pending | - |
 | 11. Nyquist Validation Compliance (GAP) | 0/0 | Pending | - |
 | 12. Trial Auto-Activation + Expiry (GAP) | 0/0 | Pending | - |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 09-01-PLAN.md
-last_updated: "2026-04-21T16:36:37.694Z"
+stopped_at: Completed 09-02-PLAN.md
+last_updated: "2026-04-21T16:39:08.909Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 12
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 40
-  completed_plans: 39
+  completed_plans: 40
 ---
 
 # Project State
@@ -85,6 +85,7 @@ Plan: 1 of 2
 | Phase 08-public-stats-digest-cleanup P03 | 2min | 2 tasks | 3 files |
 | Phase 08 P04 | 2min | 2 tasks | 3 files |
 | Phase 09 P01 | 2min | 1 tasks | 1 files |
+| Phase 09 P02 | 8min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -142,6 +143,8 @@ Recent decisions affecting current work:
 - [Phase 08]: Ported daily-digest superior features (React Email template, replyCount, top-3 signals, TZ-aware boundaries) into digest/route.ts and deleted daily-digest to eliminate duplicate 8am digest emails
 - [Phase 08]: Idempotency check placed before localHour — skip if last_digest_sent_at equals today in user TZ before computing hour; warn-not-throw on update failure since digest was already delivered
 - [Phase 09]: Inline ternary platformMeta switch for approval-card platform rendering (not Record lookup) — simpler for two-platform case
+- [Phase 09]: Active-hours re-queue stays before try block: deferred actions do not log to job_logs to keep OBSV-04 rate math clean
+- [Phase 09]: try/catch/finally with earlyReturn flag pattern: early-failure paths set shared runStatus/runError state and fall through to single finally job_logs insert
 
 ### Pending Todos
 
@@ -163,5 +166,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-21
-Stopped at: Completed 09-01-PLAN.md
+Stopped at: Completed 09-02-PLAN.md
 Resume file: None
