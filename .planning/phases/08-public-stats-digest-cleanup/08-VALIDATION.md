@@ -1,9 +1,9 @@
 ---
 phase: 8
 slug: public-stats-digest-cleanup
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: final
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-21
 ---
 
@@ -38,14 +38,14 @@ created: 2026-04-21
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 8-01-01 | 01 | 1 | GROW-01 | migration | `pnpm supabase db diff --linked` | ❌ W0 | ⬜ pending |
-| 8-01-02 | 01 | 1 | GROW-01 | sql-unit | `node scripts/phase-08-validate.mjs --live-stats-seed` | ❌ W0 | ⬜ pending |
-| 8-02-01 | 02 | 1 | GROW-01, GROW-02 | integration | `curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3001/api/cron/refresh-live-stats` | ❌ W0 | ⬜ pending |
-| 8-02-02 | 02 | 1 | GROW-01, GROW-02 | sql-assert | `node scripts/phase-08-validate.mjs --live-stats-fresh` | ❌ W0 | ⬜ pending |
-| 8-03-01 | 03 | 2 | NTFY-01, GROW-05 | static | `node scripts/phase-08-validate.mjs --vercel-crons` | ❌ W0 | ⬜ pending |
-| 8-03-02 | 03 | 2 | NTFY-01 | static | `test ! -d src/app/api/cron/daily-digest` | n/a | ⬜ pending |
-| 8-04-01 | 04 | 2 | NTFY-01 | integration | Manual: Resend dashboard count at 08:00 local for test user | manual | ⬜ pending |
-| 8-04-02 | 04 | 2 | NTFY-01 | idempotency | `node scripts/phase-08-validate.mjs --digest-idempotency` | ❌ W0 | ⬜ pending |
+| 8-01-01 | 01 | 1 | GROW-01 | migration | `pnpm supabase db diff --linked` | ✅ | ✅ green |
+| 8-01-02 | 01 | 1 | GROW-01 | sql-unit | `node scripts/phase-08-validate.mjs --live-stats-seed` | ✅ | ✅ green |
+| 8-02-01 | 02 | 1 | GROW-01, GROW-02 | integration | `curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3001/api/cron/refresh-live-stats` | ✅ | ✅ green |
+| 8-02-02 | 02 | 1 | GROW-01, GROW-02 | sql-assert | `node scripts/phase-08-validate.mjs --live-stats-fresh` | ✅ | ✅ green |
+| 8-03-01 | 03 | 2 | NTFY-01, GROW-05 | static | `node scripts/phase-08-validate.mjs --vercel-crons` | ✅ | ✅ green |
+| 8-03-02 | 03 | 2 | NTFY-01 | static | `test ! -d src/app/api/cron/daily-digest` | n/a | ✅ green |
+| 8-04-01 | 04 | 2 | NTFY-01 | integration | Manual: Resend dashboard count at 08:00 local for test user | manual | ✅ green |
+| 8-04-02 | 04 | 2 | NTFY-01 | idempotency | `node scripts/phase-08-validate.mjs --digest-idempotency` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -53,7 +53,7 @@ created: 2026-04-21
 
 ## Wave 0 Requirements
 
-- [ ] `scripts/phase-08-validate.mjs` — script runner with subcommands:
+- [x] `scripts/phase-08-validate.mjs` — script runner with subcommands:
   - `--live-stats-seed`: asserts 1 row in `live_stats` after migration
   - `--live-stats-fresh`: asserts `live_stats.updated_at > now() - interval '10 minutes'` after cron tick
   - `--vercel-crons`: parses vercel.json, asserts `/api/cron/daily-digest` absent and `/api/cron/refresh-live-stats` present
@@ -74,11 +74,11 @@ created: 2026-04-21
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** complete — all tasks verified

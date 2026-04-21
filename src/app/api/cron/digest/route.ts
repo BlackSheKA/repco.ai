@@ -14,6 +14,7 @@ interface UserRow {
   timezone: string | null
   subscription_active: boolean | null
   trial_ends_at: string | null
+  last_digest_sent_at: string | null // date string format: "YYYY-MM-DD"
 }
 
 export async function GET(request: Request) {
@@ -46,11 +47,15 @@ export async function GET(request: Request) {
     const [subRes, trialRes] = await Promise.all([
       supabase
         .from("users")
-        .select("id, email, timezone, subscription_active, trial_ends_at")
+        .select(
+          "id, email, timezone, subscription_active, trial_ends_at, last_digest_sent_at",
+        )
         .eq("subscription_active", true),
       supabase
         .from("users")
-        .select("id, email, timezone, subscription_active, trial_ends_at")
+        .select(
+          "id, email, timezone, subscription_active, trial_ends_at, last_digest_sent_at",
+        )
         .gt("trial_ends_at", nowIso),
     ])
 
@@ -71,6 +76,14 @@ export async function GET(request: Request) {
     for (const user of users) {
       try {
         const tz = user.timezone ?? "UTC"
+        const todayLocalDate = formatInTimeZone(now, tz, "yyyy-MM-dd")
+
+        // Skip if already sent digest today in user's timezone (idempotency guard)
+        if (user.last_digest_sent_at === todayLocalDate) {
+          skipped += 1
+          continue
+        }
+
         const localHour = parseInt(formatInTimeZone(now, tz, "H"), 10)
 
         // Only send if current hour in user timezone is 8
@@ -97,10 +110,9 @@ export async function GET(request: Request) {
             "yyyy-MM-dd'T'HH:mm:ssXXX",
           ),
         ).toISOString()
-        const todayDateStr = formatInTimeZone(now, tz, "yyyy-MM-dd")
         const endOfYesterdayLocalUtc = new Date(
           formatInTimeZone(
-            new Date(`${todayDateStr}T00:00:00`),
+            new Date(`${todayLocalDate}T00:00:00`),
             tz,
             "yyyy-MM-dd'T'HH:mm:ssXXX",
           ),
@@ -197,6 +209,18 @@ export async function GET(request: Request) {
               correlation_id: correlationId,
             },
           })
+          // Mark digest as sent for today (idempotency guard)
+          const { error: updateErr } = await supabase
+            .from("users")
+            .update({ last_digest_sent_at: todayLocalDate })
+            .eq("id", user.id)
+          if (updateErr) {
+            logger.warn("Failed to set last_digest_sent_at", {
+              correlationId,
+              userId: user.id,
+              error: updateErr.message,
+            })
+          }
         } catch (sendErr) {
           failed += 1
           logger.error("Digest send failed", {
