@@ -70,8 +70,6 @@ export default async function BillingPage({
   const trialDaysLeft = trialEndsAt
     ? Math.max(0, Math.ceil((trialEndsAt - now) / (24 * 60 * 60 * 1000)))
     : 0
-  const canStartTrial =
-    !subscriptionActive && !trialActive && !trialExpired && !trialEndsAt
 
   const currentPlanPriceId = billingPeriod
     ? (PRICING_PLANS.find((p) => p.period === billingPeriod)?.stripePriceId ??
@@ -135,7 +133,6 @@ export default async function BillingPage({
               packs={CREDIT_PACKS}
               currentPlanPriceId={currentPlanPriceId}
               subscriptionActive={subscriptionActive}
-              canStartTrial={canStartTrial}
               successParam={resolvedSearchParams.success}
               canceledParam={resolvedSearchParams.canceled}
             />

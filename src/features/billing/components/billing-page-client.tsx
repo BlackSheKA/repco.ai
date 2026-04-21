@@ -17,10 +17,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-import {
-  createCheckoutSession,
-  startFreeTrial,
-} from "@/features/billing/actions/checkout"
+import { createCheckoutSession } from "@/features/billing/actions/checkout"
 import { cancelSubscription } from "@/features/billing/actions/manage-subscription"
 import { PlanCard } from "@/features/billing/components/plan-card"
 import { CreditPackCard } from "@/features/billing/components/credit-pack-card"
@@ -35,7 +32,6 @@ interface BillingPageClientProps {
   packs: CreditPack[]
   currentPlanPriceId: string | null
   subscriptionActive: boolean
-  canStartTrial?: boolean
   successParam?: string
   canceledParam?: string
 }
@@ -47,7 +43,6 @@ export function BillingPageClient({
   plans,
   packs,
   currentPlanPriceId,
-  canStartTrial = false,
   successParam,
   canceledParam,
 }: BillingPageClientProps) {
@@ -96,19 +91,6 @@ export function BillingPageClient({
     })
   }
 
-  function handleStartTrial() {
-    startTransition(async () => {
-      try {
-        await startFreeTrial()
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err)
-        if (!message.includes("NEXT_REDIRECT")) {
-          toast.error(`Could not start trial: ${message}`)
-        }
-      }
-    })
-  }
-
   function handleCancel() {
     startTransition(async () => {
       try {
@@ -131,27 +113,6 @@ export function BillingPageClient({
   if (view === "plans") {
     return (
       <div className="flex flex-col gap-4">
-        {canStartTrial && (
-          <Card className="border-primary/40 bg-primary/5">
-            <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-medium">
-                  Try repco free for 3 days
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  500 credits, no card required.
-                </p>
-              </div>
-              <Button
-                size="sm"
-                onClick={handleStartTrial}
-                disabled={isPending}
-              >
-                Start free trial
-              </Button>
-            </CardContent>
-          </Card>
-        )}
         <div className="flex items-center gap-2 rounded-md border bg-muted/40 p-1 self-start">
           {(["monthly", "quarterly", "annual"] as BillingPeriod[]).map(
             (period) => (
