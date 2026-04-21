@@ -58,7 +58,8 @@ PRD/                          # Product requirements docs
 - **Language**: TypeScript 5.9 (strict mode), path alias `@/*` → `./src/*`
 - **React**: 19 with Server Components
 - **Styling**: Tailwind CSS v4 (PostCSS plugin), dark/light mode via next-themes
-- **UI**: shadcn/ui (radix-nova preset), Lucide + Phosphor icons
+- **UI**: shadcn/ui (preset b3QwALGmg, radix-nova style), Lucide + Phosphor icons
+  - **ALWAYS use native shadcn/ui components first** (Sidebar, Sheet, Dialog, etc.) — only build custom components when no native shadcn equivalent exists
 - **Database**: Supabase (PostgreSQL + RLS + Auth + Storage)
 - **Auth**: Supabase Auth (Google OAuth + magic links)
 - **Observability**: Sentry (error tracking) + Axiom (structured logging) + correlation IDs
@@ -71,7 +72,7 @@ PRD/                          # Product requirements docs
 ## Key Commands
 
 ```bash
-pnpm dev              # Dev server (Turbopack)
+pnpm dev --port 3001  # Dev server (Turbopack) — always use port 3001 (Supabase redirect URLs configured for 3001)
 pnpm build            # Production build
 pnpm start            # Start production server
 pnpm lint             # ESLint
@@ -88,6 +89,9 @@ pnpm typecheck        # TypeScript type check (tsc --noEmit)
 - Server actions (`"use server"`) for sign in/out mutations
 
 ### Supabase Integration
+- **Prod project**: `cmkifdwjunojgigrqwnr` (West US Oregon)
+- **Dev branch**: `dvmfeswlhlbgzqhtoytl` (inherits auth config from prod)
+- **Management API**: `SUPABASE_ACCESS_TOKEN` env var available for API calls; use `--ssl-no-revoke` with curl on Windows
 - **Server components/API routes**: `createClient()` from `lib/supabase/server.ts` (cookie-based SSR)
 - **Client components**: `createClient()` from `lib/supabase/client.ts` (browser client)
 - **Middleware**: `updateSession()` from `lib/supabase/middleware.ts` (token refresh)
