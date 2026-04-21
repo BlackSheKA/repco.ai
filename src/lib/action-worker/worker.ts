@@ -15,6 +15,7 @@ import {
   getRedditLikePrompt,
   getRedditFollowPrompt,
 } from "@/lib/computer-use/actions/reddit-engage"
+import { getLinkedInConnectPrompt } from "@/lib/computer-use/actions/linkedin-connect"
 import { claimAction } from "./claim"
 import { checkAndIncrementLimit } from "./limits"
 import { checkAndAssignTarget } from "./target-isolation"
@@ -96,6 +97,8 @@ export async function executeAction(
   try {
     // Early-return flag: set to non-null to short-circuit remaining pipeline steps
     let earlyReturn: { success: boolean; error?: string } | null = null
+    // LinkedIn profile handle stashed from step 10 navigation (for use in step 12)
+    let linkedinProfileHandle: string | null = null
 
     // 5. Check GoLogin profile (failed accounts log via finally block)
     if (!account?.gologin_profile_id) {
@@ -116,7 +119,12 @@ export async function executeAction(
       )
       if (
         !warmup.allowedActions.includes(
-          action.action_type as "dm" | "like" | "follow" | "public_reply",
+          action.action_type as
+            | "dm"
+            | "like"
+            | "follow"
+            | "public_reply"
+            | "connection_request",
         )
       ) {
         runError = `Warmup day ${warmup.day}: ${action.action_type} not yet allowed`
@@ -197,11 +205,38 @@ export async function executeAction(
       return { success: false, error: "GoLogin connection failed" }
     }
 
-    // 10. Navigate to Reddit
-    await connection.page.goto("https://www.reddit.com", {
-      waitUntil: "domcontentloaded",
-      timeout: 30000,
-    })
+    // 10. Navigate to starting URL (platform-specific)
+    if (
+      account!.platform === "linkedin" &&
+      action.action_type === "connection_request"
+    ) {
+      // For LinkedIn connections, navigate directly to the prospect's profile.
+      // profile_url is stored from Apify ingestion in Phase 6.
+      const { data: prospectData } = await supabase
+        .from("prospects")
+        .select("handle, profile_url")
+        .eq("id", action.prospect_id)
+        .single()
+      const profileUrl = (prospectData?.profile_url as string | null) ?? null
+      if (!profileUrl) {
+        runError =
+          "No profile_url on prospect — cannot navigate to LinkedIn profile"
+        runStatus = "failed"
+        await updateActionStatus(supabase, actionId, "failed", runError)
+        return { success: false, error: runError }
+      }
+      await connection.page.goto(profileUrl, {
+        waitUntil: "domcontentloaded",
+        timeout: 30000,
+      })
+      // Stash for prompt building in step 12
+      linkedinProfileHandle = (prospectData?.handle as string | null) ?? null
+    } else {
+      await connection.page.goto("https://www.reddit.com", {
+        waitUntil: "domcontentloaded",
+        timeout: 30000,
+      })
+    }
 
     // 11. ANTI-BAN: Inject behavioral noise before real action (ABAN-04)
     if (shouldInjectNoise()) {
@@ -238,6 +273,13 @@ export async function executeAction(
       prompt = getRedditLikePrompt((signal?.post_url as string) ?? "")
     } else if (action.action_type === "follow") {
       prompt = getRedditFollowPrompt(handle)
+    } else if (action.action_type === "connection_request") {
+      // handle already fetched in step 10 (profile navigation); use local var
+      const slug = linkedinProfileHandle ?? handle
+      prompt = getLinkedInConnectPrompt(
+        slug,
+        action.final_content ?? action.drafted_content ?? "",
+      )
     } else {
       prompt = `Perform a public reply action for ${handle}`
     }
@@ -333,6 +375,11 @@ export async function executeAction(
           .from("prospects")
           .update({ pipeline_status: "engaged" })
           .eq("id", action.prospect_id)
+      } else if (action.action_type === "connection_request") {
+        await supabase
+          .from("prospects")
+          .update({ pipeline_status: "contacted" })
+          .eq("id", action.prospect_id)
       }
     } else {
       runStatus = "failed"
@@ -343,6 +390,48 @@ export async function executeAction(
         "failed",
         runError,
       )
+
+      // LinkedIn-specific failure mode handling
+      if (action.action_type === "connection_request" && runError) {
+        if (
+          runError === "security_checkpoint" ||
+          runError === "session_expired"
+        ) {
+          // Transition account to warning + log for NTFY-03 alert
+          await supabase
+            .from("social_accounts")
+            .update({ health_status: "warning" })
+            .eq("id", action.account_id)
+          logger.warn("LinkedIn account health degraded", {
+            actionId,
+            correlationId,
+            accountId: action.account_id,
+            failureMode: runError,
+          })
+        } else if (runError === "weekly_limit_reached") {
+          // Expected LinkedIn throttle — set cooldown_until = now + 24h, no health change
+          const cooldownUntil = new Date(
+            Date.now() + 24 * 60 * 60 * 1000,
+          ).toISOString()
+          await supabase
+            .from("social_accounts")
+            .update({ cooldown_until: cooldownUntil })
+            .eq("id", action.account_id)
+          logger.info("LinkedIn weekly limit reached — cooldown 24h set", {
+            actionId,
+            correlationId,
+            accountId: action.account_id,
+            cooldownUntil,
+          })
+        } else if (runError === "already_connected") {
+          // Prospect is already a 1st-degree connection — mark pipeline accordingly
+          await supabase
+            .from("prospects")
+            .update({ pipeline_status: "connected" })
+            .eq("id", action.prospect_id)
+        }
+        // profile_unreachable: no health change, failure is prospect-level
+      }
     }
 
     return { success: result.success, error: result.error }
@@ -371,6 +460,10 @@ export async function executeAction(
         ...(cuSteps !== null ? { cu_steps: cuSteps } : {}),
         ...(screenshotCount !== null
           ? { screenshot_count: screenshotCount }
+          : {}),
+        // Include failure_mode for LinkedIn connection_request failures for ops slicing
+        ...(runActionType === "connection_request" && runError
+          ? { failure_mode: runError }
           : {}),
       },
     })
