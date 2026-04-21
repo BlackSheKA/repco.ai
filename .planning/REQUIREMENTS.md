@@ -20,7 +20,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Monitoring
 
 - [ ] **MNTR-01**: System scans Reddit every 15 minutes for posts matching user's keywords and subreddits via snoowrap
-- [ ] **MNTR-02**: System scans LinkedIn every 2-4 hours for posts matching user's keywords via Apify
+- [x] **MNTR-02**: System scans LinkedIn every 2-4 hours for posts matching user's keywords via Apify
 - [x] **MNTR-03**: System applies structural matching (keyword, regex, competitor mention) to filter ~80-90% of signals at zero AI cost
 - [x] **MNTR-04**: System classifies ambiguous signals (~10-20%) using Claude Sonnet with intent_type, intent_strength (1-10), reasoning, and suggested_angle
 - [ ] **MNTR-05**: System deduplicates signals by post_url (UNIQUE constraint) and filters posts older than 48h
@@ -276,7 +276,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PRSP-05 | Phase 5 | Complete |
 | PRSP-06 | Phase 5 | Complete |
 | DASH-04 | Phase 5 | Complete |
-| MNTR-02 | Phase 6 | Pending |
+| MNTR-02 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 98 total

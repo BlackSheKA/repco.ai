@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Action Engine** - GoLogin + Playwright + Haiku CU action execution, approval queue, anti-ban system, account management
 - [ ] **Phase 4: Sequences + Reply Detection** - 3-touch follow-up sequences, inbox reply detection, email notifications
 - [x] **Phase 5: Billing + Onboarding + Growth** - Stripe subscription + credit economy, 3-question onboarding, landing hook, /live page, prospect pipeline
-- [ ] **Phase 6: LinkedIn** - Apify LinkedIn integration (additive after Reddit proven end-to-end)
+- [x] **Phase 6: LinkedIn** - Apify LinkedIn integration (additive after Reddit proven end-to-end)
 
 ## Phase Details
 
@@ -139,7 +139,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 06-01: Apify actor integration, LinkedIn signal ingestion, staleness alerting, feed integration
+- [x] 06-01: Apify actor integration, LinkedIn signal ingestion, staleness alerting, feed integration
 
 ## Progress
 
@@ -153,4 +153,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Action Engine | 3/6 | In Progress|  |
 | 4. Sequences + Reply Detection | 2/5 | In Progress|  |
 | 5. Billing + Onboarding + Growth | 5/7 | In Progress | - |
-| 6. LinkedIn | 0/1 | Not started | - |
+| 6. LinkedIn | 1/1 | Complete | 2026-04-21 |
