@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 08-03-PLAN.md
-last_updated: "2026-04-21T16:11:45.293Z"
+stopped_at: Completed 08-04-PLAN.md
+last_updated: "2026-04-21T16:15:24.439Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 12
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 38
-  completed_plans: 37
+  completed_plans: 38
 ---
 
 # Project State
@@ -83,6 +83,7 @@ Plan: 2 of 4
 | Phase 08 P01 | 2min | 2 tasks | 2 files |
 | Phase 08 P02 | 12min | 2 tasks | 2 files |
 | Phase 08-public-stats-digest-cleanup P03 | 2min | 2 tasks | 3 files |
+| Phase 08 P04 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -138,6 +139,7 @@ Recent decisions affecting current work:
 - [Phase 08]: Phase-08 validation script as ESM .mjs with named subcommand flags, exits 0/1, PASS/FAIL prefixed output — no transpile step
 - [Phase 08]: [Phase 08 P02]: Fetch intent_signals rows (not COUNT) to derive signals_last_hour + signals_last_24h + active_users in one DB round-trip; onConflict: id UPSERT on fixed LIVE_STATS_ID; refresh-live-stats grouped with zombie-recovery at */5 * * * * in vercel.json
 - [Phase 08]: Ported daily-digest superior features (React Email template, replyCount, top-3 signals, TZ-aware boundaries) into digest/route.ts and deleted daily-digest to eliminate duplicate 8am digest emails
+- [Phase 08]: Idempotency check placed before localHour — skip if last_digest_sent_at equals today in user TZ before computing hour; warn-not-throw on update failure since digest was already delivered
 
 ### Pending Todos
 
@@ -159,5 +161,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-21
-Stopped at: Completed 08-03-PLAN.md
+Stopped at: Completed 08-04-PLAN.md
 Resume file: None
