@@ -208,7 +208,13 @@ Plans:
   4. `ActionType` TypeScript union includes `connection_request` (compile-time safety)
   5. `get_action_credit_cost` SQL returns the documented credit cost for `connection_request`
   6. End-to-end: approved LinkedIn `connection_request` action transitions from `pending_approval` → `sent` with `job_logs` audit trail
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — TypeScript type extensions: ActionType, ActionCreditType, CREDIT_COSTS, WarmupState
+- [ ] 10-02-PLAN.md — Migration 00014: daily_connection_limit + connection_count columns + updated check_and_increment_limit
+- [ ] 10-03-PLAN.md — LinkedIn connection flow UX: platform-aware copy + 2FA guidance
+- [ ] 10-04-PLAN.md — Worker executor arm: linkedin-connect.ts CU prompt + connection_request case in worker.ts
 
 ### Phase 11: Nyquist Validation Compliance
 **Goal**: All 6 milestone phases have production-ready VALIDATION.md (`status: final`, `nyquist_compliant: true`) and Phase 6 has a retroactive VERIFICATION.md
@@ -248,6 +254,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 7. Reply Detection Fix (GAP) | 0/1 | Pending | - |
 | 8. Public Stats + Duplicate Digest (GAP) | 4/4 | Complete   | 2026-04-21 |
 | 9. Cross-Platform Approval + Audit Trail (GAP) | 2/2 | Complete   | 2026-04-21 |
-| 10. LinkedIn Outreach Execution (GAP) | 0/0 | Pending | - |
+| 10. LinkedIn Outreach Execution (GAP) | 0/4 | Planned | - |
 | 11. Nyquist Validation Compliance (GAP) | 0/0 | Pending | - |
 | 12. Trial Auto-Activation + Expiry (GAP) | 0/0 | Pending | - |
