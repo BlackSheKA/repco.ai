@@ -8,7 +8,7 @@
  * - Computer Use execution results
  */
 
-export type ActionType = "like" | "follow" | "public_reply" | "dm" | "followup_dm"
+export type ActionType = "like" | "follow" | "public_reply" | "dm" | "followup_dm" | "connection_request"
 
 export type ActionStatus =
   | "pending_approval"
