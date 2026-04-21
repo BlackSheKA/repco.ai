@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-04-21T15:48:10.258Z"
+stopped_at: Completed 08-02-PLAN.md
+last_updated: "2026-04-21T15:57:58.429Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 12
   completed_phases: 7
   total_plans: 38
-  completed_plans: 35
+  completed_plans: 36
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-04-16)
 ## Current Position
 
 Phase: 08 (public-stats-digest-cleanup) — EXECUTING
-Plan: 1 of 4
+Plan: 2 of 4
 
 ## Performance Metrics
 
@@ -81,6 +81,7 @@ Plan: 1 of 4
 | Phase 06 P01 | 45min | 11 tasks | 28 files |
 | Phase 07 P01 | 11min | 3 tasks | 5 files |
 | Phase 08 P01 | 2min | 2 tasks | 2 files |
+| Phase 08 P02 | 12min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -134,6 +135,7 @@ Recent decisions affecting current work:
 - [Phase 07]: [Phase 07 P01]: Normalize-at-compare-boundary (no data migration); shared normalizeHandle util called on BOTH sides of equality; production-shaped u/-prefixed test fixtures + named RPLY-02 regression test; integration test mocks Sentry/GoLogin/Anthropic/Resend/logger but exercises REAL matchReplyToProspect + handleReplyDetected
 - [Phase 08]: Fixed UUID '00000000-0000-0000-0000-000000000001' for live_stats seed row to guarantee deterministic UPSERT in refresh-live-stats cron
 - [Phase 08]: Phase-08 validation script as ESM .mjs with named subcommand flags, exits 0/1, PASS/FAIL prefixed output — no transpile step
+- [Phase 08]: [Phase 08 P02]: Fetch intent_signals rows (not COUNT) to derive signals_last_hour + signals_last_24h + active_users in one DB round-trip; onConflict: id UPSERT on fixed LIVE_STATS_ID; refresh-live-stats grouped with zombie-recovery at */5 * * * * in vercel.json
 
 ### Pending Todos
 
@@ -155,5 +157,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-21
-Stopped at: Completed 08-01-PLAN.md
+Stopped at: Completed 08-02-PLAN.md
 Resume file: None
