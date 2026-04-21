@@ -158,7 +158,10 @@ Plans:
   3. Reply alert email (RPLY-03) dispatches within 10 minutes of reply detection
   4. Realtime reply push (RPLY-04) fires on the `use-realtime-replies` subscription
   5. Reply-matching unit tests use production-shaped handle fixtures (`u/` prefix) so the bug cannot regress silently
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 07-01-PLAN.md — Extract normalizeHandle util + patch matchReplyToProspect + integration test for full cascade (RPLY-02/03/04 + FLLW-04)
 
 ### Phase 8: Public Stats + Duplicate Digest Cleanup
 **Goal**: `/live` aggregate stats show real numbers (not zeros) and users receive exactly one daily digest email per day
@@ -232,7 +235,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 4. Sequences + Reply Detection | 2/5 | In Progress|  |
 | 5. Billing + Onboarding + Growth | 5/7 | In Progress | - |
 | 6. LinkedIn | 1/1 | Complete | 2026-04-21 |
-| 7. Reply Detection Fix (GAP) | 0/0 | Pending | - |
+| 7. Reply Detection Fix (GAP) | 0/1 | Pending | - |
 | 8. Public Stats + Duplicate Digest (GAP) | 0/0 | Pending | - |
 | 9. Cross-Platform Approval + Audit Trail (GAP) | 0/0 | Pending | - |
 | 10. LinkedIn Outreach Execution (GAP) | 0/0 | Pending | - |
