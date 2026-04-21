@@ -28,11 +28,11 @@ function buildSupabase(
 }
 
 describe("matchReplyToProspect", () => {
-  it("matches reply sender to prospect by lowercase handle", async () => {
+  it("matches Reddit reply when stored handle has u/ prefix (RPLY-02 regression)", async () => {
     const supabase = buildSupabase([
       {
         id: "prospect-1",
-        handle: "testuser123",
+        handle: "u/testuser123",
         user_id: "user-1",
         pipeline_status: "contacted",
       },
@@ -40,30 +40,64 @@ describe("matchReplyToProspect", () => {
 
     const result = await matchReplyToProspect(
       supabase,
-      "TestUser123",
+      "testuser123",
       "reddit",
       "user-1",
     )
 
     expect(result).not.toBeNull()
     expect(result?.prospectId).toBe("prospect-1")
-    expect(result?.prospectHandle).toBe("testuser123")
+    expect(result?.prospectHandle).toBe("u/testuser123")
     expect(result?.userId).toBe("user-1")
   })
 
-  it("matches on handle + platform + user_id tuple", async () => {
-    // Only one prospect returned because DB filter is user_id + platform
-    // This test verifies the correct tuple-match prospect is returned
+  it("matches when both sender and stored handle have u/ prefix (case-insensitive)", async () => {
+    const supabase = buildSupabase([
+      {
+        id: "p1",
+        handle: "u/Alice",
+        user_id: "u1",
+        pipeline_status: "contacted",
+      },
+    ])
+
+    const result = await matchReplyToProspect(supabase, "u/alice", "reddit", "u1")
+
+    expect(result?.prospectId).toBe("p1")
+    expect(result?.prospectHandle).toBe("u/Alice")
+  })
+
+  it("matches U/Mixed sender against u/lowercase stored handle", async () => {
+    const supabase = buildSupabase([
+      {
+        id: "p1",
+        handle: "u/mixedcaseuser",
+        user_id: "u1",
+        pipeline_status: "contacted",
+      },
+    ])
+
+    const result = await matchReplyToProspect(
+      supabase,
+      "U/MixedCaseUser",
+      "reddit",
+      "u1",
+    )
+
+    expect(result?.prospectId).toBe("p1")
+  })
+
+  it("returns the correct prospect when multiple share user_id + platform", async () => {
     const supabase = buildSupabase([
       {
         id: "prospect-a",
-        handle: "alice",
+        handle: "u/alice",
         user_id: "user-1",
         pipeline_status: "contacted",
       },
       {
         id: "prospect-b",
-        handle: "bob",
+        handle: "u/bob",
         user_id: "user-1",
         pipeline_status: "contacted",
       },
@@ -77,14 +111,14 @@ describe("matchReplyToProspect", () => {
     )
 
     expect(result?.prospectId).toBe("prospect-b")
-    expect(result?.prospectHandle).toBe("bob")
+    expect(result?.prospectHandle).toBe("u/bob")
   })
 
-  it("returns null for unmatched sender", async () => {
+  it("returns null when sender does not match any prospect", async () => {
     const supabase = buildSupabase([
       {
         id: "prospect-1",
-        handle: "someone-else",
+        handle: "u/someone-else",
         user_id: "user-1",
         pipeline_status: "contacted",
       },
@@ -100,8 +134,7 @@ describe("matchReplyToProspect", () => {
     expect(result).toBeNull()
   })
 
-  it("skips prospects already in replied status", async () => {
-    // DB filter neq('replied') excludes them; mock honors that by returning []
+  it("returns null when DB filter yields no candidates", async () => {
     const supabase = buildSupabase([])
 
     const result = await matchReplyToProspect(
@@ -114,11 +147,11 @@ describe("matchReplyToProspect", () => {
     expect(result).toBeNull()
   })
 
-  it("handles case-insensitive Reddit handles with u/ prefix", async () => {
+  it("returns null without throwing when a prospect row has null handle", async () => {
     const supabase = buildSupabase([
       {
         id: "prospect-1",
-        handle: "myuser",
+        handle: null,
         user_id: "user-1",
         pipeline_status: "contacted",
       },
@@ -126,12 +159,26 @@ describe("matchReplyToProspect", () => {
 
     const result = await matchReplyToProspect(
       supabase,
-      "U/MyUser",
+      "alice",
       "reddit",
       "user-1",
     )
 
-    expect(result).not.toBeNull()
-    expect(result?.prospectId).toBe("prospect-1")
+    expect(result).toBeNull()
+  })
+
+  it("returns null for empty sender handle", async () => {
+    const supabase = buildSupabase([
+      {
+        id: "prospect-1",
+        handle: "u/alice",
+        user_id: "user-1",
+        pipeline_status: "contacted",
+      },
+    ])
+
+    const result = await matchReplyToProspect(supabase, "", "reddit", "user-1")
+
+    expect(result).toBeNull()
   })
 })
