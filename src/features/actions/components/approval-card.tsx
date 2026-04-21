@@ -28,6 +28,19 @@ export function ApprovalCard({
   const { action, signal } = data
   const author = signal.author_handle ?? "unknown"
 
+  const platformMeta =
+    signal.platform === "linkedin"
+      ? {
+          badgeColor: "#0A66C2",
+          badgeLabel: "LinkedIn",
+          authorPrefix: "",
+        }
+      : {
+          badgeColor: "#FF4500",
+          badgeLabel: "Reddit",
+          authorPrefix: "u/",
+        }
+
   const [isEditing, setIsEditing] = useState(false)
   const [editedContent, setEditedContent] = useState(
     action.drafted_content ?? "",
@@ -80,8 +93,19 @@ export function ApprovalCard({
       {/* Top row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Badge className="h-6 rounded-full bg-[#FF4500] text-sm font-medium text-white hover:bg-[#FF4500]/90">
-            Reddit
+          <Badge
+            className="h-6 rounded-full text-sm font-medium text-white"
+            style={{ backgroundColor: platformMeta.badgeColor }}
+            onMouseOver={(e) =>
+              ((e.currentTarget as HTMLElement).style.backgroundColor =
+                platformMeta.badgeColor + "e6")
+            }
+            onMouseOut={(e) =>
+              ((e.currentTarget as HTMLElement).style.backgroundColor =
+                platformMeta.badgeColor)
+            }
+          >
+            {platformMeta.badgeLabel}
           </Badge>
           {signal.subreddit && (
             <span className="text-sm font-medium text-muted-foreground">
@@ -89,7 +113,9 @@ export function ApprovalCard({
             </span>
           )}
           <span className="text-muted-foreground">&middot;</span>
-          <span className="text-sm text-muted-foreground">u/{author}</span>
+          <span className="text-sm text-muted-foreground">
+            {platformMeta.authorPrefix}{author}
+          </span>
         </div>
         <span className="text-sm text-muted-foreground">
           {action.created_at
