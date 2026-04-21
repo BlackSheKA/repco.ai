@@ -51,7 +51,7 @@ export interface WarmupState {
   maxDay: 7
   completed: boolean
   skipped: boolean
-  allowedActions: ("browse" | "like" | "follow" | "public_reply" | "dm")[]
+  allowedActions: ("browse" | "like" | "follow" | "public_reply" | "dm" | "connection_request")[]
 }
 
 /**
@@ -74,11 +74,11 @@ export function getWarmupState(
   let allowedActions: WarmupState["allowedActions"] = ["browse"]
 
   if (completed || warmupDay >= 8) {
-    allowedActions = ["browse", "like", "follow", "public_reply", "dm"]
+    allowedActions = ["browse", "like", "follow", "public_reply", "dm", "connection_request"]
   } else if (warmupDay >= 6) {
     allowedActions = ["browse", "like", "follow", "public_reply"]
   } else if (warmupDay >= 4) {
-    allowedActions = ["browse", "like", "follow"]
+    allowedActions = ["browse", "like", "follow", "connection_request"]
   }
 
   return { day: warmupDay, maxDay: 7, completed, skipped, allowedActions }
