@@ -190,7 +190,7 @@ Plans:
   1. Approval card renders the correct platform badge (Reddit vs LinkedIn) and source label based on `action.platform` — no `r/null` regressions
   2. `worker.ts` writes to `job_logs` using schema-valid column names only; every action execution produces a `job_logs` row with duration, status, and correlation context
   3. Integration test or manual verification confirms action executions appear in `job_logs` queries
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 09-01-PLAN.md — Platform-aware approval card: LinkedIn badge (#0A66C2), no subreddit span, no u/ prefix
@@ -247,7 +247,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 6. LinkedIn | 1/1 | Complete | 2026-04-21 |
 | 7. Reply Detection Fix (GAP) | 0/1 | Pending | - |
 | 8. Public Stats + Duplicate Digest (GAP) | 4/4 | Complete   | 2026-04-21 |
-| 9. Cross-Platform Approval + Audit Trail (GAP) | 0/2 | Pending | - |
+| 9. Cross-Platform Approval + Audit Trail (GAP) | 1/2 | In Progress|  |
 | 10. LinkedIn Outreach Execution (GAP) | 0/0 | Pending | - |
 | 11. Nyquist Validation Compliance (GAP) | 0/0 | Pending | - |
 | 12. Trial Auto-Activation + Expiry (GAP) | 0/0 | Pending | - |
