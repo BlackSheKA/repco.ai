@@ -6,6 +6,10 @@
       "schedule": "*/5 * * * *"
     },
     {
+      "path": "/api/cron/refresh-live-stats",
+      "schedule": "*/5 * * * *"
+    },
+    {
       "path": "/api/cron/monitor-reddit",
       "schedule": "*/15 * * * *"
     },
