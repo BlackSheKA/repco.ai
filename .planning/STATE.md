@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-04-21T17:30:30.000Z"
+stopped_at: Completed 12-03-PLAN.md
+last_updated: "2026-04-21T17:33:49.060Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 12
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 47
-  completed_plans: 47
+  completed_plans: 48
 ---
 
 # Project State
@@ -91,6 +91,7 @@ Plan: 2 of 3
 | Phase 10-linkedin-outreach-execution P04 | 2min | 3 tasks | 3 files |
 | Phase 12 P01 | 3 | 1 tasks | 1 files |
 | Phase 12 P02 | 5min | 2 tasks | 3 files |
+| Phase 12 P03 | 2min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -154,6 +155,7 @@ Recent decisions affecting current work:
 - [Phase 10]: connection_request allowed from warmup day 4+ (same threshold as like/follow); credit cost 20 per BILL-06
 - [Phase 10]: linkedin-connect.ts prompt always uses Add a note path; already_connected sets pipeline_status=connected; weekly_limit_reached sets cooldown_until only (no health change); security_checkpoint/session_expired set health_status=warning
 - [Phase 12]: Used CREATE OR REPLACE FUNCTION on handle_new_user() — trigger DDL from 00004 unchanged, only body replaced
+- [Phase 12]: Removed startFreeTrial action and canStartTrial CTA — trial activation now fully via DB trigger from 12-01
 
 ### Pending Todos
 
@@ -175,5 +177,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-21
-Stopped at: Completed 12-01-PLAN.md
+Stopped at: Completed 12-03-PLAN.md
 Resume file: None
