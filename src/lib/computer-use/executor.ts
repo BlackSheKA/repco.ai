@@ -153,7 +153,7 @@ async function executeComputerAction(
       await page.keyboard.type(input.text as string)
       break
     case "key":
-      await page.keyboard.press(input.key as string)
+      await page.keyboard.press((input.text ?? input.key) as string)
       break
     case "scroll":
       await page.mouse.wheel(

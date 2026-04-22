@@ -158,6 +158,51 @@ export async function stopAccountBrowser(
  * Stores the assertion on the account record so the worker pipeline can
  * later gate outreach on session_verified_at presence.
  */
+/**
+ * Connect a LinkedIn account using an existing GoLogin profile ID.
+ * Unlike the Reddit flow (which auto-provisions a new profile), LinkedIn
+ * accounts are wired up by pasting the GoLogin profile ID that already
+ * exists in the user's GoLogin dashboard.
+ */
+export async function connectLinkedInAccount(
+  handle: string,
+  goLoginProfileId: string,
+): Promise<{
+  success?: boolean
+  accountId?: string
+  profileId?: string
+  error?: string
+}> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: "Not authenticated" }
+
+  const trimmedHandle = handle.trim().replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i, "").replace(/\/$/, "")
+  const trimmedProfileId = goLoginProfileId.trim()
+
+  if (!trimmedHandle) return { error: "LinkedIn handle is required" }
+  if (!trimmedProfileId) return { error: "GoLogin profile ID is required" }
+
+  const { data, error } = await supabase
+    .from("social_accounts")
+    .insert({
+      user_id: user.id,
+      platform: "linkedin",
+      handle: trimmedHandle,
+      gologin_profile_id: trimmedProfileId,
+      health_status: "warmup",
+      warmup_day: 1,
+    })
+    .select("id")
+    .single()
+
+  if (error) return { error: error.message }
+  revalidatePath("/accounts")
+  return { success: true, accountId: data.id, profileId: trimmedProfileId }
+}
+
 export async function verifyAccountSession(accountId: string): Promise<{
   success: boolean
   verified: boolean
