@@ -15,19 +15,25 @@ import { createClient } from "@supabase/supabase-js"
 export async function captureScreenshot(page: Page): Promise<string> {
   const screenshot = await page.screenshot({
     type: "png",
-    clip: { x: 0, y: 0, width: 1024, height: 768 },
+    clip: { x: 0, y: 0, width: 1280, height: 900 },
   })
   return screenshot.toString("base64")
 }
 
 /**
- * Detect if the CU agent is stuck by comparing the last 3 screenshots.
- * Returns true if all 3 are identical (base64 string comparison).
+ * Detect if the CU agent is stuck by comparing the last N screenshots.
+ * Returns true if all STUCK_THRESHOLD most recent screenshots are
+ * identical (base64 string comparison). Threshold is 5 because Claude
+ * sometimes needs 2-3 exploratory clicks on small UI targets before
+ * producing a visible DOM change (e.g. opening LinkedIn's More dropdown
+ * vs clicking its items).
  */
+const STUCK_THRESHOLD = 5
+
 export function isStuck(screenshots: string[]): boolean {
-  if (screenshots.length < 3) return false
-  const last3 = screenshots.slice(-3)
-  return last3[0] === last3[1] && last3[1] === last3[2]
+  if (screenshots.length < STUCK_THRESHOLD) return false
+  const recent = screenshots.slice(-STUCK_THRESHOLD)
+  return recent.every((s) => s === recent[0])
 }
 
 /**

@@ -1,10 +1,24 @@
 "use client"
 
-import { CheckCircle2, LogIn, MessageSquare } from "lucide-react"
+import { useState, useTransition } from "react"
+import { CheckCircle2, LogIn, MessageSquare, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { deleteAccount } from "@/features/accounts/actions/account-actions"
 import { HealthBadge } from "./health-badge"
 import { WarmupProgress } from "./warmup-progress"
 import type {
@@ -91,6 +105,20 @@ export function AccountCard({
   const verifiedAgo = verified
     ? formatTimeAgo(account.session_verified_at as string)
     : null
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [isDeleting, startDelete] = useTransition()
+
+  function handleDelete() {
+    startDelete(async () => {
+      const result = await deleteAccount(account.id)
+      if (result.error) {
+        toast.error(result.error)
+        return
+      }
+      toast.success(`${platformLabel} account removed`)
+      setDeleteOpen(false)
+    })
+  }
 
   return (
     <Card
@@ -148,6 +176,43 @@ export function AccountCard({
               <LogIn className="mr-1 h-3.5 w-3.5" />
               {verified ? "Re-login" : "Log in"}
             </Button>
+            <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+              <AlertDialogTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-destructive hover:text-destructive"
+                  aria-label={`Delete ${platformLabel} account ${username}`}
+                >
+                  <Trash2 className="mr-1 h-3.5 w-3.5" />
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Delete {platformLabel} account?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Removes {username} and its browser profile. Pending
+                    actions for this account will stop. This cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={isDeleting}>
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="bg-destructive text-white hover:bg-destructive/90"
+                  >
+                    {isDeleting ? "Deleting..." : "Delete"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 

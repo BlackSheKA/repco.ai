@@ -9,6 +9,8 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import { connectToProfile, disconnectProfile } from "@/lib/gologin/adapter"
 import { executeCUAction } from "@/lib/computer-use/executor"
+import { sendLinkedInConnection } from "@/lib/action-worker/actions/linkedin-connect-executor"
+import { captureScreenshot } from "@/lib/computer-use/screenshot"
 import { uploadScreenshot } from "@/lib/computer-use/screenshot"
 import { getRedditDMPrompt } from "@/lib/computer-use/actions/reddit-dm"
 import {
@@ -53,6 +55,7 @@ export async function executeAction(
   let runError: string | null = null
   let cuSteps: number | null = null
   let screenshotCount: number | null = null
+  let cuStepLog: unknown = null
   let runPlatform: string | null = null
   const runActionType: string | null = action.action_type as string
   const runUserId: string | null = action.user_id as string | null
@@ -225,6 +228,11 @@ export async function executeAction(
         await updateActionStatus(supabase, actionId, "failed", runError)
         return { success: false, error: runError }
       }
+      // Match Claude CU's declared display dimensions so clicks at the
+      // model's coordinates hit the right DOM elements. Without this, the
+      // page may render at the GoLogin profile's default resolution
+      // (1920x1080) and click coordinates are miscalibrated.
+      await connection.page.setViewportSize({ width: 1280, height: 900 })
       await connection.page.goto(profileUrl, {
         waitUntil: "domcontentloaded",
         timeout: 30000,
@@ -284,12 +292,53 @@ export async function executeAction(
       prompt = `Perform a public reply action for ${handle}`
     }
 
-    // 13. Execute CU action
-    const result = await executeCUAction(connection.page, prompt)
+    // 13. Execute the action.
+    // LinkedIn connection_request uses the deterministic Playwright flow
+    // (navigate to /preload/custom-invite/... + DOM selectors). This path
+    // is reliable — LinkedIn's Connect button ignores CDP-dispatched
+    // mouse/keyboard events (bot-detection), so Claude CU is not usable
+    // here. All other action types keep Claude Haiku CU.
+    let result: {
+      success: boolean
+      steps: number
+      screenshots: string[]
+      stepLog: import("@/features/actions/lib/types").CUStepLog[]
+      error?: string
+    }
+    if (action.action_type === "connection_request") {
+      const profileUrl =
+        linkedinProfileHandle ??
+        (await supabase
+          .from("prospects")
+          .select("profile_url")
+          .eq("id", action.prospect_id)
+          .maybeSingle()
+          .then((r) => (r.data?.profile_url as string | null) ?? handle))
+      const connectResult = await sendLinkedInConnection(
+        connection.page,
+        profileUrl as string,
+        action.final_content ?? action.drafted_content ?? "",
+      )
+      const finalScreenshot = await captureScreenshot(connection.page)
+      result = {
+        success: connectResult.success,
+        steps: 1,
+        screenshots: [finalScreenshot],
+        stepLog: [],
+        error: connectResult.failureMode,
+      }
+    } else {
+      result = await executeCUAction(
+        connection.page,
+        prompt,
+        "claude-haiku-4-5-20251001",
+      )
+    }
 
-    // Capture CU telemetry for metadata
+    // Capture telemetry for metadata
     cuSteps = result.steps
     screenshotCount = result.screenshots.length
+    cuStepLog = result.stepLog
 
     // 14. Upload final screenshot
     if (result.screenshots.length > 0) {
@@ -461,6 +510,7 @@ export async function executeAction(
         ...(screenshotCount !== null
           ? { screenshot_count: screenshotCount }
           : {}),
+        ...(cuStepLog ? { cu_step_log: cuStepLog } : {}),
         // Include failure_mode for LinkedIn connection_request failures for ops slicing
         ...(runActionType === "connection_request" && runError
           ? { failure_mode: runError }

@@ -23,14 +23,22 @@ export function getLinkedInConnectPrompt(
 Send a connection request with a personalized note.
 
 Steps:
-1. Look at the profile header area (below the cover photo).
-   - If you see a "Connect" button directly in the header, click it.
-   - If you do NOT see a "Connect" button, click the "More" button (or "More options")
-     in the header and select "Connect" from the dropdown menu.
-   - If you see a "Message" button where "Connect" would normally appear, this person
-     is already a 1st-degree connection. Stop immediately and report "already_connected".
-   - If you see a "Pending" button, the invitation was already sent. Stop and report
-     "already_connected".
+1. Find and click the Connect button. LinkedIn places it in one of two spots:
+   (a) Directly in the profile header (usually for 2nd-degree connections).
+   (b) Inside the "More" dropdown (common for 3rd-degree and out-of-network).
+   Procedure:
+   - If you clearly see a "Connect" button in the profile header, click it.
+   - Otherwise click the "More" button (or "More actions") in the header. A
+     dropdown will appear. Click "Connect" inside that dropdown.
+   - If you see a "Pending" button in the header, the invitation was already
+     sent - stop and report "already_connected".
+   - ONLY report "already_connected" for a Message button if you ALSO see a
+     clear "1st" degree badge next to the profile name. Message alone (e.g.
+     next to Follow/More on a 2nd/3rd degree profile) does NOT mean
+     connected - it just means LinkedIn is offering InMail. In that case
+     open the More dropdown and click Connect there.
+   - If, after opening More, you cannot find a Connect option at all, stop
+     and report "no_connect_available".
 
 2. After clicking Connect, a dialog will appear asking how you know this person.
    - If asked to select a relationship, choose "Other" or skip if possible.

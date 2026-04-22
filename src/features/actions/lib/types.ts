@@ -64,9 +64,20 @@ export interface DmGenerationResult {
   failureReason?: string
 }
 
+export interface CUStepLog {
+  step: number
+  action: string
+  /** Sanitized action input (text truncated, coords flattened) */
+  input: Record<string, unknown>
+  /** Short reasoning text from the model, if emitted before the tool call */
+  reasoning?: string
+}
+
 export interface CUResult {
   success: boolean
   steps: number
   screenshots: string[]
+  /** Per-step log of what the CU model did — used for debugging stuck runs */
+  stepLog: CUStepLog[]
   error?: string
 }

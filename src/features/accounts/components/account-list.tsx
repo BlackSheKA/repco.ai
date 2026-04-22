@@ -13,7 +13,6 @@ import { ConnectionFlow } from "./connection-flow"
 import { useRealtimeAccounts } from "@/features/accounts/lib/use-realtime-accounts"
 import {
   connectAccount,
-  connectLinkedInAccount,
   skipWarmup,
 } from "@/features/accounts/actions/account-actions"
 import type {
@@ -38,7 +37,6 @@ export function AccountList({
     "reddit" | "linkedin"
   >("reddit")
   const [handleInput, setHandleInput] = useState("")
-  const [linkedInProfileIdInput, setLinkedInProfileIdInput] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [newAccountId, setNewAccountId] = useState<string | null>(null)
   const [newProfileId, setNewProfileId] = useState<string | null>(null)
@@ -47,17 +45,32 @@ export function AccountList({
   >("reddit")
   const [isPending, startTransition] = useTransition()
 
-  function openConnectDialog(platform: "reddit" | "linkedin") {
+  async function openConnectDialog(platform: "reddit" | "linkedin") {
     setHandleInput("")
-    setLinkedInProfileIdInput("")
     setConnectingPlatform(platform)
     setConnecting(true)
+
+    // LinkedIn: skip the handle form — provision immediately and jump to the
+    // browser-login step. Handle is auto-generated; extracted from the
+    // session after login (worker pipeline picks up the real identity).
+    if (platform === "linkedin") {
+      setSubmitting(true)
+      const result = await connectAccount("linkedin", "")
+      setSubmitting(false)
+      if (result.error) {
+        toast.error(result.error)
+        setConnecting(false)
+        return
+      }
+      setNewAccountId(result.accountId ?? null)
+      setNewProfileId(result.profileId ?? null)
+      setNewAccountPlatform("linkedin")
+    }
   }
 
   function cancelConnect() {
     setConnecting(false)
     setHandleInput("")
-    setLinkedInProfileIdInput("")
     setNewAccountId(null)
     setNewProfileId(null)
     setNewAccountPlatform("reddit")
@@ -80,27 +93,6 @@ export function AccountList({
     setNewAccountId(result.accountId ?? null)
     setNewProfileId(result.profileId ?? null)
     setNewAccountPlatform("reddit")
-  }
-
-  async function submitLinkedIn(e: React.FormEvent) {
-    e.preventDefault()
-    if (!handleInput.trim() || !linkedInProfileIdInput.trim()) return
-
-    setSubmitting(true)
-    const result = await connectLinkedInAccount(
-      handleInput.trim(),
-      linkedInProfileIdInput.trim(),
-    )
-    setSubmitting(false)
-
-    if (result.error) {
-      toast.error(result.error)
-      return
-    }
-
-    setNewAccountId(result.accountId ?? null)
-    setNewProfileId(result.profileId ?? null)
-    setNewAccountPlatform("linkedin")
   }
 
   function handleSkipWarmup(accountId: string) {
@@ -215,82 +207,7 @@ export function AccountList({
         </Card>
       )}
 
-      {showHandleForm && connectingPlatform === "linkedin" && (
-        <Card>
-          <CardContent>
-            <form onSubmit={submitLinkedIn} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <h2 className="text-lg font-semibold">
-                  Connect a LinkedIn account
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  Paste your LinkedIn handle (e.g. <code>jane-doe</code>) and
-                  the GoLogin profile ID for this account. repco will use the
-                  existing browser profile to send outreach.
-                </p>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="linkedin-handle">LinkedIn handle</Label>
-                <div className="flex items-center gap-2">
-                  <span className="shrink-0 text-sm text-muted-foreground">
-                    linkedin.com/in/
-                  </span>
-                  <Input
-                    id="linkedin-handle"
-                    value={handleInput}
-                    onChange={(e) => setHandleInput(e.target.value)}
-                    placeholder="jane-doe"
-                    autoFocus
-                    disabled={submitting}
-                    autoComplete="off"
-                    spellCheck={false}
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="gologin-profile-id">GoLogin profile ID</Label>
-                <Input
-                  id="gologin-profile-id"
-                  value={linkedInProfileIdInput}
-                  onChange={(e) => setLinkedInProfileIdInput(e.target.value)}
-                  placeholder="69e34dd10213fbdbd576ffac"
-                  disabled={submitting}
-                  autoComplete="off"
-                  spellCheck={false}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Find this in your GoLogin dashboard under the profile name.
-                </p>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={cancelConnect}
-                  disabled={submitting}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={
-                    submitting ||
-                    !handleInput.trim() ||
-                    !linkedInProfileIdInput.trim()
-                  }
-                >
-                  {submitting && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  {submitting ? "Saving account..." : "Save account"}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-
-      {connecting && newAccountId && newProfileId && newAccountPlatform === "reddit" && (
+      {connecting && newAccountId && newProfileId && (
         <ConnectionFlow
           accountId={newAccountId}
           profileId={newProfileId}
@@ -305,28 +222,19 @@ export function AccountList({
         />
       )}
 
-      {connecting && newAccountId && newAccountPlatform === "linkedin" && (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-6">
-            <p className="text-base font-semibold">LinkedIn account saved</p>
-            <p className="text-sm text-muted-foreground">
-              The account has been added. Open the GoLogin profile in the
-              GoLogin desktop app, log into LinkedIn manually, then repco will
-              use it for outreach.
-            </p>
-            <Button
-              onClick={() => {
-                setConnecting(false)
-                setNewAccountId(null)
-                setNewProfileId(null)
-                toast.success("LinkedIn account connected")
-              }}
-            >
-              Done
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {connecting &&
+        connectingPlatform === "linkedin" &&
+        !newAccountId &&
+        submitting && (
+          <Card>
+            <CardContent className="flex items-center gap-3 py-6">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              <p className="text-base">
+                Creating your LinkedIn browser profile...
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
       {accounts.map((account) => (
         <AccountCard

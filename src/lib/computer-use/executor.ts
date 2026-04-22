@@ -8,7 +8,8 @@
 import Anthropic from "@anthropic-ai/sdk"
 import type { Page } from "playwright-core"
 import { captureScreenshot, isStuck } from "./screenshot"
-import type { CUResult } from "@/features/actions/lib/types"
+import type { CUResult, CUStepLog } from "@/features/actions/lib/types"
+import { logger } from "@/lib/logger"
 
 const MAX_STEPS = 15
 const BETA_HEADER = "computer-use-2025-01-24"
@@ -16,9 +17,11 @@ const BETA_HEADER = "computer-use-2025-01-24"
 export async function executeCUAction(
   page: Page,
   prompt: string,
+  model: string = "claude-haiku-4-5-20251001",
 ): Promise<CUResult> {
   const client = new Anthropic()
   const screenshots: string[] = []
+  const stepLog: CUStepLog[] = []
   let steps = 0
   let stuck = false
 
@@ -49,14 +52,14 @@ export async function executeCUAction(
     steps++
 
     const response = await client.beta.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model,
       max_tokens: 1024,
       tools: [
         {
           type: "computer_20250124",
           name: "computer",
-          display_width_px: 1024,
-          display_height_px: 768,
+          display_width_px: 1280,
+          display_height_px: 900,
           display_number: 1,
         },
       ],
@@ -74,10 +77,38 @@ export async function executeCUAction(
       break
     }
 
+    // Extract the text reasoning block (if model emitted one before tools)
+    const reasoning = (
+      response.content.find((b) => b.type === "text") as
+        | { type: "text"; text: string }
+        | undefined
+    )?.text?.slice(0, 400)
+
     // Process each tool use
     for (const block of toolBlocks) {
       if (block.type === "tool_use") {
         const input = block.input as Record<string, unknown>
+        const action = (input.action as string) ?? "unknown"
+
+        // Sanitize input for logging: truncate long text, keep key shape
+        const logInput: Record<string, unknown> = {}
+        for (const [k, v] of Object.entries(input)) {
+          if (typeof v === "string" && v.length > 120) {
+            logInput[k] = v.slice(0, 120) + "…"
+          } else {
+            logInput[k] = v
+          }
+        }
+
+        stepLog.push({ step: steps, action, input: logInput, reasoning })
+        logger.info("cu.step", {
+          step: steps,
+          action,
+          input: logInput,
+          reasoning,
+          model,
+        })
+
         await executeComputerAction(page, input)
 
         // Take screenshot after action
@@ -124,8 +155,9 @@ export async function executeCUAction(
     success: steps < MAX_STEPS && !stuck,
     steps,
     screenshots,
+    stepLog,
     error: stuck
-      ? "Stuck detected: 3 identical screenshots"
+      ? "Stuck detected: identical screenshots"
       : steps >= MAX_STEPS
         ? "Max steps reached"
         : undefined,
@@ -153,7 +185,9 @@ async function executeComputerAction(
       await page.keyboard.type(input.text as string)
       break
     case "key":
-      await page.keyboard.press((input.text ?? input.key) as string)
+      await page.keyboard.press(
+        normalizeKey((input.text ?? input.key) as string),
+      )
       break
     case "scroll":
       await page.mouse.wheel(
@@ -188,4 +222,49 @@ async function executeComputerAction(
   // Small random delay after each action for natural behavior
   const delay = 100 + Math.random() * 400
   await new Promise((resolve) => setTimeout(resolve, delay))
+}
+
+/**
+ * Normalize Anthropic CU key identifiers to Playwright names.
+ * CU emits e.g. "ctrl+v", "cmd+a", "Return" — Playwright expects
+ * "Control+v", "Meta+a", "Enter". Single keys pass through unchanged.
+ */
+function normalizeKey(key: string): string {
+  const map: Record<string, string> = {
+    ctrl: "Control",
+    control: "Control",
+    cmd: "Meta",
+    command: "Meta",
+    meta: "Meta",
+    alt: "Alt",
+    opt: "Alt",
+    option: "Alt",
+    shift: "Shift",
+    esc: "Escape",
+    escape: "Escape",
+    return: "Enter",
+    enter: "Enter",
+    del: "Delete",
+    delete: "Delete",
+    ins: "Insert",
+    insert: "Insert",
+    space: " ",
+    tab: "Tab",
+    backspace: "Backspace",
+    arrowup: "ArrowUp",
+    arrowdown: "ArrowDown",
+    arrowleft: "ArrowLeft",
+    arrowright: "ArrowRight",
+    up: "ArrowUp",
+    down: "ArrowDown",
+    left: "ArrowLeft",
+    right: "ArrowRight",
+  }
+  return key
+    .split("+")
+    .map((part) => {
+      const raw = part.trim()
+      return map[raw.toLowerCase()] ?? raw
+    })
+    .join("+")
 }

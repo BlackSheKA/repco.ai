@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import {
   createProfile,
+  deleteProfile,
   startCloudBrowser,
   stopCloudBrowser,
 } from "@/lib/gologin/client"
@@ -27,12 +28,23 @@ export async function connectAccount(
   } = await supabase.auth.getUser()
   if (!user) return { error: "Not authenticated" }
 
+  // LinkedIn flow skips the upfront handle — we extract it from the
+  // logged-in session after the user finishes login (see verifyAccountSession).
+  // Use a placeholder so the row is valid before login completes.
+  const effectiveHandle =
+    platform === "linkedin" && !handle.trim()
+      ? `linkedin-${user.id.slice(0, 8)}`
+      : handle
+
   // 1. Create GoLogin Cloud profile
   // (startUrl is set but the cloud web viewer ignores it; kept for the
   // desktop app where users may run the profile manually.)
   let profileId: string
   try {
-    profileId = await createProfile(handle, ACCOUNT_LOGIN_URLS[platform])
+    profileId = await createProfile(
+      effectiveHandle,
+      ACCOUNT_LOGIN_URLS[platform],
+    )
   } catch (err) {
     return { error: `Failed to create browser profile: ${err}` }
   }
@@ -43,7 +55,7 @@ export async function connectAccount(
     .insert({
       user_id: user.id,
       platform,
-      handle,
+      handle: effectiveHandle,
       gologin_profile_id: profileId,
       health_status: "warmup",
       warmup_day: 1,
@@ -159,48 +171,53 @@ export async function stopAccountBrowser(
  * later gate outreach on session_verified_at presence.
  */
 /**
- * Connect a LinkedIn account using an existing GoLogin profile ID.
- * Unlike the Reddit flow (which auto-provisions a new profile), LinkedIn
- * accounts are wired up by pasting the GoLogin profile ID that already
- * exists in the user's GoLogin dashboard.
+ * Delete a social account. Also best-effort stops any running cloud browser
+ * and deletes the underlying GoLogin profile so the user's GoLogin dashboard
+ * stays clean. The DB row is deleted first — GoLogin calls are fire-and-forget
+ * (failures are logged but don't block the UI).
  */
-export async function connectLinkedInAccount(
-  handle: string,
-  goLoginProfileId: string,
-): Promise<{
-  success?: boolean
-  accountId?: string
-  profileId?: string
+export async function deleteAccount(accountId: string): Promise<{
+  success: boolean
   error?: string
 }> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return { error: "Not authenticated" }
+  if (!user) return { success: false, error: "Not authenticated" }
 
-  const trimmedHandle = handle.trim().replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i, "").replace(/\/$/, "")
-  const trimmedProfileId = goLoginProfileId.trim()
-
-  if (!trimmedHandle) return { error: "LinkedIn handle is required" }
-  if (!trimmedProfileId) return { error: "GoLogin profile ID is required" }
-
-  const { data, error } = await supabase
+  // Look up profile ID before deleting the row so we can clean up GoLogin.
+  const { data: account } = await supabase
     .from("social_accounts")
-    .insert({
-      user_id: user.id,
-      platform: "linkedin",
-      handle: trimmedHandle,
-      gologin_profile_id: trimmedProfileId,
-      health_status: "warmup",
-      warmup_day: 1,
-    })
-    .select("id")
+    .select("gologin_profile_id")
+    .eq("id", accountId)
+    .eq("user_id", user.id)
     .single()
 
-  if (error) return { error: error.message }
+  const { error } = await supabase
+    .from("social_accounts")
+    .delete()
+    .eq("id", accountId)
+    .eq("user_id", user.id)
+
+  if (error) return { success: false, error: error.message }
+
+  // Best-effort GoLogin cleanup — don't fail the whole op if these 500.
+  if (account?.gologin_profile_id) {
+    try {
+      await stopCloudBrowser(account.gologin_profile_id)
+    } catch {
+      // ignore
+    }
+    try {
+      await deleteProfile(account.gologin_profile_id)
+    } catch {
+      // ignore
+    }
+  }
+
   revalidatePath("/accounts")
-  return { success: true, accountId: data.id, profileId: trimmedProfileId }
+  return { success: true }
 }
 
 export async function verifyAccountSession(accountId: string): Promise<{
