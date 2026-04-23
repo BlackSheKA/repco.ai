@@ -6,6 +6,27 @@ import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
 import { generateDM, stripDashes } from "@/features/actions/lib/dm-generation"
 
+/**
+ * Fetch actions awaiting approval for the current user.
+ *
+ * LNKD-06: skip prospects structurally unreachable per linkedin-prescreen cron
+ * (pipeline_status='unreachable'). Uses an inner join so the filter is evaluated
+ * against the joined prospects row — absent prospect rows are excluded too.
+ */
+export async function fetchPendingActions(userId: string) {
+  const supabase = await createClient()
+  return supabase
+    .from("actions")
+    .select(
+      "*, prospects!inner(handle, intent_signal_id, platform, pipeline_status)",
+    )
+    .eq("user_id", userId)
+    .eq("status", "pending_approval")
+    // LNKD-06: skip prospects structurally unreachable per linkedin-prescreen cron
+    .neq("prospects.pipeline_status", "unreachable")
+    .order("created_at", { ascending: false })
+}
+
 export async function approveAction(
   actionId: string,
   editedContent?: string,

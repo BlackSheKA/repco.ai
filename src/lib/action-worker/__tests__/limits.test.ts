@@ -60,6 +60,13 @@ describe("getDailyUsage", () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = await getDailyUsage(supabase as any, "acc-1")
 
-    expect(result).toEqual({ dm_count: 0, engage_count: 0, reply_count: 0 })
+    expect(result).toEqual({
+      dm_count: 0,
+      engage_count: 0,
+      reply_count: 0,
+      follow_count: 0,
+      like_count: 0,
+      comment_count: 0,
+    })
   })
 })

@@ -40,6 +40,10 @@
     {
       "path": "/api/cron/monitor-linkedin",
       "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/cron/linkedin-prescreen",
+      "schedule": "0 * * * *"
     }
   ]
 }
