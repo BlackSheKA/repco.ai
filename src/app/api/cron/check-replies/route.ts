@@ -1,3 +1,7 @@
+// AUDIT(13-04): no-change — this cron handles REPLY detection, not follow-up
+// creation. The actual followup_dm-creating cron is src/app/api/cron/schedule-
+// followups/route.ts (which is platform-agnostic — see its AUDIT note). This file
+// is unchanged for LNKD-05. Verified 2026-04-23.
 /**
  * Reply detection cron (RPLY-01, RPLY-02, RPLY-04).
  *
