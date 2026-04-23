@@ -260,7 +260,7 @@ Plans:
 
 Plans:
 - [x] 13-01-PLAN.md — LinkedIn DM executor (deterministic DOM flow for 1st-degree targets) (completed 2026-04-23)
-- [ ] 13-02-PLAN.md — LinkedIn Follow executor (profile-level Follow button, Premium-gate detection)
+- [x] 13-02-PLAN.md — LinkedIn Follow executor (profile-level Follow button, Premium-gate detection) (completed 2026-04-23)
 - [ ] 13-03-PLAN.md — LinkedIn React (Like) + Comment executor (unified post-interaction module)
 - [ ] 13-04-PLAN.md — Followup DM sequences for LinkedIn (wire day 3/7/14 cron → new executor)
 - [ ] 13-05-PLAN.md — Prospect pre-screening job (detect unreachable Connect path, mark pipeline_status)
@@ -284,4 +284,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 10. LinkedIn Outreach Execution (GAP) | 4/4 | Complete    | 2026-04-21 |
 | 11. Nyquist Validation Compliance (GAP) | 0/0 | Complete    | 2026-04-21 |
 | 12. Trial Auto-Activation + Expiry (GAP) | 3/3 | Complete    | 2026-04-21 |
-| 13. LinkedIn Action Expansion (v1.1) | 1/5 | In Progress (13-01 DM executor complete; 13-02/03/04 next) | - |
+| 13. LinkedIn Action Expansion (v1.1) | 2/5 | In Progress (13-01 DM + 13-02 Follow executors complete; 13-03/04 next) | - |
