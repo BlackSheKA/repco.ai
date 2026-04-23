@@ -99,5 +99,14 @@ export async function generateComment(
     second.content[0]?.type === "text" ? second.content[0].text : "",
   )
 
+  // W-04: if the retry also violates QC, fail loudly rather than shipping a
+  // non-compliant comment. Caller (linkedin-comment-executor) only checks
+  // character length, so URL/pitch violations would otherwise land on a
+  // real LinkedIn post.
+  const secondReason = qcReason(secondText)
+  if (secondReason !== null) {
+    throw new Error(`qc_failed: ${secondReason}`)
+  }
+
   return secondText
 }
