@@ -33,7 +33,7 @@ function createMockPage(scenario: Scenario): Page {
     return { visible: false }
   }
 
-  const locator = vi.fn((sel: string) => {
+  const makeLoc = (sel: string) => {
     const spec = selectorMatch(sel) ?? { visible: false }
     const loc = {
       first: () => loc,
@@ -46,12 +46,14 @@ function createMockPage(scenario: Scenario): Page {
           likeClicked = true
         }
       }),
-      locator: vi.fn(() => ({
-        first: () => ({ isVisible: vi.fn(async () => false) }),
-      })),
+      // Child locator delegates back through the factory so scope-nested
+      // selectors (e.g. mainPost.locator("button[aria-pressed='true']"))
+      // resolve against scenario.selectors by the child's selector key.
+      locator: vi.fn((childSel: string) => makeLoc(childSel)),
     }
     return loc
-  })
+  }
+  const locator = vi.fn((sel: string) => makeLoc(sel))
 
   const page: Partial<Page> = {
     setViewportSize: vi.fn(async () => {}) as unknown as Page["setViewportSize"],

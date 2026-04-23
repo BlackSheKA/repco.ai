@@ -12,6 +12,7 @@ import { executeCUAction } from "@/lib/computer-use/executor"
 import { sendLinkedInConnection } from "@/lib/action-worker/actions/linkedin-connect-executor"
 import { sendLinkedInDM } from "@/lib/action-worker/actions/linkedin-dm-executor"
 import { followLinkedInProfile } from "@/lib/action-worker/actions/linkedin-follow-executor"
+import { likeLinkedInPost } from "@/lib/action-worker/actions/linkedin-like-executor"
 import { captureScreenshot } from "@/lib/computer-use/screenshot"
 import { uploadScreenshot } from "@/lib/computer-use/screenshot"
 import { getRedditDMPrompt } from "@/lib/computer-use/actions/reddit-dm"
@@ -385,10 +386,40 @@ export async function executeAction(
           error: followResult.failureMode,
         }
       } else if (action.action_type === "like") {
-        // TODO(13-03): wire likeLinkedInPost(page, postUrl)
-        throw new Error(
-          "LinkedIn like executor not implemented (Phase 13 wave 2 — plan 13-03)",
-        )
+        // LNKD-03 (like): deterministic DOM React-Like scoped to main post.
+        // Resolve post_url via prospect.intent_signal_id -> intent_signals.
+        const { data: prospectWithSignal } = await supabase
+          .from("prospects")
+          .select("intent_signal_id, profile_url")
+          .eq("id", action.prospect_id)
+          .single()
+        let postUrl: string | null = null
+        if (prospectWithSignal?.intent_signal_id) {
+          const { data: signal } = await supabase
+            .from("intent_signals")
+            .select("post_url")
+            .eq("id", prospectWithSignal.intent_signal_id)
+            .maybeSingle()
+          postUrl = (signal?.post_url as string | null) ?? null
+        }
+        if (!postUrl) {
+          postUrl = (prospectWithSignal?.profile_url as string | null) ?? null
+        }
+        if (!postUrl) {
+          runError = "No post_url for LinkedIn like"
+          runStatus = "failed"
+          await updateActionStatus(supabase, actionId, "failed", runError)
+          return { success: false, error: runError }
+        }
+        const likeResult = await likeLinkedInPost(connection.page, postUrl)
+        const finalScreenshot = await captureScreenshot(connection.page)
+        result = {
+          success: likeResult.success,
+          steps: 1,
+          screenshots: [finalScreenshot],
+          stepLog: [],
+          error: likeResult.failureMode,
+        }
       } else if (action.action_type === "public_reply") {
         // TODO(13-03): wire commentLinkedInPost(page, postUrl, content)
         // (public_reply is Reddit-reply AND LinkedIn-comment; same action_type.)
