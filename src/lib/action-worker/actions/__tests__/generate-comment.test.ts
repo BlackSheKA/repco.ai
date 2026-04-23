@@ -116,16 +116,17 @@ describe("generateComment", () => {
     expect(out).not.toMatch(/check out|our product|we built|try our|sign up/i)
   })
 
-  it("returns second attempt even if still non-compliant (max 2 calls)", async () => {
+  it("throws qc_failed when second attempt also violates QC (W-04)", async () => {
     const bad1 = "a".repeat(1300)
     const bad2 = "a".repeat(1400)
     mockCreate
       .mockResolvedValueOnce(mockResponse(bad1))
       .mockResolvedValueOnce(mockResponse(bad2))
 
-    const out = await generateComment(INPUT)
-    // Retry cap: only 2 Sonnet calls total regardless of outcome.
+    // W-04: previously returned the non-compliant retry output. Now throws so
+    // the caller does not ship a too-long comment to a real LinkedIn post.
+    // Retry cap remains: exactly 2 Sonnet calls total.
+    await expect(generateComment(INPUT)).rejects.toThrow(/^qc_failed:/)
     expect(mockCreate).toHaveBeenCalledTimes(2)
-    expect(typeof out).toBe("string")
   })
 })

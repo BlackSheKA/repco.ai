@@ -85,10 +85,10 @@ describe("likeLinkedInPost", () => {
     expect(r.failureMode).toBe("post_unreachable")
   })
 
-  it("returns post_unreachable when body matches 404 copy", async () => {
+  it("returns post_unreachable when body matches 'no longer available' copy", async () => {
     const page = createMockPage({
       url: POST,
-      bodyText: "404 page not found",
+      bodyText: "This post is no longer available",
       selectors: {
         "urn:li:activity": { visible: true },
       },

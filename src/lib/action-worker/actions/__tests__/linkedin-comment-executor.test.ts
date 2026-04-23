@@ -38,7 +38,13 @@ function createMockPage(scenario: Scenario): Page {
 
   const makeLoc = (sel: string) => {
     const spec = selectorMatch(sel) ?? { visible: false }
-    const loc = {
+    const loc: {
+      first: () => typeof loc
+      isVisible: ReturnType<typeof vi.fn>
+      click: ReturnType<typeof vi.fn>
+      locator: ReturnType<typeof vi.fn>
+      filter: (_opts: { hasText?: string }) => typeof loc
+    } = {
       first: () => loc,
       isVisible: vi.fn(async () => {
         if (spec.afterCommentClick && !commentBtnClicked) return false
@@ -51,6 +57,11 @@ function createMockPage(scenario: Scenario): Page {
         }
       }),
       locator: vi.fn((childSel: string) => makeLoc(childSel)),
+      // W-08 test-harness: executor now uses .filter({ hasText }) instead of
+      // brittle :has-text() with JSON.stringify. Treat filter as a no-op that
+      // returns the same locator — scenarios already gate visibility via
+      // "comments-comment-list" selectors.
+      filter: (_opts: { hasText?: string }) => loc,
     }
     return loc
   }
@@ -97,10 +108,10 @@ describe("commentLinkedInPost", () => {
     expect(r.failureMode).toBe("post_unreachable")
   })
 
-  it("returns post_unreachable when body matches 404", async () => {
+  it("returns post_unreachable when body matches 'no longer available' copy", async () => {
     const page = createMockPage({
       url: POST,
-      bodyText: "404 page not found",
+      bodyText: "This post is no longer available",
       selectors: { "urn:li:activity": { visible: true } },
     })
     const r = await commentLinkedInPost(page, POST, TEXT)

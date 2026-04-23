@@ -49,12 +49,21 @@ function createMockPage(scenario: Scenario): Page {
 
   const locator = vi.fn((sel: string) => {
     const spec = selectorMatch(sel) ?? { visible: false }
-    const loc = {
+    const loc: {
+      first: () => typeof loc
+      isVisible: ReturnType<typeof vi.fn>
+      click: ReturnType<typeof vi.fn>
+      filter: (_opts: { hasText?: string }) => typeof loc
+    } = {
       first: () => loc,
       isVisible: vi.fn(async () => spec.visible === true),
       click: vi.fn(async () => {
         if (sel.toLowerCase().includes("send")) sendClicked = true
       }),
+      // W-08 test-harness: executor uses .filter({ hasText }) for brittle-safe
+      // text matching; treat as no-op — scenarios already gate visibility via
+      // matching selectors like "msg-s-message-list__event".
+      filter: (_opts: { hasText?: string }) => loc,
     }
     return loc
   })
