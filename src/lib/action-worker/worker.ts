@@ -13,6 +13,7 @@ import { sendLinkedInConnection } from "@/lib/action-worker/actions/linkedin-con
 import { sendLinkedInDM } from "@/lib/action-worker/actions/linkedin-dm-executor"
 import { followLinkedInProfile } from "@/lib/action-worker/actions/linkedin-follow-executor"
 import { likeLinkedInPost } from "@/lib/action-worker/actions/linkedin-like-executor"
+import { commentLinkedInPost } from "@/lib/action-worker/actions/linkedin-comment-executor"
 import { captureScreenshot } from "@/lib/computer-use/screenshot"
 import { uploadScreenshot } from "@/lib/computer-use/screenshot"
 import { getRedditDMPrompt } from "@/lib/computer-use/actions/reddit-dm"
@@ -421,11 +422,46 @@ export async function executeAction(
           error: likeResult.failureMode,
         }
       } else if (action.action_type === "public_reply") {
-        // TODO(13-03): wire commentLinkedInPost(page, postUrl, content)
-        // (public_reply is Reddit-reply AND LinkedIn-comment; same action_type.)
-        throw new Error(
-          "LinkedIn public_reply executor not implemented (Phase 13 wave 2 — plan 13-03)",
+        // LNKD-03 / LNKD-04 (comment): deterministic Quill composer fill.
+        // public_reply on linkedin = Comment (CONTEXT §Enum strategy — same
+        // action_type covers Reddit reply AND LinkedIn comment).
+        const { data: prospectWithSignal } = await supabase
+          .from("prospects")
+          .select("intent_signal_id, profile_url")
+          .eq("id", action.prospect_id)
+          .single()
+        let postUrl: string | null = null
+        if (prospectWithSignal?.intent_signal_id) {
+          const { data: signal } = await supabase
+            .from("intent_signals")
+            .select("post_url")
+            .eq("id", prospectWithSignal.intent_signal_id)
+            .maybeSingle()
+          postUrl = (signal?.post_url as string | null) ?? null
+        }
+        if (!postUrl) {
+          postUrl = (prospectWithSignal?.profile_url as string | null) ?? null
+        }
+        if (!postUrl) {
+          runError = "No post_url for LinkedIn public_reply"
+          runStatus = "failed"
+          await updateActionStatus(supabase, actionId, "failed", runError)
+          return { success: false, error: runError }
+        }
+        const body = action.final_content ?? action.drafted_content ?? ""
+        const commentResult = await commentLinkedInPost(
+          connection.page,
+          postUrl,
+          body,
         )
+        const finalScreenshot = await captureScreenshot(connection.page)
+        result = {
+          success: commentResult.success,
+          steps: 1,
+          screenshots: [finalScreenshot],
+          stepLog: [],
+          error: commentResult.failureMode,
+        }
       } else {
         throw new Error(
           `LinkedIn ${action.action_type} executor not implemented`,
@@ -524,6 +560,13 @@ export async function executeAction(
         action.action_type === "like" ||
         action.action_type === "follow"
       ) {
+        await supabase
+          .from("prospects")
+          .update({ pipeline_status: "engaged" })
+          .eq("id", action.prospect_id)
+      } else if (action.action_type === "public_reply") {
+        // 13-03 per 13-RESEARCH.md §5 Open Question 2 — public_reply → engaged
+        // for both platforms (Reddit reply AND LinkedIn comment).
         await supabase
           .from("prospects")
           .update({ pipeline_status: "engaged" })
