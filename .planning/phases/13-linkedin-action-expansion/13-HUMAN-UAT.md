@@ -38,7 +38,11 @@ result: [pending]
 
 ### 7. Pre-screen cron against real 'detected' LinkedIn prospects
 expected: Creator-mode profile → pipeline_status='unreachable', reason='creator_mode_no_connect'; 1st-degree → 'connected'; 404 → 'unreachable'/profile_unreachable; checkpoint → account health='warning' and run aborts
-result: [pending]
+result: issue
+reported: "Prod `/api/cron/linkedin-prescreen` silently returned `no_healthy_account` despite 2 healthy LinkedIn accounts in prod DB. Root cause: route orders by `social_accounts.last_used_at` (line 91) but that column was never added in any migration — neither dev nor prod have it. PostgREST returns 42703, Supabase destructures `data=null`, fallback path emits no_healthy_account. Unit tests pass because Supabase client is mocked and ordering isn't asserted. Integration gap."
+severity: blocker
+fix_applied: "Swapped `last_used_at` → `session_verified_at` in route.ts:91 (column that exists + preserves least-recently-used ordering semantic)."
+retest: pending redeploy
 
 ### 8. Security checkpoint handling (session burn avoidance)
 expected: First checkpoint detection flips social_accounts.health_status='warning'; no retry inside executor; run/cron aborts
@@ -48,9 +52,17 @@ result: [pending]
 
 total: 8
 passed: 0
-issues: 0
-pending: 8
+issues: 1
+pending: 7
 skipped: 0
 blocked: 0
 
 ## Gaps
+
+- truth: "Pre-screen cron picks a healthy LinkedIn account and classifies prospects"
+  status: failed_then_fixed
+  reason: "Route ordered by non-existent column `social_accounts.last_used_at`; PostgREST 42703 silently collapsed to `no_healthy_account` on prod (2 healthy accounts present)."
+  severity: blocker
+  test: 7
+  fix: "src/app/api/cron/linkedin-prescreen/route.ts:91 — swap to `session_verified_at` (existing column, same LRU semantic)."
+  artifacts: [.planning/phases/13-linkedin-action-expansion/13-HUMAN-UAT.md#test-7]
