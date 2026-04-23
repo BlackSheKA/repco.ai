@@ -128,4 +128,19 @@ describe("getWarmupState — Phase 13 LinkedIn progression", () => {
     const withoutArg = getWarmupState(4, null)
     expect(withoutArg.allowedActions).toEqual(withArg.allowedActions)
   })
+
+  // LNKD-03 / LNKD-04 regression: public_reply gated day 4+ on LinkedIn.
+  it("LinkedIn day 3 does not allow public_reply (LNKD-03/04 regression)", () => {
+    expect(
+      getWarmupState(3, null, "linkedin").allowedActions,
+    ).not.toContain("public_reply")
+  })
+  it("LinkedIn day 4 allows public_reply (LNKD-03/04 regression)", () => {
+    expect(
+      getWarmupState(4, null, "linkedin").allowedActions,
+    ).toContain("public_reply")
+  })
+  it("LinkedIn day 2 allows like (LNKD-03 regression)", () => {
+    expect(getWarmupState(2, null, "linkedin").allowedActions).toContain("like")
+  })
 })
