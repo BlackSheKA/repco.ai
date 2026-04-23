@@ -256,14 +256,14 @@ Plans:
   3. LinkedIn `followup_dm` actions created by the day 3/7/14 cron execute through the new LinkedIn DM path without regressing Reddit follow-ups (existing 290 tests stay green)
   4. Pre-screening cron marks prospects as `unreachable` before they can enter the approval queue, producing a measurable drop in `no_connect_available` failures on approved actions (telemetry visible in job_logs)
   5. Typecheck + full test suite green; new action types covered by unit tests for failure-mode branches
-**Plans:** 5 plans
+**Plans:** 4/5 plans executed
 
 Plans:
 - [x] 13-01-PLAN.md — LinkedIn DM executor (deterministic DOM flow for 1st-degree targets) (completed 2026-04-23)
 - [x] 13-02-PLAN.md — LinkedIn Follow executor (profile-level Follow button, Premium-gate detection) (completed 2026-04-23)
-- [ ] 13-03-PLAN.md — LinkedIn React (Like) + Comment executor (unified post-interaction module)
+- [x] 13-03-PLAN.md — LinkedIn React (Like) + Comment executor (unified post-interaction module)
 - [ ] 13-04-PLAN.md — Followup DM sequences for LinkedIn (wire day 3/7/14 cron → new executor)
-- [ ] 13-05-PLAN.md — Prospect pre-screening job (detect unreachable Connect path, mark pipeline_status)
+- [x] 13-05-PLAN.md — Prospect pre-screening job (detect unreachable Connect path, mark pipeline_status)
 
 ## Progress
 
@@ -284,4 +284,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 10. LinkedIn Outreach Execution (GAP) | 4/4 | Complete    | 2026-04-21 |
 | 11. Nyquist Validation Compliance (GAP) | 0/0 | Complete    | 2026-04-21 |
 | 12. Trial Auto-Activation + Expiry (GAP) | 3/3 | Complete    | 2026-04-21 |
-| 13. LinkedIn Action Expansion (v1.1) | 2/5 | In Progress (13-01 DM + 13-02 Follow executors complete; 13-03/04 next) | - |
+| 13. LinkedIn Action Expansion (v1.1) | 4/5 | In Progress|  |
