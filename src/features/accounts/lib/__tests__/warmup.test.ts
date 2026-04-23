@@ -58,11 +58,94 @@ describe("getWarmupState — ABAN-02 progressive warmup gate", () => {
     expect(state.allowedActions).toContain("dm")
   })
 
-  it("returns correct day and maxDay=7 in state shape", () => {
-    const state = getWarmupState(5, null)
-    expect(state.day).toBe(5)
-    expect(state.maxDay).toBe(7)
-    expect(state.completed).toBe(false)
-    expect(state.skipped).toBe(false)
+  it("returns correct day and platform-aware maxDay in state shape", () => {
+    // H-03: maxDay is platform-aware. Reddit completes at day 8 (>= 8 = fully
+    // warmed), LinkedIn at day 7.
+    const reddit = getWarmupState(5, null)
+    expect(reddit.day).toBe(5)
+    expect(reddit.maxDay).toBe(8)
+    expect(reddit.completed).toBe(false)
+    expect(reddit.skipped).toBe(false)
+
+    const linkedin = getWarmupState(5, null, "linkedin")
+    expect(linkedin.maxDay).toBe(7)
+  })
+})
+
+describe("getWarmupState — Phase 13 LinkedIn progression", () => {
+  // Per .planning/phases/13-linkedin-action-expansion/13-CONTEXT.md §Warmup gates
+  it("day 1 LinkedIn: only browse allowed", () => {
+    const state = getWarmupState(1, null, "linkedin")
+    expect(state.allowedActions).toEqual(["browse"])
+  })
+
+  it("LinkedIn day 1 does not allow follow (LNKD-02 regression)", () => {
+    const state = getWarmupState(1, null, "linkedin")
+    expect(state.allowedActions).not.toContain("follow")
+  })
+
+  it("LinkedIn day 2 allows follow (warmup gate opens — LNKD-02)", () => {
+    const state = getWarmupState(2, null, "linkedin")
+    expect(state.allowedActions).toContain("follow")
+  })
+
+  it("day 3 LinkedIn: like + follow allowed, no public_reply, no dm", () => {
+    const state = getWarmupState(3, null, "linkedin")
+    expect(state.allowedActions).toContain("like")
+    expect(state.allowedActions).toContain("follow")
+    expect(state.allowedActions).not.toContain("public_reply")
+    expect(state.allowedActions).not.toContain("dm")
+  })
+
+  it("day 5 LinkedIn: public_reply + connection_request allowed, no dm", () => {
+    const state = getWarmupState(5, null, "linkedin")
+    expect(state.allowedActions).toContain("public_reply")
+    expect(state.allowedActions).toContain("connection_request")
+    expect(state.allowedActions).not.toContain("dm")
+  })
+
+  it("day 7 LinkedIn: dm allowed", () => {
+    const state = getWarmupState(7, null, "linkedin")
+    expect(state.allowedActions).toContain("dm")
+  })
+
+  it("day 6 LinkedIn regression (LNKD-01): dm NOT allowed until day 7", () => {
+    const state = getWarmupState(6, null, "linkedin")
+    expect(state.allowedActions).not.toContain("dm")
+    // Still allows public_reply + connection_request at day 6
+    expect(state.allowedActions).toContain("public_reply")
+    expect(state.allowedActions).toContain("connection_request")
+  })
+
+  it("day 4 Reddit regression: matches prior Reddit day-4 output", () => {
+    const state = getWarmupState(4, null, "reddit")
+    // Prior Reddit day-4 behavior: browse, like, follow, connection_request
+    expect(state.allowedActions).toContain("browse")
+    expect(state.allowedActions).toContain("like")
+    expect(state.allowedActions).toContain("follow")
+    expect(state.allowedActions).toContain("connection_request")
+    expect(state.allowedActions).not.toContain("dm")
+    expect(state.allowedActions).not.toContain("public_reply")
+  })
+
+  it("2-arg caller (no platform arg) defaults to Reddit schedule", () => {
+    const withArg = getWarmupState(4, null, "reddit")
+    const withoutArg = getWarmupState(4, null)
+    expect(withoutArg.allowedActions).toEqual(withArg.allowedActions)
+  })
+
+  // LNKD-03 / LNKD-04 regression: public_reply gated day 4+ on LinkedIn.
+  it("LinkedIn day 3 does not allow public_reply (LNKD-03/04 regression)", () => {
+    expect(
+      getWarmupState(3, null, "linkedin").allowedActions,
+    ).not.toContain("public_reply")
+  })
+  it("LinkedIn day 4 allows public_reply (LNKD-03/04 regression)", () => {
+    expect(
+      getWarmupState(4, null, "linkedin").allowedActions,
+    ).toContain("public_reply")
+  })
+  it("LinkedIn day 2 allows like (LNKD-03 regression)", () => {
+    expect(getWarmupState(2, null, "linkedin").allowedActions).toContain("like")
   })
 })

@@ -1,3 +1,9 @@
+// AUDIT(13-04): no-change — findDueFollowUps is platform-agnostic. Filters only
+// on pipeline_status='contacted' + sequence_stopped=false. LinkedIn prospects whose
+// DM completed land in pipeline_status='contacted' (worker.ts line 576-578) and are
+// eligible for followup_dm identically to Reddit prospects. pipeline_status='unreachable'
+// (LNKD-06) is naturally excluded by the .eq('contacted') filter — unreachable and
+// contacted are mutually exclusive enum values. Verified 2026-04-23 for LNKD-05.
 import type { SupabaseClient } from "@supabase/supabase-js"
 import {
   FOLLOW_UP_SCHEDULE,

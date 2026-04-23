@@ -19,6 +19,7 @@ import type { ActionCreditType } from "@/features/billing/lib/types"
 import { ProspectStatsCard } from "@/features/prospects/components/prospect-stats-card"
 import { ResultsCard } from "@/features/growth/components/results-card"
 import { createClient } from "@/lib/supabase/server"
+import { fetchPendingActions } from "@/features/actions/actions/approval-actions"
 
 interface DashboardPageProps {
   searchParams?: Promise<{ onboarded?: string }>
@@ -83,14 +84,8 @@ export default async function DashboardPage({
       .select("*", { count: "exact", head: true })
       .eq("user_id", user.id)
       .eq("status", "pending_approval"),
-    supabase
-      .from("actions")
-      .select(
-        "*, prospects!inner(handle, intent_signal_id, platform)",
-      )
-      .eq("user_id", user.id)
-      .eq("status", "pending_approval")
-      .order("created_at", { ascending: false }),
+    // LNKD-06: excludes prospects with pipeline_status='unreachable'
+    fetchPendingActions(user.id),
     supabase
       .from("prospects")
       .select(

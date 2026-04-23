@@ -1,16 +1,17 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.1
-milestone_name: LinkedIn Action Expansion
-status: not_started
-stopped_at: Milestone v1.1 defined — awaiting /gsd:plan-phase 13
-last_updated: "2026-04-23T00:00:00.000Z"
+milestone_name: milestone
+status: Milestone complete
+stopped_at: 13-02-PLAN.md complete — Wave 2 continues with 13-03 (LinkedIn like + comment executors)
+last_updated: "2026-04-23T10:15:13.095Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 13
-  completed_phases: 12
-  total_plans: 52
-  completed_plans: 47
+  completed_phases: 1
+  total_plans: 5
+  completed_plans: 5
+  percent: 100
 ---
 
 # Project State
@@ -20,19 +21,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-16)
 
 **Core value:** People actively looking for your product get a personalized, relevant DM within hours
-**Current focus:** Milestone v1.1 — LinkedIn Action Expansion — Phase 13 not started
+**Current focus:** Phase 13 — linkedin-action-expansion
 
 ## Current Position
 
-Phase: 13 (linkedin-action-expansion) — NOT STARTED
-Plan: — (pending `/gsd:plan-phase 13`)
+Phase: 13
+Plan: Not started
 Milestone: v1.1
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
+- Total plans completed: 5
 - Average duration: -
 - Total execution time: 0 hours
 
@@ -40,7 +41,7 @@ Milestone: v1.1
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 13 | 5 | - | - |
 
 **Recent Trend:**
 
@@ -93,6 +94,10 @@ Milestone: v1.1
 | Phase 12 P01 | 3 | 1 tasks | 1 files |
 | Phase 12 P02 | 5min | 2 tasks | 3 files |
 | Phase 12 P03 | 2min | 3 tasks | 3 files |
+| Phase 13 P01 | 12min | 1 tasks | 4 files |
+| Phase 13 P02 | 6min | 1 tasks | 4 files |
+| Phase 13 P03 | 10 | 3 tasks | 8 files |
+| Phase 13 P04 | 15min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -157,6 +162,11 @@ Recent decisions affecting current work:
 - [Phase 10]: linkedin-connect.ts prompt always uses Add a note path; already_connected sets pipeline_status=connected; weekly_limit_reached sets cooldown_until only (no health change); security_checkpoint/session_expired set health_status=warning
 - [Phase 12]: Used CREATE OR REPLACE FUNCTION on handle_new_user() — trigger DDL from 00004 unchanged, only body replaced
 - [Phase 12]: Removed startFreeTrial action and canStartTrial CTA — trial activation now fully via DB trigger from 12-01
+- [Phase 13]: [13-05] Wave 1 scaffold: migration 00017 authored (enum 'unreachable', prospect prescreen cols, per-action LinkedIn limits/counters, platform-aware check_and_increment_limit RPC); getWarmupState 3rd platform arg with LinkedIn progression; worker.ts dispatch branches on account.platform with TODO stubs for 13-01/02/03; /api/cron/linkedin-prescreen with classifyPrescreenResult priority ladder + LNKD-06 approval filter via fetchPendingActions helper. Migration apply pending (Task 3 BLOCKING).
+- [Phase 13]: [13-01] LinkedIn DM executor (LNKD-01): deterministic Playwright flow mirroring Connect executor. No /messaging/thread/new URL hack (unverified per RESEARCH §2). No auto-swap on not_connected — user re-approves. Dual success signal (thread DOM prefix match OR 'message sent' toast). message_disabled checked BEFORE Message click (banner renders at profile level). Step 10 navigation broadened from connection_request-only to all LinkedIn action types. T-13-01-01 defense-in-depth guard: reject profile URLs not under linkedin.com/in/.
+- [Phase 13]: [13-02] LinkedIn Follow executor (LNKD-02): deterministic dual-path CTA (primary aria-label^='Follow' + overflow-menu More actions fallback). aria-pressed='true' flip is authoritative success signal (Follow is SPA-local, no URL change). Already-following pre-check returns success with failureMode='already_following' (noop). Premium-gated via xpath ancestor-or-self probe covering both lock-icon and Premium-wrapper layouts. All locators scoped to `main ` prefix (T-13-02-02 mitigation). No worker switch arm needed — pipeline_status='engaged' transition flows through existing like||follow success block. Warmup day-2 gate confirmed.
+- [Phase ?]: [Phase 13]: [13-03] LinkedIn Like + Comment executors (LNKD-03/04): main-post scoping via data-id urn:li:activity + fallback to main article (Landmine #8); Quill composer filled via page.keyboard.type (not .fill) because contenteditable mutation observer ignores value injection; generateComment uses inline QC (length/URL/pitch) with single targeted-addendum retry instead of runQualityControl (DM-specific rules would over-reject); pre-navigation char_limit_exceeded guard; public_reply success transitions prospect.pipeline_status=engaged for BOTH platforms; stripDashes reused from dm-generation.ts as em-dash prompt-injection defense.
+- [Phase ?]: [Phase 13]: [13-04] LNKD-05 closed: LinkedIn followup_dm routing verified. No code patches required — schedule-followups cron + findDueFollowUps + expiry.ts are all platform-agnostic. Integration test proves worker dispatches LinkedIn followup_dm to sendLinkedInDM (not Haiku CU) and preserves Reddit regression.
 
 ### Pending Todos
 
@@ -177,6 +187,6 @@ None yet.
 
 ## Session Continuity
 
-Last activity: 2026-04-21
-Stopped at: Completed 12-03-PLAN.md
+Last activity: 2026-04-23
+Stopped at: 13-02-PLAN.md complete — Wave 2 continues with 13-03 (LinkedIn like + comment executors)
 Resume file: None

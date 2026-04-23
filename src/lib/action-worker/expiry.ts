@@ -1,3 +1,7 @@
+// AUDIT(13-04): no-change — expiry excludes ONLY connection_request (line 22);
+// followup_dm expires uniformly for both reddit and linkedin accounts via the
+// .neq("action_type","connection_request") filter. No platform guard present or
+// needed. Verified 2026-04-23 for LNKD-05.
 /**
  * Expiry logic for stale pending_approval actions.
  *

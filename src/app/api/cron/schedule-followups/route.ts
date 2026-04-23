@@ -1,3 +1,9 @@
+// AUDIT(13-04): no-change — follow-up cron is platform-agnostic (findDueFollowUps
+// filters only on pipeline_status='contacted' + sequence_stopped=false; no platform
+// guard). LinkedIn prospects whose DM completed via sendLinkedInDM are eligible for
+// day-3/7/14 followup_dm rows identically to Reddit prospects. Worker dispatches the
+// resulting followup_dm by account.platform — LinkedIn arm wired in 13-01. Verified
+// 2026-04-23 for LNKD-05.
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logger } from "@/lib/logger"
