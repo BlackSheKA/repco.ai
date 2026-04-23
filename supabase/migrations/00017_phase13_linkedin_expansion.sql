@@ -104,4 +104,4 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 -- 6. Index for prescreen batch claim
 CREATE INDEX IF NOT EXISTS idx_prospects_linkedin_prescreen
   ON public.prospects (platform, pipeline_status, last_prescreen_attempt_at)
-  WHERE platform = 'linkedin' AND pipeline_status = 'new';
+  WHERE platform = 'linkedin' AND pipeline_status = 'detected';

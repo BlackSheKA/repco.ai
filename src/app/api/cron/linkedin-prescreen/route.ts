@@ -1,13 +1,13 @@
 /**
  * /api/cron/linkedin-prescreen — LNKD-05 + LNKD-06
  *
- * Hourly pre-screen for `pipeline_status='new'` LinkedIn prospects.
+ * Hourly pre-screen for `pipeline_status='detected'` LinkedIn prospects.
  * Visits /in/{slug}, classifies DOM into one of four verdicts:
  *   - security_checkpoint -> abort run, flag account health=warning
  *   - profile_unreachable -> pipeline_status=unreachable, reason=profile_unreachable
  *   - already_connected   -> pipeline_status=connected (unreachable_reason NOT set)
  *   - creator_mode_no_connect -> pipeline_status=unreachable, reason=creator_mode_no_connect
- *   - (null)              -> leave as new; refresh last_prescreen_attempt_at
+ *   - (null)              -> leave as detected; refresh last_prescreen_attempt_at
  *
  * Batch cap: 50 prospects per run. Single healthy LinkedIn account per run.
  * T-13-05-01 mitigation: Bearer CRON_SECRET check first.
@@ -124,7 +124,7 @@ export async function GET(request: Request): Promise<Response> {
       .from("prospects")
       .update({ last_prescreen_attempt_at: new Date().toISOString() })
       .eq("platform", "linkedin")
-      .eq("pipeline_status", "new")
+      .eq("pipeline_status", "detected")
       .or(
         `last_prescreen_attempt_at.is.null,last_prescreen_attempt_at.lt.${sevenDaysAgo}`,
       )
