@@ -77,7 +77,6 @@ export async function GET(request: Request): Promise<Response> {
     creator_mode_no_connect: 0,
   }
   let screened = 0
-  let runStatus: "completed" | "failed" = "completed"
   let runError: string | null = null
   let connection: Awaited<ReturnType<typeof connectToProfile>> | undefined
 
@@ -116,19 +115,22 @@ export async function GET(request: Request): Promise<Response> {
       })
     }
 
-    // 2. Claim batch: up to 50 prospects whose last attempt was null or >7 days.
+    // 2. Select batch: up to 50 prospects whose last attempt was null or >7 days.
+    //    H-01: do NOT stamp last_prescreen_attempt_at up-front. Per-prospect stamps
+    //    happen AFTER the visit (see below) so a mid-run crash does not silently
+    //    burn 7 days for prospects that were never visited.
     const sevenDaysAgo = new Date(
       Date.now() - 7 * 24 * 60 * 60 * 1000,
     ).toISOString()
     const { data: claimed } = await supabase
       .from("prospects")
-      .update({ last_prescreen_attempt_at: new Date().toISOString() })
+      .select("id, handle, profile_url")
       .eq("platform", "linkedin")
       .eq("pipeline_status", "detected")
       .or(
         `last_prescreen_attempt_at.is.null,last_prescreen_attempt_at.lt.${sevenDaysAgo}`,
       )
-      .select("id, handle, profile_url")
+      .order("last_prescreen_attempt_at", { ascending: true, nullsFirst: true })
       .limit(50)
 
     const prospects = (claimed ?? []) as Array<{
@@ -206,8 +208,10 @@ export async function GET(request: Request): Promise<Response> {
           navError ||
           /profile-unavailable|this profile is unavailable/i.test(pageBody) ||
           currentUrl.includes("/404"),
+        // W-01: use the same prefix selector as linkedin-dm-executor so
+        // prescreen verdicts agree with the DM executor's 1st-degree check.
         hasMessageSidebar: await connection.page
-          .locator("main button[aria-label*='Message']")
+          .locator("main button[aria-label^='Message']")
           .isVisible({ timeout: 1500 })
           .catch(() => false),
         hasConnectButton: await connection.page
@@ -222,7 +226,19 @@ export async function GET(request: Request): Promise<Response> {
 
       const verdict = classifyPrescreenResult(state)
       screened += 1
-      if (!verdict) continue
+      const nowIso = new Date().toISOString()
+
+      if (!verdict) {
+        // W-03: null verdict = still a valid candidate. Stamp so we don't
+        // re-hit it on the next cron tick, but the per-prospect stamp (vs
+        // pre-batch) means crashes don't silently lock non-visited rows.
+        await supabase
+          .from("prospects")
+          .update({ last_prescreen_attempt_at: nowIso })
+          .eq("id", prospect.id)
+        continue
+      }
+
       reasons[verdict] += 1
 
       if (verdict === "already_connected") {
@@ -230,7 +246,10 @@ export async function GET(request: Request): Promise<Response> {
         // unreachable_reason (see migration 00017 column comment).
         await supabase
           .from("prospects")
-          .update({ pipeline_status: "connected" })
+          .update({
+            pipeline_status: "connected",
+            last_prescreen_attempt_at: nowIso,
+          })
           .eq("id", prospect.id)
       } else {
         // profile_unreachable or creator_mode_no_connect -> unreachable + reason
@@ -239,6 +258,7 @@ export async function GET(request: Request): Promise<Response> {
           .update({
             pipeline_status: "unreachable",
             unreachable_reason: verdict,
+            last_prescreen_attempt_at: nowIso,
           })
           .eq("id", prospect.id)
       }
@@ -268,7 +288,6 @@ export async function GET(request: Request): Promise<Response> {
     await logger.flush()
     return NextResponse.json({ ok: true, screened, reasons })
   } catch (err) {
-    runStatus = "failed"
     runError = err instanceof Error ? err.message : String(err)
     logger.error("linkedin-prescreen failed", {
       correlationId,
@@ -305,7 +324,5 @@ export async function GET(request: Request): Promise<Response> {
         // non-fatal
       }
     }
-    // runStatus kept for potential future telemetry; referenced to avoid unused warning.
-    void runStatus
   }
 }
