@@ -88,7 +88,7 @@ export async function GET(request: Request): Promise<Response> {
       .eq("platform", "linkedin")
       .eq("health_status", "healthy")
       .not("gologin_profile_id", "is", null)
-      .order("last_used_at", { ascending: true, nullsFirst: true })
+      .order("session_verified_at", { ascending: true, nullsFirst: true })
       .limit(1)
 
     const account = accounts?.[0]
