@@ -256,7 +256,7 @@ Plans:
   3. LinkedIn `followup_dm` actions created by the day 3/7/14 cron execute through the new LinkedIn DM path without regressing Reddit follow-ups (existing 290 tests stay green)
   4. Pre-screening cron marks prospects as `unreachable` before they can enter the approval queue, producing a measurable drop in `no_connect_available` failures on approved actions (telemetry visible in job_logs)
   5. Typecheck + full test suite green; new action types covered by unit tests for failure-mode branches
-**Plans**: 5 plans (TBD during `/gsd:plan-phase 13`)
+**Plans:** 5 plans
 
 Plans:
 - [ ] 13-01-PLAN.md — LinkedIn DM executor (deterministic DOM flow for 1st-degree targets)
