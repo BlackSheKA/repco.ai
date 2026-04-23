@@ -66,3 +66,48 @@ describe("getWarmupState — ABAN-02 progressive warmup gate", () => {
     expect(state.skipped).toBe(false)
   })
 })
+
+describe("getWarmupState — Phase 13 LinkedIn progression", () => {
+  // Per .planning/phases/13-linkedin-action-expansion/13-CONTEXT.md §Warmup gates
+  it("day 1 LinkedIn: only browse allowed", () => {
+    const state = getWarmupState(1, null, "linkedin")
+    expect(state.allowedActions).toEqual(["browse"])
+  })
+
+  it("day 3 LinkedIn: like + follow allowed, no public_reply, no dm", () => {
+    const state = getWarmupState(3, null, "linkedin")
+    expect(state.allowedActions).toContain("like")
+    expect(state.allowedActions).toContain("follow")
+    expect(state.allowedActions).not.toContain("public_reply")
+    expect(state.allowedActions).not.toContain("dm")
+  })
+
+  it("day 5 LinkedIn: public_reply + connection_request allowed, no dm", () => {
+    const state = getWarmupState(5, null, "linkedin")
+    expect(state.allowedActions).toContain("public_reply")
+    expect(state.allowedActions).toContain("connection_request")
+    expect(state.allowedActions).not.toContain("dm")
+  })
+
+  it("day 7 LinkedIn: dm allowed", () => {
+    const state = getWarmupState(7, null, "linkedin")
+    expect(state.allowedActions).toContain("dm")
+  })
+
+  it("day 4 Reddit regression: matches prior Reddit day-4 output", () => {
+    const state = getWarmupState(4, null, "reddit")
+    // Prior Reddit day-4 behavior: browse, like, follow, connection_request
+    expect(state.allowedActions).toContain("browse")
+    expect(state.allowedActions).toContain("like")
+    expect(state.allowedActions).toContain("follow")
+    expect(state.allowedActions).toContain("connection_request")
+    expect(state.allowedActions).not.toContain("dm")
+    expect(state.allowedActions).not.toContain("public_reply")
+  })
+
+  it("2-arg caller (no platform arg) defaults to Reddit schedule", () => {
+    const withArg = getWarmupState(4, null, "reddit")
+    const withoutArg = getWarmupState(4, null)
+    expect(withoutArg.allowedActions).toEqual(withArg.allowedActions)
+  })
+})

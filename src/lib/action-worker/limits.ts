@@ -24,13 +24,31 @@ export async function checkAndIncrementLimit(
 export async function getDailyUsage(
   supabase: SupabaseClient,
   accountId: string,
-): Promise<{ dm_count: number; engage_count: number; reply_count: number }> {
+): Promise<{
+  dm_count: number
+  engage_count: number
+  reply_count: number
+  follow_count?: number
+  like_count?: number
+  comment_count?: number
+}> {
   const { data } = await supabase
     .from("action_counts")
-    .select("dm_count, engage_count, reply_count")
+    .select(
+      "dm_count, engage_count, reply_count, follow_count, like_count, comment_count",
+    )
     .eq("account_id", accountId)
     .eq("date", new Date().toISOString().split("T")[0])
     .single()
 
-  return data ?? { dm_count: 0, engage_count: 0, reply_count: 0 }
+  return (
+    data ?? {
+      dm_count: 0,
+      engage_count: 0,
+      reply_count: 0,
+      follow_count: 0,
+      like_count: 0,
+      comment_count: 0,
+    }
+  )
 }

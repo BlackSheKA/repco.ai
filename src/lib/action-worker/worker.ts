@@ -116,9 +116,11 @@ export async function executeAction(
       runPlatform = account!.platform as string
 
       // 5. ANTI-BAN: Check warmup gate (ABAN-02)
+      //    Platform-aware progression per 13-CONTEXT.md §Warmup gates.
       const warmup = getWarmupState(
         account!.warmup_day,
         account!.warmup_completed_at,
+        account!.platform as "reddit" | "linkedin",
       )
       if (
         !warmup.allowedActions.includes(
@@ -255,8 +257,10 @@ export async function executeAction(
       }
     }
 
-    // 12. Build CU prompt based on action type
-    let prompt: string
+    // 12. Build CU prompt — ONLY for Reddit. LinkedIn uses deterministic
+    //     Playwright executors (per 13-CONTEXT.md §Enum strategy - public_reply
+    //     is Reddit-reply AND LinkedIn-comment; dispatch by account.platform).
+    let prompt: string | null = null
     const prospect = await supabase
       .from("prospects")
       .select("handle")
@@ -264,40 +268,42 @@ export async function executeAction(
       .single()
     const handle = (prospect.data?.handle as string) ?? ""
 
-    if (
-      action.action_type === "dm" ||
-      action.action_type === "followup_dm"
-    ) {
-      prompt = getRedditDMPrompt(
-        handle,
-        action.final_content ?? action.drafted_content ?? "",
-      )
-    } else if (action.action_type === "like") {
-      const { data: signal } = await supabase
-        .from("intent_signals")
-        .select("post_url")
-        .eq("id", action.prospect_id)
-        .maybeSingle()
-      prompt = getRedditLikePrompt((signal?.post_url as string) ?? "")
-    } else if (action.action_type === "follow") {
-      prompt = getRedditFollowPrompt(handle)
+    if (account!.platform !== "linkedin") {
+      if (
+        action.action_type === "dm" ||
+        action.action_type === "followup_dm"
+      ) {
+        prompt = getRedditDMPrompt(
+          handle,
+          action.final_content ?? action.drafted_content ?? "",
+        )
+      } else if (action.action_type === "like") {
+        const { data: signal } = await supabase
+          .from("intent_signals")
+          .select("post_url")
+          .eq("id", action.prospect_id)
+          .maybeSingle()
+        prompt = getRedditLikePrompt((signal?.post_url as string) ?? "")
+      } else if (action.action_type === "follow") {
+        prompt = getRedditFollowPrompt(handle)
+      } else {
+        prompt = `Perform a public reply action for ${handle}`
+      }
     } else if (action.action_type === "connection_request") {
-      // handle already fetched in step 10 (profile navigation); use local var
+      // LinkedIn connection: prompt is informational only (executor is Playwright).
       const slug = linkedinProfileHandle ?? handle
       prompt = getLinkedInConnectPrompt(
         slug,
         action.final_content ?? action.drafted_content ?? "",
       )
-    } else {
-      prompt = `Perform a public reply action for ${handle}`
     }
 
     // 13. Execute the action.
-    // LinkedIn connection_request uses the deterministic Playwright flow
-    // (navigate to /preload/custom-invite/... + DOM selectors). This path
-    // is reliable — LinkedIn's Connect button ignores CDP-dispatched
-    // mouse/keyboard events (bot-detection), so Claude CU is not usable
-    // here. All other action types keep Claude Haiku CU.
+    //     Dispatch is by account.platform (per 13-CONTEXT.md §Enum strategy):
+    //     - LinkedIn: deterministic Playwright executors per action_type.
+    //       (connection_request shipped in Phase 10; dm/follow/like/public_reply
+    //        land in Plans 13-01 / 13-02 / 13-03 of the Phase 13 wave.)
+    //     - Reddit: Claude Haiku CU drives the browser via prompt.
     let result: {
       success: boolean
       steps: number
@@ -305,32 +311,62 @@ export async function executeAction(
       stepLog: import("@/features/actions/lib/types").CUStepLog[]
       error?: string
     }
-    if (action.action_type === "connection_request") {
-      const profileUrl =
-        linkedinProfileHandle ??
-        (await supabase
-          .from("prospects")
-          .select("profile_url")
-          .eq("id", action.prospect_id)
-          .maybeSingle()
-          .then((r) => (r.data?.profile_url as string | null) ?? handle))
-      const connectResult = await sendLinkedInConnection(
-        connection.page,
-        profileUrl as string,
-        action.final_content ?? action.drafted_content ?? "",
-      )
-      const finalScreenshot = await captureScreenshot(connection.page)
-      result = {
-        success: connectResult.success,
-        steps: 1,
-        screenshots: [finalScreenshot],
-        stepLog: [],
-        error: connectResult.failureMode,
+    if (account!.platform === "linkedin") {
+      if (action.action_type === "connection_request") {
+        const profileUrl =
+          linkedinProfileHandle ??
+          (await supabase
+            .from("prospects")
+            .select("profile_url")
+            .eq("id", action.prospect_id)
+            .maybeSingle()
+            .then((r) => (r.data?.profile_url as string | null) ?? handle))
+        const connectResult = await sendLinkedInConnection(
+          connection.page,
+          profileUrl as string,
+          action.final_content ?? action.drafted_content ?? "",
+        )
+        const finalScreenshot = await captureScreenshot(connection.page)
+        result = {
+          success: connectResult.success,
+          steps: 1,
+          screenshots: [finalScreenshot],
+          stepLog: [],
+          error: connectResult.failureMode,
+        }
+      } else if (
+        action.action_type === "dm" ||
+        action.action_type === "followup_dm"
+      ) {
+        // TODO(13-01): wire sendLinkedInDM(page, profileUrl, content)
+        throw new Error(
+          "LinkedIn dm executor not implemented (Phase 13 wave 2 — plan 13-01)",
+        )
+      } else if (action.action_type === "follow") {
+        // TODO(13-02): wire followLinkedInProfile(page, profileUrl)
+        throw new Error(
+          "LinkedIn follow executor not implemented (Phase 13 wave 2 — plan 13-02)",
+        )
+      } else if (action.action_type === "like") {
+        // TODO(13-03): wire likeLinkedInPost(page, postUrl)
+        throw new Error(
+          "LinkedIn like executor not implemented (Phase 13 wave 2 — plan 13-03)",
+        )
+      } else if (action.action_type === "public_reply") {
+        // TODO(13-03): wire commentLinkedInPost(page, postUrl, content)
+        // (public_reply is Reddit-reply AND LinkedIn-comment; same action_type.)
+        throw new Error(
+          "LinkedIn public_reply executor not implemented (Phase 13 wave 2 — plan 13-03)",
+        )
+      } else {
+        throw new Error(
+          `LinkedIn ${action.action_type} executor not implemented`,
+        )
       }
     } else {
       result = await executeCUAction(
         connection.page,
-        prompt,
+        prompt ?? `Perform a ${action.action_type} action for ${handle}`,
         "claude-haiku-4-5-20251001",
       )
     }
@@ -440,8 +476,18 @@ export async function executeAction(
         runError,
       )
 
-      // LinkedIn-specific failure mode handling
-      if (action.action_type === "connection_request" && runError) {
+      // LinkedIn-specific failure mode handling (all LinkedIn actions — Phase 13)
+      // Full taxonomy per 13-CONTEXT.md §Failure-mode taxonomy:
+      //   connection_request: session_expired, security_checkpoint, weekly_limit_reached,
+      //                       already_connected, profile_unreachable, dialog_never_opened,
+      //                       no_connect_available, send_button_missing
+      //   dm:                 not_connected, message_disabled, dialog_never_opened,
+      //                       weekly_limit_reached, session_expired, security_checkpoint
+      //   follow:             follow_premium_gated, profile_unreachable, session_expired, already_following
+      //   like:               post_unreachable, post_deleted, react_button_missing, session_expired
+      //   comment:            comment_disabled, post_unreachable, char_limit_exceeded,
+      //                       comment_post_failed, session_expired
+      if (runPlatform === "linkedin" && runError) {
         if (
           runError === "security_checkpoint" ||
           runError === "session_expired"
@@ -511,8 +557,8 @@ export async function executeAction(
           ? { screenshot_count: screenshotCount }
           : {}),
         ...(cuStepLog ? { cu_step_log: cuStepLog } : {}),
-        // Include failure_mode for LinkedIn connection_request failures for ops slicing
-        ...(runActionType === "connection_request" && runError
+        // Include failure_mode for any LinkedIn failure (Phase 13 taxonomy slicing)
+        ...(runPlatform === "linkedin" && runError
           ? { failure_mode: runError }
           : {}),
       },
