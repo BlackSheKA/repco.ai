@@ -8,6 +8,23 @@ repco.ai is an AI sales rep that monitors Reddit and LinkedIn 24/7, detects peop
 
 People who are actively looking for your product get a personalized, relevant DM within hours — not days, not never.
 
+## Current Milestone: v1.1 — LinkedIn Action Expansion
+
+**Started:** 2026-04-23
+**Goal:** Reach outreach parity with Reddit on LinkedIn by porting the deterministic DOM flow pattern (proven in v1.0 Phase 10 + commit 042e842) to every remaining LinkedIn action type — DM, Follow, Like/Comment, followup_dm — plus pre-screening prospects whose Connect path LinkedIn structurally blocks.
+
+**Target features:**
+- LinkedIn DM executor (1st-degree connections)
+- LinkedIn Follow executor (creator/influencer engage)
+- LinkedIn Like + Comment executor (post interactions)
+- LinkedIn followup_dm sequences (reuse day 3/7/14 cron)
+- Prospect pre-screening queue (keep structurally-unreachable prospects out of approval queue)
+
+**Key context:**
+- Builds directly on connection_request executor from v1.0 — same anti-bot bypass (navigate to underlying URL) is expected to work for Message, Follow, React, Comment
+- Claude Computer Use is NOT used for LinkedIn actions in v1.1 — deterministic Playwright locators only (cheaper, faster, reliable against isTrusted gating)
+- Pre-screening is the higher-leverage part: saves user credits + approval-queue time on infeasible targets
+
 ## Requirements
 
 ### Validated

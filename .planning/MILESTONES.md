@@ -1,5 +1,19 @@
 # Milestones
 
+## v1.1 LinkedIn Action Expansion (In Progress, started 2026-04-23)
+
+**Scope:** 1 phase, 5 plans (TBD during plan-phase)
+**Status:** Roadmap defined, awaiting `/gsd:plan-phase 13`
+
+**Goal:** Reach outreach parity with Reddit on LinkedIn by porting the deterministic DOM flow (proven in v1.0 Phase 10 + commit 042e842) to every remaining LinkedIn action type.
+
+**Requirements:** LNKD-01 through LNKD-06 (LinkedIn DM, Follow, Like, Comment, followup_dm sequences, pre-screening)
+
+**Phase:**
+- [ ] **Phase 13: LinkedIn Action Expansion** — 5 plans (DM, Follow, Like+Comment, followup_dm, pre-screening)
+
+---
+
 ## v1.0 Foundation (Shipped: 2026-04-21)
 
 **Phases completed:** 12 phases, 47 plans

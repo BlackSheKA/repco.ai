@@ -143,6 +143,19 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **OBSV-03**: System tracks error rates via Sentry with structured logging via Axiom
 - [x] **OBSV-04**: System alerts (email) when action success rate < 80% or timeout rate > 5%
 
+## v1.1 Requirements — LinkedIn Action Expansion
+
+Added 2026-04-23. Builds on v1.0's deterministic LinkedIn connection_request executor (proven in Phase 10 + finalized in commit 042e842) to reach outreach parity with Reddit across all LinkedIn action types.
+
+### LinkedIn Outreach
+
+- [ ] **LNKD-01**: System can send a LinkedIn direct message to a 1st-degree connection via deterministic DOM flow (no Claude Computer Use), recording failure modes when Message is disabled, conversation blocked, or character limit exceeded
+- [ ] **LNKD-02**: System can Follow a LinkedIn profile as a standalone action (creator/influencer engage), with anti-bot fallback when Follow button is gated to Premium
+- [ ] **LNKD-03**: System can React (Like) to a LinkedIn post given the post URL, with failure modes for deleted/private posts
+- [ ] **LNKD-04**: System can post a Comment on a LinkedIn post given the post URL and comment text, respecting LinkedIn's 1250-char limit
+- [ ] **LNKD-05**: Existing day 3/7/14 follow-up sequences route LinkedIn followup_dm actions to the new LinkedIn DM executor without breaking Reddit sequences
+- [ ] **LNKD-06**: System pre-screens LinkedIn prospects and marks them `pipeline_status='unreachable'` when the Connect/Message path is structurally unavailable (Creator mode, weekly invite limit, account restriction), keeping them out of the approval queue
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
