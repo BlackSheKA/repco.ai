@@ -74,6 +74,16 @@ describe("getWarmupState — Phase 13 LinkedIn progression", () => {
     expect(state.allowedActions).toEqual(["browse"])
   })
 
+  it("LinkedIn day 1 does not allow follow (LNKD-02 regression)", () => {
+    const state = getWarmupState(1, null, "linkedin")
+    expect(state.allowedActions).not.toContain("follow")
+  })
+
+  it("LinkedIn day 2 allows follow (warmup gate opens — LNKD-02)", () => {
+    const state = getWarmupState(2, null, "linkedin")
+    expect(state.allowedActions).toContain("follow")
+  })
+
   it("day 3 LinkedIn: like + follow allowed, no public_reply, no dm", () => {
     const state = getWarmupState(3, null, "linkedin")
     expect(state.allowedActions).toContain("like")

@@ -22,6 +22,9 @@ interface Scenario {
   // overflow click if `afterOverflowClick` is true on that spec.
   selectors?: Record<string, VisibleSpec & { afterOverflowClick?: boolean; afterClick?: boolean }>
   gotoThrows?: boolean
+  // If set, the primary Follow button's child locator (premium ancestor xpath)
+  // returns visible=true on first isVisible().
+  primaryHasPremiumBadge?: boolean
 }
 
 function createMockPage(scenario: Scenario): Page {
@@ -57,9 +60,14 @@ function createMockPage(scenario: Scenario): Page {
         if (sel.includes("More actions")) overflowOpened = true
         if (sel.includes("aria-label^='Follow'")) primaryClicked = true
       }),
-      locator: vi.fn(() => ({
+      locator: vi.fn((_childSel: string) => ({
         first: () => ({
-          isVisible: vi.fn(async () => false),
+          isVisible: vi.fn(async () =>
+            sel.includes("aria-label^='Follow']:not([aria-pressed='true']") &&
+            scenario.primaryHasPremiumBadge === true
+              ? true
+              : false,
+          ),
         }),
       })),
     }
@@ -174,6 +182,19 @@ describe("followLinkedInProfile", () => {
     const r = await followLinkedInProfile(page, PROFILE)
     expect(r.success).toBe(true)
     expect(r.failureMode).toBeUndefined()
+  })
+
+  it("returns follow_premium_gated when primary CTA's ancestor carries a premium badge", async () => {
+    const page = createMockPage({
+      url: PROFILE,
+      primaryHasPremiumBadge: true,
+      selectors: {
+        "aria-label^='Follow']:not([aria-pressed='true']": { visible: true },
+      },
+    })
+    const r = await followLinkedInProfile(page, PROFILE)
+    expect(r.success).toBe(false)
+    expect(r.failureMode).toBe("follow_premium_gated")
   })
 
   it("returns follow_button_missing when neither primary CTA nor overflow Follow is found", async () => {

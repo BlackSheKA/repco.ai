@@ -11,6 +11,7 @@ import { connectToProfile, disconnectProfile } from "@/lib/gologin/adapter"
 import { executeCUAction } from "@/lib/computer-use/executor"
 import { sendLinkedInConnection } from "@/lib/action-worker/actions/linkedin-connect-executor"
 import { sendLinkedInDM } from "@/lib/action-worker/actions/linkedin-dm-executor"
+import { followLinkedInProfile } from "@/lib/action-worker/actions/linkedin-follow-executor"
 import { captureScreenshot } from "@/lib/computer-use/screenshot"
 import { uploadScreenshot } from "@/lib/computer-use/screenshot"
 import { getRedditDMPrompt } from "@/lib/computer-use/actions/reddit-dm"
@@ -362,10 +363,27 @@ export async function executeAction(
           error: dmResult.failureMode,
         }
       } else if (action.action_type === "follow") {
-        // TODO(13-02): wire followLinkedInProfile(page, profileUrl)
-        throw new Error(
-          "LinkedIn follow executor not implemented (Phase 13 wave 2 — plan 13-02)",
+        // LNKD-02: deterministic LinkedIn Follow (primary CTA + overflow fallback).
+        const profileUrl =
+          linkedinProfileHandle ??
+          (await supabase
+            .from("prospects")
+            .select("profile_url")
+            .eq("id", action.prospect_id)
+            .maybeSingle()
+            .then((r) => (r.data?.profile_url as string | null) ?? handle))
+        const followResult = await followLinkedInProfile(
+          connection.page,
+          profileUrl as string,
         )
+        const finalScreenshot = await captureScreenshot(connection.page)
+        result = {
+          success: followResult.success,
+          steps: 1,
+          screenshots: [finalScreenshot],
+          stepLog: [],
+          error: followResult.failureMode,
+        }
       } else if (action.action_type === "like") {
         // TODO(13-03): wire likeLinkedInPost(page, postUrl)
         throw new Error(
