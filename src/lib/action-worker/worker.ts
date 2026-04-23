@@ -126,9 +126,14 @@ export async function executeAction(
         account!.warmup_completed_at,
         account!.platform as "reddit" | "linkedin",
       )
+      // H-05: followup_dm is not in WarmupState.allowedActions — treat it as
+      // the same gate as `dm`. Without this mapping, a warmed day-7+ LinkedIn
+      // account would never be allowed to send a follow-up DM.
+      const gateType =
+        action.action_type === "followup_dm" ? "dm" : action.action_type
       if (
         !warmup.allowedActions.includes(
-          action.action_type as
+          gateType as
             | "dm"
             | "like"
             | "follow"

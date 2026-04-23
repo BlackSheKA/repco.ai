@@ -84,20 +84,12 @@ vi.mock("@/lib/action-worker/noise", () => ({
   shouldInjectNoise: vi.fn(() => false),
   generateNoiseActions: vi.fn(() => []),
 }))
-vi.mock("@/features/accounts/lib/types", () => ({
-  getWarmupState: vi.fn(() => ({
-    day: 10,
-    allowedActions: [
-      "dm",
-      "followup_dm",
-      "like",
-      "follow",
-      "public_reply",
-      "connection_request",
-    ],
-    isWarmingUp: false,
-  })),
-}))
+// H-05: use the REAL getWarmupState. Earlier iteration of this test
+// over-mocked it to include `followup_dm` in allowedActions, which hid
+// the bug where the worker's gate check never mapped followup_dm to dm.
+// With the worker fix + warmup_day: 10 in the fixture, the real function
+// returns an allowed-action set that includes `dm`, which is what the
+// gate check compares against after the followup_dm → dm remap.
 
 // ---- Billing (credit deduction no-op) ----
 vi.mock("@/features/billing/lib/credit-costs", () => ({
