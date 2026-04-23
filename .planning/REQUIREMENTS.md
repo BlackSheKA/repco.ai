@@ -153,7 +153,7 @@ Added 2026-04-23. Builds on v1.0's deterministic LinkedIn connection_request exe
 - [x] **LNKD-02**: System can Follow a LinkedIn profile as a standalone action (creator/influencer engage), with anti-bot fallback when Follow button is gated to Premium (completed 2026-04-23, 13-02)
 - [x] **LNKD-03**: System can React (Like) to a LinkedIn post given the post URL, with failure modes for deleted/private posts
 - [x] **LNKD-04**: System can post a Comment on a LinkedIn post given the post URL and comment text, respecting LinkedIn's 1250-char limit
-- [ ] **LNKD-05**: Existing day 3/7/14 follow-up sequences route LinkedIn followup_dm actions to the new LinkedIn DM executor without breaking Reddit sequences
+- [x] **LNKD-05**: Existing day 3/7/14 follow-up sequences route LinkedIn followup_dm actions to the new LinkedIn DM executor without breaking Reddit sequences (completed 2026-04-23, 13-04)
 - [ ] **LNKD-06**: System pre-screens LinkedIn prospects and marks them `pipeline_status='unreachable'` when the Connect/Message path is structurally unavailable (Creator mode, weekly invite limit, account restriction), keeping them out of the approval queue
 
 ## v2 Requirements

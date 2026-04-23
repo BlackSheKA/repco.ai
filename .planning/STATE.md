@@ -4,14 +4,14 @@ milestone: v1.1
 milestone_name: milestone
 status: Ready to execute
 stopped_at: 13-02-PLAN.md complete — Wave 2 continues with 13-03 (LinkedIn like + comment executors)
-last_updated: "2026-04-23T09:37:46.016Z"
+last_updated: "2026-04-23T09:44:29.324Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 13
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 5
-  completed_plans: 4
-  percent: 80
+  completed_plans: 5
+  percent: 100
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-16)
 ## Current Position
 
 Phase: 13 (linkedin-action-expansion) — EXECUTING
-Plan: 4 of 5 (13-01, 13-02 complete; 13-03 next)
+Plan: 5 of 5 (13-01, 13-02 complete; 13-03 next)
 Milestone: v1.1
 
 ## Performance Metrics
@@ -97,6 +97,7 @@ Milestone: v1.1
 | Phase 13 P01 | 12min | 1 tasks | 4 files |
 | Phase 13 P02 | 6min | 1 tasks | 4 files |
 | Phase 13 P03 | 10 | 3 tasks | 8 files |
+| Phase 13 P04 | 15min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -165,6 +166,7 @@ Recent decisions affecting current work:
 - [Phase 13]: [13-01] LinkedIn DM executor (LNKD-01): deterministic Playwright flow mirroring Connect executor. No /messaging/thread/new URL hack (unverified per RESEARCH §2). No auto-swap on not_connected — user re-approves. Dual success signal (thread DOM prefix match OR 'message sent' toast). message_disabled checked BEFORE Message click (banner renders at profile level). Step 10 navigation broadened from connection_request-only to all LinkedIn action types. T-13-01-01 defense-in-depth guard: reject profile URLs not under linkedin.com/in/.
 - [Phase 13]: [13-02] LinkedIn Follow executor (LNKD-02): deterministic dual-path CTA (primary aria-label^='Follow' + overflow-menu More actions fallback). aria-pressed='true' flip is authoritative success signal (Follow is SPA-local, no URL change). Already-following pre-check returns success with failureMode='already_following' (noop). Premium-gated via xpath ancestor-or-self probe covering both lock-icon and Premium-wrapper layouts. All locators scoped to `main ` prefix (T-13-02-02 mitigation). No worker switch arm needed — pipeline_status='engaged' transition flows through existing like||follow success block. Warmup day-2 gate confirmed.
 - [Phase ?]: [Phase 13]: [13-03] LinkedIn Like + Comment executors (LNKD-03/04): main-post scoping via data-id urn:li:activity + fallback to main article (Landmine #8); Quill composer filled via page.keyboard.type (not .fill) because contenteditable mutation observer ignores value injection; generateComment uses inline QC (length/URL/pitch) with single targeted-addendum retry instead of runQualityControl (DM-specific rules would over-reject); pre-navigation char_limit_exceeded guard; public_reply success transitions prospect.pipeline_status=engaged for BOTH platforms; stripDashes reused from dm-generation.ts as em-dash prompt-injection defense.
+- [Phase ?]: [Phase 13]: [13-04] LNKD-05 closed: LinkedIn followup_dm routing verified. No code patches required — schedule-followups cron + findDueFollowUps + expiry.ts are all platform-agnostic. Integration test proves worker dispatches LinkedIn followup_dm to sendLinkedInDM (not Haiku CU) and preserves Reddit regression.
 
 ### Pending Todos
 
