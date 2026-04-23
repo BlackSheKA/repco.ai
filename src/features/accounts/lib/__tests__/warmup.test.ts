@@ -94,6 +94,14 @@ describe("getWarmupState — Phase 13 LinkedIn progression", () => {
     expect(state.allowedActions).toContain("dm")
   })
 
+  it("day 6 LinkedIn regression (LNKD-01): dm NOT allowed until day 7", () => {
+    const state = getWarmupState(6, null, "linkedin")
+    expect(state.allowedActions).not.toContain("dm")
+    // Still allows public_reply + connection_request at day 6
+    expect(state.allowedActions).toContain("public_reply")
+    expect(state.allowedActions).toContain("connection_request")
+  })
+
   it("day 4 Reddit regression: matches prior Reddit day-4 output", () => {
     const state = getWarmupState(4, null, "reddit")
     // Prior Reddit day-4 behavior: browse, like, follow, connection_request

@@ -10,6 +10,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import { connectToProfile, disconnectProfile } from "@/lib/gologin/adapter"
 import { executeCUAction } from "@/lib/computer-use/executor"
 import { sendLinkedInConnection } from "@/lib/action-worker/actions/linkedin-connect-executor"
+import { sendLinkedInDM } from "@/lib/action-worker/actions/linkedin-dm-executor"
 import { captureScreenshot } from "@/lib/computer-use/screenshot"
 import { uploadScreenshot } from "@/lib/computer-use/screenshot"
 import { getRedditDMPrompt } from "@/lib/computer-use/actions/reddit-dm"
@@ -211,10 +212,7 @@ export async function executeAction(
     }
 
     // 10. Navigate to starting URL (platform-specific)
-    if (
-      account!.platform === "linkedin" &&
-      action.action_type === "connection_request"
-    ) {
+    if (account!.platform === "linkedin") {
       // For LinkedIn connections, navigate directly to the prospect's profile.
       // profile_url is stored from Apify ingestion in Phase 6.
       const { data: prospectData } = await supabase
@@ -338,10 +336,31 @@ export async function executeAction(
         action.action_type === "dm" ||
         action.action_type === "followup_dm"
       ) {
-        // TODO(13-01): wire sendLinkedInDM(page, profileUrl, content)
-        throw new Error(
-          "LinkedIn dm executor not implemented (Phase 13 wave 2 — plan 13-01)",
+        // LNKD-01: deterministic LinkedIn DM executor (1st-degree only).
+        // No auto-swap on not_connected — user re-approves as connection_request
+        // per 13-CONTEXT.md §Non-1st-degree DM handling.
+        const profileUrl =
+          linkedinProfileHandle ??
+          (await supabase
+            .from("prospects")
+            .select("profile_url")
+            .eq("id", action.prospect_id)
+            .maybeSingle()
+            .then((r) => (r.data?.profile_url as string | null) ?? handle))
+        const body = action.final_content ?? action.drafted_content ?? ""
+        const dmResult = await sendLinkedInDM(
+          connection.page,
+          profileUrl as string,
+          body,
         )
+        const finalScreenshot = await captureScreenshot(connection.page)
+        result = {
+          success: dmResult.success,
+          steps: 1,
+          screenshots: [finalScreenshot],
+          stepLog: [],
+          error: dmResult.failureMode,
+        }
       } else if (action.action_type === "follow") {
         // TODO(13-02): wire followLinkedInProfile(page, profileUrl)
         throw new Error(

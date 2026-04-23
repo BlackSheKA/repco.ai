@@ -30,7 +30,16 @@ function createMockPage(scenario: Scenario): Page {
 
   const selectorMatch = (sel: string): VisibleSpec | undefined => {
     if (!scenario.selectors) return { visible: false }
-    for (const key of Object.keys(scenario.selectors)) {
+    // If the selector references a Send button, match Send-related keys
+    // first so the fallback locator (which *also* contains the composer
+    // substring for scoping) resolves to its own spec.
+    const keys = Object.keys(scenario.selectors)
+    const selLower = sel.toLowerCase()
+    const isSend = selLower.includes("send")
+    const sendKeys = keys.filter((k) => k.toLowerCase().includes("send"))
+    const otherKeys = keys.filter((k) => !k.toLowerCase().includes("send"))
+    const ordered = isSend ? [...sendKeys, ...otherKeys] : [...otherKeys, ...sendKeys]
+    for (const key of ordered) {
       if (sel.includes(key)) return scenario.selectors[key]
     }
     return { visible: false }
