@@ -37,10 +37,21 @@ export async function followLinkedInProfile(
   page: Page,
   profileUrl: string,
 ): Promise<LinkedInFollowResult> {
+  // H-04: always reconstruct the URL from the normalized slug so
+  // attacker-controlled hosts (e.g. "https://evil.com/x") can never reach
+  // page.goto. extractLinkedInSlug handles both full URL and bare slug.
   const slug = extractLinkedInSlug(profileUrl)
-  const profilePage = profileUrl.startsWith("http")
-    ? profileUrl
-    : `https://www.linkedin.com/in/${slug}`
+  const profilePage = `https://www.linkedin.com/in/${slug}`
+
+  // H-02 defense-in-depth: reject any reconstructed URL that isn't under
+  // linkedin.com/in/ (matches linkedin-dm-executor guard).
+  if (!/^https:\/\/www\.linkedin\.com\/in\//i.test(profilePage)) {
+    return {
+      success: false,
+      failureMode: "profile_unreachable",
+      reasoning: "url not under linkedin.com/in/",
+    }
+  }
 
   try {
     await page.setViewportSize({ width: 1280, height: 900 })

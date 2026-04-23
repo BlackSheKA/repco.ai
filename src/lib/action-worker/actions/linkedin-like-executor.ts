@@ -32,6 +32,16 @@ export async function likeLinkedInPost(
   page: Page,
   postUrl: string,
 ): Promise<LinkedInLikeResult> {
+  // H-02 defense-in-depth: refuse to navigate to arbitrary origins with
+  // an authenticated LinkedIn session attached.
+  if (!/^https:\/\/www\.linkedin\.com\//i.test(postUrl)) {
+    return {
+      success: false,
+      failureMode: "post_unreachable",
+      reasoning: "url not under linkedin.com",
+    }
+  }
+
   try {
     await page.setViewportSize({ width: 1280, height: 900 })
   } catch {
@@ -57,8 +67,21 @@ export async function likeLinkedInPost(
 
   await page.waitForTimeout(2500)
 
+  // W-02: narrow 404 detection to URL redirects or dedicated 404 DOM so
+  // posts whose body text merely contains "404" aren't mis-classified.
+  if (/\/404(\b|\/)/.test(url)) {
+    return { success: false, failureMode: "post_unreachable" }
+  }
   const body = (await page.textContent("body").catch(() => "")) ?? ""
-  if (/this post is no longer available|404|page not found/i.test(body)) {
+  if (/this post is no longer available/i.test(body)) {
+    return { success: false, failureMode: "post_unreachable" }
+  }
+  const dedicatedNotFound = await page
+    .locator("h1:has-text('Page not found')")
+    .first()
+    .isVisible({ timeout: 500 })
+    .catch(() => false)
+  if (dedicatedNotFound) {
     return { success: false, failureMode: "post_unreachable" }
   }
   if (/removed|deleted by (the )?author/i.test(body)) {

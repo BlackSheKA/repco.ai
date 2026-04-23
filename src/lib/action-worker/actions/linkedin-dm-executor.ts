@@ -179,11 +179,12 @@ export async function sendLinkedInDM(
   }
 
   // Step 8: verify message reached the thread.
-  // Primary signal: thread DOM shows the typed message text.
+  // Primary signal: thread DOM shows the typed message text. W-08: use
+  // .filter({ hasText }) so the needle is matched as a raw string — no
+  // JSON escaping concerns for quotes/backslashes in the first 40 chars.
   const threadHasText = await page
-    .locator(
-      `li.msg-s-message-list__event:has-text(${JSON.stringify(message.slice(0, 40))})`,
-    )
+    .locator("li.msg-s-message-list__event")
+    .filter({ hasText: message.slice(0, 40) })
     .first()
     .isVisible({ timeout: 3000 })
     .catch(() => false)

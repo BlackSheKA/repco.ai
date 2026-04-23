@@ -47,6 +47,16 @@ export async function commentLinkedInPost(
     }
   }
 
+  // H-02 defense-in-depth: refuse to navigate to arbitrary origins with
+  // an authenticated LinkedIn session attached.
+  if (!/^https:\/\/www\.linkedin\.com\//i.test(postUrl)) {
+    return {
+      success: false,
+      failureMode: "post_unreachable",
+      reasoning: "url not under linkedin.com",
+    }
+  }
+
   try {
     await page.setViewportSize({ width: 1280, height: 900 })
   } catch {
@@ -71,8 +81,21 @@ export async function commentLinkedInPost(
   }
 
   await page.waitForTimeout(2500)
+  // W-02: narrow 404 detection to URL redirects or dedicated 404 DOM so
+  // comments containing the literal "404" aren't mis-classified.
+  if (/\/404(\b|\/)/.test(url)) {
+    return { success: false, failureMode: "post_unreachable" }
+  }
   const body = (await page.textContent("body").catch(() => "")) ?? ""
-  if (/404|no longer available|page not found/i.test(body)) {
+  if (/no longer available/i.test(body)) {
+    return { success: false, failureMode: "post_unreachable" }
+  }
+  const dedicatedNotFound = await page
+    .locator("h1:has-text('Page not found')")
+    .first()
+    .isVisible({ timeout: 500 })
+    .catch(() => false)
+  if (dedicatedNotFound) {
     return { success: false, failureMode: "post_unreachable" }
   }
 
@@ -149,12 +172,13 @@ export async function commentLinkedInPost(
   await submitBtn.click({ timeout: 10000 }).catch(() => null)
   await page.waitForTimeout(5000)
 
-  // Post-verify: text appears in the comment list.
+  // Post-verify: text appears in the comment list. W-08: use .filter({ hasText })
+  // to avoid re-escaping the needle into a CSS :has-text() literal (which breaks
+  // when the text contains quotes, backslashes, or control chars).
   const needle = text.slice(0, 40)
   const appeared = await scope
-    .locator(
-      `.comments-comment-list :has-text(${JSON.stringify(needle)}), ul.comments-comments-list :has-text(${JSON.stringify(needle)})`,
-    )
+    .locator(".comments-comment-list, ul.comments-comments-list")
+    .filter({ hasText: needle })
     .first()
     .isVisible({ timeout: 5000 })
     .catch(() => false)
