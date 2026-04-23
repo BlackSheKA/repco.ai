@@ -48,7 +48,13 @@ export interface AccountDailyUsage {
 
 export interface WarmupState {
   day: number
-  maxDay: 7
+  /**
+   * Last warmup day before the account is considered fully warmed. Platform-aware:
+   *  - LinkedIn: 7 (DM gate opens at day 7)
+   *  - Reddit:   8 (DM gate opens at day 8)
+   * Consumers doing `day >= maxDay` treat that as "fully warmed".
+   */
+  maxDay: number
   completed: boolean
   skipped: boolean
   allowedActions: ("browse" | "like" | "follow" | "public_reply" | "dm" | "connection_request")[]
@@ -119,5 +125,8 @@ export function getWarmupState(
     }
   }
 
-  return { day: warmupDay, maxDay: 7, completed, skipped, allowedActions }
+  // H-03: platform-aware maxDay. LinkedIn warmup completes at day 7;
+  // Reddit at day 8. A Reddit account on day 7 must NOT report fully-warmed.
+  const maxDay = platform === "linkedin" ? 7 : 8
+  return { day: warmupDay, maxDay, completed, skipped, allowedActions }
 }

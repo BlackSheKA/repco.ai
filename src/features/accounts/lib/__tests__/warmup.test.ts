@@ -58,12 +58,17 @@ describe("getWarmupState — ABAN-02 progressive warmup gate", () => {
     expect(state.allowedActions).toContain("dm")
   })
 
-  it("returns correct day and maxDay=7 in state shape", () => {
-    const state = getWarmupState(5, null)
-    expect(state.day).toBe(5)
-    expect(state.maxDay).toBe(7)
-    expect(state.completed).toBe(false)
-    expect(state.skipped).toBe(false)
+  it("returns correct day and platform-aware maxDay in state shape", () => {
+    // H-03: maxDay is platform-aware. Reddit completes at day 8 (>= 8 = fully
+    // warmed), LinkedIn at day 7.
+    const reddit = getWarmupState(5, null)
+    expect(reddit.day).toBe(5)
+    expect(reddit.maxDay).toBe(8)
+    expect(reddit.completed).toBe(false)
+    expect(reddit.skipped).toBe(false)
+
+    const linkedin = getWarmupState(5, null, "linkedin")
+    expect(linkedin.maxDay).toBe(7)
   })
 })
 
