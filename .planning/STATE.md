@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: Executing Phase 13 — 13-05 code shipped, awaiting migration apply (Task 3 checkpoint)
-stopped_at: 13-05-PLAN.md Task 3 BLOCKING human-action checkpoint (apply migration 00017 to dev + prod)
-last_updated: "2026-04-23T11:06:00.000Z"
+status: Executing Phase 13 — 13-01 complete (LinkedIn DM executor LNKD-01 shipped); Wave 2 continues with 13-02/03/04
+stopped_at: 13-01-PLAN.md complete — next is 13-02 (LinkedIn Follow executor) in Wave 2
+last_updated: "2026-04-23T11:17:00.000Z"
 last_activity: 2026-04-23
 progress:
   total_phases: 13
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-16)
 ## Current Position
 
 Phase: 13 (linkedin-action-expansion) — EXECUTING
-Plan: 1 of 5
+Plan: 2 of 5 (13-01 complete; 13-02 next)
 Milestone: v1.1
 
 ## Performance Metrics
@@ -94,6 +94,7 @@ Milestone: v1.1
 | Phase 12 P01 | 3 | 1 tasks | 1 files |
 | Phase 12 P02 | 5min | 2 tasks | 3 files |
 | Phase 12 P03 | 2min | 3 tasks | 3 files |
+| Phase 13 P01 | 12min | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -159,6 +160,7 @@ Recent decisions affecting current work:
 - [Phase 12]: Used CREATE OR REPLACE FUNCTION on handle_new_user() — trigger DDL from 00004 unchanged, only body replaced
 - [Phase 12]: Removed startFreeTrial action and canStartTrial CTA — trial activation now fully via DB trigger from 12-01
 - [Phase 13]: [13-05] Wave 1 scaffold: migration 00017 authored (enum 'unreachable', prospect prescreen cols, per-action LinkedIn limits/counters, platform-aware check_and_increment_limit RPC); getWarmupState 3rd platform arg with LinkedIn progression; worker.ts dispatch branches on account.platform with TODO stubs for 13-01/02/03; /api/cron/linkedin-prescreen with classifyPrescreenResult priority ladder + LNKD-06 approval filter via fetchPendingActions helper. Migration apply pending (Task 3 BLOCKING).
+- [Phase 13]: [13-01] LinkedIn DM executor (LNKD-01): deterministic Playwright flow mirroring Connect executor. No /messaging/thread/new URL hack (unverified per RESEARCH §2). No auto-swap on not_connected — user re-approves. Dual success signal (thread DOM prefix match OR 'message sent' toast). message_disabled checked BEFORE Message click (banner renders at profile level). Step 10 navigation broadened from connection_request-only to all LinkedIn action types. T-13-01-01 defense-in-depth guard: reject profile URLs not under linkedin.com/in/.
 
 ### Pending Todos
 
@@ -180,5 +182,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-23
-Stopped at: 13-05-PLAN.md Task 3 BLOCKING checkpoint — awaiting user to apply migration 00017 to dev (dvmfeswlhlbgzqhtoytl) then prod (cmkifdwjunojgigrqwnr)
-Resume file: .planning/phases/13-linkedin-action-expansion/13-05-SUMMARY.md
+Stopped at: 13-01-PLAN.md complete — Wave 2 continues with 13-02 (LinkedIn Follow executor)
+Resume file: .planning/phases/13-linkedin-action-expansion/13-01-SUMMARY.md
