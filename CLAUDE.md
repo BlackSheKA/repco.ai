@@ -1,227 +1,165 @@
-# CLAUDE.md — repco.ai
+# CLAUDE.md
 
-This file provides guidance for Claude Code when working with this project.
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
+
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+
+## 1. Think Before Coding
+
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
+
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
+
+## 2. Simplicity First
+
+**Minimum code that solves the problem. Nothing speculative.**
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+
+## 3. Surgical Changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
+
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+
+The test: Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
+
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+---
+
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+
+---
+
+# CLAUDE.md — repco.ai
 
 ## Overview
 
-repco.ai is an AI-powered sales representative that monitors Reddit and LinkedIn 24/7, detects people actively looking for products like yours, and sends personalized DMs from your accounts with your voice. Built for indie hackers and small SaaS teams as a no-code alternative to hiring an SDR.
+repco.ai — AI sales rep that monitors Reddit and LinkedIn 24/7, detects buying intent, and sends personalized DMs from your accounts. No-code SDR alternative for indie hackers and small SaaS.
 
-**Core value:** People actively looking for your product get a personalized, relevant DM within hours — not days, not never.
-
-**Project status:** Phase 1 (Foundation) complete. Current focus: Phase 2 (Reddit Monitoring + Intent Feed). See `.planning/ROADMAP.md` for full 6-phase plan.
-
-## Project Structure
-
-```
-src/
-├── app/
-│   ├── (app)/                # Authenticated app routes (auth guard via middleware)
-│   ├── (auth)/login/         # Public auth routes
-│   ├── auth/callback/        # OAuth callback handler
-│   ├── api/
-│   │   └── cron/             # Vercel cron endpoints (zombie-recovery)
-│   ├── layout.tsx            # Root layout (fonts, theme, toaster)
-│   ├── global-error.tsx      # Global error boundary + Sentry
-│   ├── instrumentation.ts    # Sentry initialization
-│   └── globals.css           # Tailwind config + brand design tokens
-├── components/
-│   ├── ui/                   # shadcn/ui primitives (radix-nova preset)
-│   ├── shell/                # AppShell, Header, Sidebar, ThemeToggle
-│   └── providers/            # ThemeProvider wrapper
-├── features/
-│   └── auth/                 # Auth feature module
-│       ├── actions/          # Server actions (sign in, sign out)
-│       └── components/       # LoginForm, SignOutButton
-├── lib/
-│   ├── supabase/             # Client factories (server, client, middleware)
-│   ├── logger.ts             # Structured logger (Axiom + Sentry correlation)
-│   ├── alerts.ts             # Threshold alerting (OBSV-04)
-│   ├── axiom.ts              # Axiom client setup
-│   └── utils.ts              # cn() utility (clsx + tailwind-merge)
-├── hooks/                    # Custom React hooks
-└── middleware.ts             # Auth redirect middleware
-supabase/
-├── config.toml               # Local Supabase dev config
-└── migrations/               # PostgreSQL migrations (00001–00004)
-.planning/                    # GSD planning artifacts
-├── PROJECT.md                # Vision, constraints, key decisions
-├── REQUIREMENTS.md           # Feature requirements (OBSV-*, MNTR-*, etc.)
-├── ROADMAP.md                # 6-phase roadmap
-├── STATE.md                  # Current milestone state
-└── config.json               # GSD workflow config
-PRD/                          # Product requirements docs
-```
+**Status:** Phase 1 (Foundation) done. Active: Phase 2 (Reddit Monitoring + Intent Feed). Full plan in `.planning/ROADMAP.md`.
 
 ## Tech Stack
 
-- **Framework**: Next.js 16 (App Router, Turbopack)
-- **Language**: TypeScript 5.9 (strict mode), path alias `@/*` → `./src/*`
-- **React**: 19 with Server Components
-- **Styling**: Tailwind CSS v4 (PostCSS plugin), dark/light mode via next-themes
-- **UI**: shadcn/ui (preset b3QwALGmg, radix-nova style), Lucide + Phosphor icons
-  - **ALWAYS use native shadcn/ui components first** (Sidebar, Sheet, Dialog, etc.) — only build custom components when no native shadcn equivalent exists
-- **Database**: Supabase (PostgreSQL + RLS + Auth + Storage)
-- **Auth**: Supabase Auth (Google OAuth + magic links)
-- **Observability**: Sentry (error tracking) + Axiom (structured logging) + correlation IDs
-- **Hosting**: Vercel Pro (production + cron)
-- **State**: Server components by default, useState for client interactions
-- **Package manager**: pnpm
-- **Fonts**: Inter (body/headings), Geist (UI sans), Geist Mono (monospace/terminal)
-- **Colors**: CSS variables (OkLch), indigo primary `#4338CA`, warm stone palette
+- Next.js 16 (App Router, Turbopack), React 19 RSC, TypeScript 5.9 strict, `@/*` → `./src/*`
+- Tailwind CSS v4, shadcn/ui (radix-nova preset, Lucide + Phosphor). **Always prefer native shadcn components before building custom.**
+- Supabase (Postgres + RLS + Auth), Supabase Auth (Google OAuth + magic links)
+- Sentry + Axiom + correlation IDs
+- Vercel Pro (hosting + cron), pnpm
 
 ## Key Commands
 
 ```bash
-pnpm dev --port 3001  # Dev server (Turbopack) — always use port 3001 (Supabase redirect URLs configured for 3001)
-pnpm build            # Production build
-pnpm start            # Start production server
-pnpm lint             # ESLint
-pnpm format           # Prettier
-pnpm typecheck        # TypeScript type check (tsc --noEmit)
+pnpm dev --port 3001  # ALWAYS port 3001 — Supabase redirect URLs configured for it
+pnpm build | start | lint | format | typecheck
 ```
 
-## Architecture Patterns
+## Architecture
 
-### Auth Flow
-- Google OAuth + magic links via Supabase Auth → `/auth/callback` → `/` (dashboard)
-- Middleware intercepts all requests: unauthenticated → `/login`, authenticated off `/login` → `/`
-- Route groups: `(auth)` for public routes, `(app)` for protected routes
-- Server actions (`"use server"`) for sign in/out mutations
+### Auth
+Google OAuth + magic links → `/auth/callback` → `/`. Middleware redirects: unauthenticated → `/login`, authenticated off `/login` → `/`. Route groups: `(auth)` public, `(app)` protected. Server actions for sign in/out.
 
-### Supabase Integration
-- **Prod project**: `cmkifdwjunojgigrqwnr` (West US Oregon)
-- **Dev branch**: `dvmfeswlhlbgzqhtoytl` (inherits auth config from prod)
-- **Management API**: `SUPABASE_ACCESS_TOKEN` env var available for API calls; use `--ssl-no-revoke` with curl on Windows
-- **Server components/API routes**: `createClient()` from `lib/supabase/server.ts` (cookie-based SSR)
-- **Client components**: `createClient()` from `lib/supabase/client.ts` (browser client)
-- **Middleware**: `updateSession()` from `lib/supabase/middleware.ts` (token refresh)
-- **Admin/cron operations**: service role client created inline with `SUPABASE_SERVICE_ROLE_KEY`
-- All data access enforced by RLS policies — users can only access their own data
+### Supabase
+- Prod: `cmkifdwjunojgigrqwnr` (West US Oregon) · Dev branch: `dvmfeswlhlbgzqhtoytl`
+- Management API: `SUPABASE_ACCESS_TOKEN` env; use `--ssl-no-revoke` with curl on Windows
+- Clients: `lib/supabase/server.ts` (SSR), `lib/supabase/client.ts` (browser), `lib/supabase/middleware.ts` (token refresh). Service role client inline for admin/cron only — never in client code.
+- All data access enforced by RLS.
 
 ### Observability
-- **Sentry**: client/server/edge configs, initialized via `instrumentation.ts`
-- **Axiom**: structured logging with optional conditional client (only if token configured)
-- **Correlation IDs**: UUID-based, tracked across console + Axiom + Sentry for request tracing
-- **Threshold alerts (OBSV-04)**: success rate < 80% or timeout rate > 5% → Sentry alert with fingerprint dedup
+Sentry initialized via `instrumentation.ts`. Axiom structured logging (conditional on token). UUID correlation IDs across console + Axiom + Sentry. Threshold alerts (OBSV-04): success <80% or timeout >5% → Sentry with fingerprint dedup.
 
-### Cron Route Pattern
-```
-1. Auth: Bearer token check against CRON_SECRET
-2. Setup: correlation ID + start timestamp
-3. Operations: service role Supabase client for admin queries
-4. Logging: structured logs throughout with correlationId
-5. Cleanup: await logger.flush() before returning response
-```
+### Cron route pattern
+1. Bearer auth vs `CRON_SECRET`
+2. Correlation ID + start timestamp
+3. Service role Supabase client
+4. Structured logs with correlationId
+5. `await logger.flush()` before response
 
-### Component Architecture
-- **Server-first**: Server Components by default, `"use client"` only when needed
-- **Shell pattern**: AppShell wraps Sidebar + Header + main content area
-- **Provider pattern**: ThemeProvider wraps app with next-themes
-- **Feature modules**: `src/features/<name>/` with `actions/` and `components/` subdirectories
+### Component architecture
+Server-first (`"use client"` only when needed). AppShell = Sidebar + Header + main. ThemeProvider wraps app. Features live in `src/features/<name>/{actions,components}/`.
 
 ## Conventions
 
-### Naming
-- **Files/folders**: `kebab-case` (e.g., `login-form.tsx`, `auth-actions.ts`)
-- **Components**: PascalCase exports (e.g., `LoginForm`, `AppShell`)
-- **Functions/variables**: camelCase (e.g., `signInWithEmail`, `correlationId`)
-- **Constants**: UPPER_SNAKE_CASE (e.g., `NAV_ITEMS`, `AXIOM_DATASET`)
-- **Types/interfaces**: PascalCase with `Props` suffix for component props (e.g., `AppShellProps`)
-- **DB tables**: `snake_case` (e.g., `intent_signals`, `job_logs`)
-- **UUIDs** for all primary keys
+- **Naming**: files/folders `kebab-case`; components `PascalCase` (Props suffix); functions/vars `camelCase`; constants `UPPER_SNAKE_CASE`; DB tables `snake_case`; UUID PKs.
+- **Imports**: React/Next → third-party → `@/*` alias.
+- **Style**: Prettier (80 cols, 2 spaces, no semis, double quotes, trailing commas es5). Tailwind sorted via plugin, `cn()` for conditionals. No `any`, no inline styles. Validate with Zod at API boundaries. Toasts via Sonner.
+- **DB**: sequential migrations `00001_`, `00002_`…; RLS on every new table; `TIMESTAMPTZ DEFAULT now()`; 12 ENUMs in `00001_enums.sql`; `auth.users` → `public.users` trigger.
+- **Commits**: `<type>(<scope>): <subject>` — types: feat/fix/docs/refactor/test/chore; scope phase-based (e.g. `01-03`).
 
-### Imports
-```typescript
-// 1. React/Next.js
-import type { Metadata } from "next"
-// 2. Third-party
-import * as Sentry from "@sentry/nextjs"
-// 3. Internal (using @/* alias)
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-```
+## Database
 
-### Code Style
-- **Prettier**: 80 char width, 2 spaces, no semicolons, double quotes, trailing commas (es5)
-- **Tailwind**: classes sorted via `prettier-plugin-tailwindcss`, `cn()` for conditionals
-- **TypeScript**: strict mode, no `any`, explicit types at boundaries
-- Server-first: prefer Server Components, `"use client"` only for interactivity
-- Validate with Zod at API boundaries
-- Toast notifications via Sonner
-- No inline styles — Tailwind utilities only
+Schema in `supabase/migrations/` — 11 tables with RLS, 12 ENUMs in `00001_enums.sql`. Core tables: `users`, `monitoring_signals`, `product_profiles`, `social_accounts`, `intent_signals`, `prospects`, `actions`, `action_counts`, `credit_transactions`, `live_stats`, `job_logs`.
 
-### Database
-- Migrations numbered sequentially: `00001_`, `00002_`, etc.
-- Always add RLS policies for new tables
-- Use `TIMESTAMPTZ` with `DEFAULT now()` for timestamps
-- 12 ENUM types defined in `00001_enums.sql`
-- Auth trigger syncs `auth.users` → `public.users`
+## Environments
 
-### Commit Messages
-```
-<type>(<scope>): <subject>
+Strict separation across Git, Vercel, Supabase and local disk. **Never mix them.**
 
-Types: feat, fix, docs, refactor, test, chore
-Scope: phase-based (e.g., 01-03, phase-01)
-Examples:
-  feat(01-03): login page with split layout and auth form
-  docs(phase-01): complete phase execution
-```
+| Layer | Production | Preview / Dev |
+|---|---|---|
+| Git branch | `main` | `development` (+ PR branches) |
+| Vercel deployment | Production (auto on push to `main`) | Preview (auto on push to `development`) |
+| Supabase | prod `cmkifdwjunojgigrqwnr` | dev branch `dvmfeswlhlbgzqhtoytl` |
+| Stripe | LIVE keys (`sk_live_…`) | TEST keys (`sk_test_…`) |
+| Site URL | `https://repco.ai` | Vercel preview URL / `http://localhost:3001` |
+| Local file | _none — do NOT keep prod env on disk_ | `.env.local` (dev Supabase + Stripe test) |
 
-## Database Schema
+### Rules
+- **Default working branch is `development`.** `main` only receives merges via PR after verification on preview.
+- **Local `.env.local` must point at dev Supabase**, never prod. If it drifts, fix it immediately.
+- **Never create `.env.production.local`** on disk. Prod secrets live only in Vercel. If you need to inspect them, use `vercel env pull .env.prod.tmp --environment=production` and delete the file when done.
+- **Preview env vars in Vercel are scoped to the `development` branch** — when adding new vars to Vercel use `vercel env add NAME preview development --value '…'` (the `development` git-branch arg is required).
+- **Stripe CLI / webhooks** locally forward to test mode only; live webhooks are Stripe-hosted and point at `repco.ai`.
+- Use `pnpm dev --port 3001` locally → hits dev Supabase via `.env.local`.
+- Cron jobs in Vercel run with the env matching the deployment (prod cron hits prod DB, preview cron hits dev DB).
 
-**11 tables** with row-level security:
-
-| Table | Purpose |
-|-------|---------|
-| `users` | Base user record (synced from auth.users via trigger) |
-| `credit_transactions` | Credit log (type, amount, payment reference) |
-| `monitoring_signals` | Monitoring setup (keywords, subreddits, LinkedIn searches) |
-| `product_profiles` | Product info (description, competitors, keywords) |
-| `social_accounts` | Connected platforms (handles, profile IDs, warmup status) |
-| `intent_signals` | Detected posts (platform, URL, author, intent strength, status) |
-| `prospects` | Pipeline contacts (handle, stage, tags, notes) |
-| `actions` | DMs & engagements (status, content, approval state) |
-| `action_counts` | Daily action counters per account |
-| `live_stats` | Public dashboard stats |
-| `job_logs` | Job execution log (duration, status, errors, correlation ID) |
-
-**12 ENUM types**: `platform_type`, `action_type`, `action_status_type`, etc.
-
-## Environment
-
-- `NEXT_PUBLIC_*` variables: exposed to browser (Supabase URL, anon key, site URL)
-- Server-only variables: Supabase service role key, Sentry config, Axiom token, cron secret
-- Reference `.env.example` for the full list of required variables
-- Never commit `.env.local` or any file containing secrets
+See `.env.example` for the shape. `NEXT_PUBLIC_*` = browser-exposed; others server-only. Never commit `.env.local` or any `.env.*.local`.
 
 ## Testing
 
-**Current state**: No test framework configured yet.
-
-**Planned**:
-- Unit tests for server actions and utility functions
-- Integration tests for Supabase RLS policies
-- E2E tests for critical flows (login, dashboard, action approval)
-
-## Planning
-
-GSD workflow artifacts live in `.planning/`. Current milestone: v1.0.
-
-**6-phase roadmap:**
-1. **Foundation** (DONE) — Schema, auth, observability, zombie recovery
-2. **Reddit Monitoring + Intent Feed** — snoowrap, signal classification, real-time dashboard
-3. **Action Engine** — GoLogin + Playwright + Computer Use, approval queue, anti-ban
-4. **Sequences + Reply Detection** — Follow-up sequences, inbox monitoring
-5. **Billing + Onboarding + Growth** — Stripe, onboarding wizard, /live page, prospect pipeline
-6. **LinkedIn** — Second platform integration
+No test framework configured yet.
 
 ## Critical Rules
 
-- **NEVER kill all Chrome/browser processes** (taskkill chrome.exe etc.) — user has important sessions open. If Playwright can't launch, ask the user to close Chrome manually.
+- **Screenshots ALWAYS go in `screenshots/`** — never save PNG/JPG/WebP to project root or arbitrary locations. Applies to UAT captures, Playwright output saved outside `.playwright-mcp/`, debug screenshots, design references. Use descriptive filenames (e.g. `screenshots/uat-<phase>-<feature>.png`).
+- **NEVER kill all Chrome/browser processes** — user has important sessions open. If Playwright can't launch, ask the user to close Chrome manually.
 - **NEVER run destructive SQL on production** without explicit confirmation.
-- **NEVER commit files containing secrets** (.env.local, credentials, tokens).
-- Always test database migrations on dev environment first.
-- Use service role client only in server-side code (API routes, cron jobs) — never expose in client components.
-- Validate all user input at API boundaries with Zod.
-- Flush logger (`await logger.flush()`) before returning from API routes.
+- **NEVER commit secrets** (.env.local, credentials, tokens).
+- Test migrations on dev branch first.
+- Service role client server-side only.
+- Validate user input at API boundaries with Zod.
+- `await logger.flush()` before returning from API routes.
