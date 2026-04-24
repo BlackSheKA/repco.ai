@@ -28,6 +28,7 @@
 
 import type { Page } from "playwright-core"
 import { extractLinkedInSlug } from "./linkedin-connect-executor"
+import { detectLinkedInAuthwall } from "./linkedin-authwall"
 
 export interface LinkedInDMResult {
   success: boolean
@@ -93,6 +94,14 @@ export async function sendLinkedInDM(
   }
 
   await page.waitForTimeout(2000)
+
+  // Inline signup/sign-in wall at /in/{slug} — LinkedIn serves this
+  // when the session is logged out without redirecting. Must run
+  // BEFORE DOM-based failure detection so `not_connected` is not
+  // misattributed from an auth wall. Surfaced by Phase 13 UAT 2026-04-24.
+  if (await detectLinkedInAuthwall(page)) {
+    return { success: false, failureMode: "session_expired" }
+  }
 
   // Step 2: detect Message button (1st-degree check).
   const messageBtn = page

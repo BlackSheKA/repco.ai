@@ -26,7 +26,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import Anthropic from "@anthropic-ai/sdk"
 
 import { logger } from "@/lib/logger"
-import { connectToProfile, disconnectProfile } from "@/lib/gologin/adapter"
+import { connectToProfile, releaseProfile } from "@/lib/gologin/adapter"
 import { captureScreenshot } from "@/lib/computer-use/screenshot"
 import { matchReplyToProspect } from "@/features/sequences/lib/reply-matching"
 import { handleReplyDetected } from "@/features/sequences/lib/stop-on-reply"
@@ -358,21 +358,11 @@ export async function GET(request: Request) {
           },
         })
       } finally {
-        // Always clean up the GoLogin connection, even on failure
-        if (connection?.browser) {
-          try {
-            await disconnectProfile(connection.browser)
-          } catch (disconnectErr) {
-            logger.warn("disconnectProfile failed", {
-              correlationId,
-              accountId: account.id,
-              error:
-                disconnectErr instanceof Error
-                  ? disconnectErr.message
-                  : String(disconnectErr),
-            })
-          }
-        }
+        // releaseProfile closes CDP AND calls GoLogin's stopCloudBrowser
+        // to free the parallel-launch slot. Surfaced by Phase 13 UAT
+        // 2026-04-24 — disconnectProfile alone is a no-op and leaves
+        // the remote session burning quota until GoLogin timeout.
+        await releaseProfile(connection ?? undefined)
       }
     }
 

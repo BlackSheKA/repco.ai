@@ -45,8 +45,10 @@ vi.mock("@/lib/gologin/adapter", () => ({
       setViewportSize: vi.fn(async () => undefined),
       screenshot: vi.fn(async () => Buffer.from("fake")),
     },
+    profileId: "test-profile",
   })),
   disconnectProfile: vi.fn(async () => undefined),
+  releaseProfile: vi.fn(async () => undefined),
 }))
 vi.mock("@/lib/computer-use/screenshot", () => ({
   captureScreenshot: vi.fn(async () => "ZmFrZQ=="),

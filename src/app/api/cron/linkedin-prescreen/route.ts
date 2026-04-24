@@ -16,8 +16,9 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logger } from "@/lib/logger"
-import { connectToProfile, disconnectProfile } from "@/lib/gologin/adapter"
+import { connectToProfile, releaseProfile } from "@/lib/gologin/adapter"
 import { extractLinkedInSlug } from "@/lib/action-worker/actions/linkedin-connect-executor"
+import { detectLinkedInAuthwall } from "@/lib/action-worker/actions/linkedin-authwall"
 
 export const runtime = "nodejs"
 // Playwright visits are slow; Vercel Pro cron allows up to 300s.
@@ -25,6 +26,7 @@ export const maxDuration = 300
 
 export type PrescreenState = {
   urlContainsCheckpoint: boolean
+  isAuthwall: boolean
   is404: boolean
   hasMessageSidebar: boolean
   hasConnectButton: boolean
@@ -33,18 +35,26 @@ export type PrescreenState = {
 
 export type PrescreenVerdict =
   | "security_checkpoint"
+  | "account_logged_out"
   | "profile_unreachable"
   | "already_connected"
   | "creator_mode_no_connect"
 
 /**
  * Priority order per 13-CONTEXT.md §Pre-screening DOM signals:
- * checkpoint > 404 > message-sidebar (already connected) > follow-only (creator mode).
+ * checkpoint > auth-wall > 404 > message-sidebar (already connected) >
+ * follow-only (creator mode).
+ *
+ * `account_logged_out` added 2026-04-24 after Phase 13 UAT revealed the
+ * null-verdict case silently absorbed logged-out sessions (all three
+ * button signals absent), masking session expiry and locking prospects
+ * as `detected` without a classifier signal being obtained at all.
  */
 export function classifyPrescreenResult(
   state: PrescreenState,
 ): PrescreenVerdict | null {
   if (state.urlContainsCheckpoint) return "security_checkpoint"
+  if (state.isAuthwall) return "account_logged_out"
   if (state.is404) return "profile_unreachable"
   if (state.hasMessageSidebar) return "already_connected"
   if (state.hasFollowButton && !state.hasConnectButton)
@@ -72,6 +82,7 @@ export async function GET(request: Request): Promise<Response> {
 
   const reasons: Record<PrescreenVerdict, number> = {
     security_checkpoint: 0,
+    account_logged_out: 0,
     profile_unreachable: 0,
     already_connected: 0,
     creator_mode_no_connect: 0,
@@ -195,6 +206,13 @@ export async function GET(request: Request): Promise<Response> {
         break
       }
 
+      // Auth-wall detection must precede DOM-button signals — otherwise
+      // a logged-out session shows all three button signals as `false`
+      // and the classifier returns verdict=null, silently locking
+      // prospects as `detected` without ever getting a classifier signal.
+      // Surfaced by Phase 13 UAT 2026-04-24.
+      const isAuthwall = await detectLinkedInAuthwall(connection.page)
+
       let pageBody = ""
       try {
         pageBody = (await connection.page.content()) ?? ""
@@ -204,29 +222,55 @@ export async function GET(request: Request): Promise<Response> {
 
       const state: PrescreenState = {
         urlContainsCheckpoint: false,
+        isAuthwall,
         is404:
           navError ||
           /profile-unavailable|this profile is unavailable/i.test(pageBody) ||
           currentUrl.includes("/404"),
         // W-01: use the same prefix selector as linkedin-dm-executor so
         // prescreen verdicts agree with the DM executor's 1st-degree check.
-        hasMessageSidebar: await connection.page
-          .locator("main button[aria-label^='Message']")
-          .isVisible({ timeout: 1500 })
-          .catch(() => false),
-        hasConnectButton: await connection.page
-          .locator("main button[aria-label^='Connect']")
-          .isVisible({ timeout: 1500 })
-          .catch(() => false),
-        hasFollowButton: await connection.page
-          .locator("main button[aria-label^='Follow']")
-          .isVisible({ timeout: 1500 })
-          .catch(() => false),
+        hasMessageSidebar: isAuthwall
+          ? false
+          : await connection.page
+              .locator("main button[aria-label^='Message']")
+              .isVisible({ timeout: 1500 })
+              .catch(() => false),
+        hasConnectButton: isAuthwall
+          ? false
+          : await connection.page
+              .locator("main button[aria-label^='Connect']")
+              .isVisible({ timeout: 1500 })
+              .catch(() => false),
+        hasFollowButton: isAuthwall
+          ? false
+          : await connection.page
+              .locator("main button[aria-label^='Follow']")
+              .isVisible({ timeout: 1500 })
+              .catch(() => false),
       }
 
       const verdict = classifyPrescreenResult(state)
       screened += 1
       const nowIso = new Date().toISOString()
+
+      // `account_logged_out` mirrors `security_checkpoint` handling:
+      // abort the run and flip account health to `warning` so the next
+      // cron tick picks a different account (or halts if none healthy).
+      // Prospects visited during a logged-out run MUST NOT be stamped
+      // with `last_prescreen_attempt_at` — they never actually got a
+      // classifier signal.
+      if (verdict === "account_logged_out") {
+        await supabase
+          .from("social_accounts")
+          .update({ health_status: "warning" })
+          .eq("id", account.id)
+        reasons.account_logged_out += 1
+        logger.warn(
+          "linkedin-prescreen: account_logged_out — aborting run",
+          { correlationId, accountId: account.id },
+        )
+        break
+      }
 
       if (!verdict) {
         // W-03: null verdict = still a valid candidate. Stamp so we don't
@@ -317,12 +361,8 @@ export async function GET(request: Request): Promise<Response> {
       { status: 500 },
     )
   } finally {
-    if (connection?.browser) {
-      try {
-        await disconnectProfile(connection.browser)
-      } catch {
-        // non-fatal
-      }
-    }
+    // releaseProfile closes CDP AND calls stopCloudBrowser to free the
+    // GoLogin parallel-launch slot. Surfaced by Phase 13 UAT 2026-04-24.
+    await releaseProfile(connection)
   }
 }

@@ -19,6 +19,7 @@
 
 import type { Page } from "playwright-core"
 import { extractLinkedInSlug } from "./linkedin-connect-executor"
+import { detectLinkedInAuthwall } from "./linkedin-authwall"
 
 export interface LinkedInFollowResult {
   success: boolean
@@ -77,6 +78,12 @@ export async function followLinkedInProfile(
   }
 
   await page.waitForTimeout(2000)
+
+  // Inline signup/sign-in wall — must run BEFORE profile-unavailable
+  // check and Follow-button detection. Surfaced by Phase 13 UAT 2026-04-24.
+  if (await detectLinkedInAuthwall(page)) {
+    return { success: false, failureMode: "session_expired" }
+  }
 
   const bodyText = (await page.textContent("body").catch(() => "")) ?? ""
   if (/profile-unavailable|this profile is unavailable/i.test(bodyText)) {
