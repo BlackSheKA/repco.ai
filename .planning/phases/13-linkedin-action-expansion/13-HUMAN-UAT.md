@@ -8,7 +8,12 @@ updated: 2026-04-24T07:30:00Z
 
 ## Current Test
 
-[testing paused — discovered 2 new prod issues during live UAT: (a) GoLogin account `linkedin-6966fe1e` is logged out of LinkedIn (executor hits signup wall, misclassifies results); (b) GoLogin Cloud plan at "max parallel cloud launches limit" blocks repeated executor runs. Plus 1 new classifier bug: prescreen DOM classifier cannot distinguish "valid 1st-degree prospect" from "logged-out session with no buttons visible" — both return verdict=null.]
+[2026-04-24T09:45 — all 3 UAT-surfaced bugs fixed and verified live on prod:
+ - authwall detector wired into 4 executors + prescreen classifier (PR #3, deploy dpl_nrpruurup)
+ - detector timeout + body-text fallback added after flaky first retry (PR #4, deploy dpl_7agiadu7l)
+ - GoLogin releaseProfile() replaces disconnectProfile no-op — 3 back-to-back executor runs now work without "max parallel cloud launches" 403
+ - post-fix retest: 3/3 DM runs through logged-out linkedin-6966fe1e correctly return session_expired (was not_connected pre-fix)
+ - account health state machine auto-flipped linkedin-6966fe1e to `warning` after repeated session_expired failures — exactly the intended system protection]
 
 ## Tests
 
@@ -20,7 +25,21 @@ reason: "No prospect in prod DB is confirmed 1st-degree to either account (aleks
 
 ### 2. LinkedIn DM executor E2E against a non-1st-degree target
 expected: job_logs.metadata.failure_mode='not_connected'; NO auto-swap to connection_request; action.status='failed'
-result: inconclusive
+result: post_fix_pass (still inconclusive for stated intent)
+post_fix_evidence: |
+  2026-04-24 post-authwall-fix on prod (dpl_7agiadu7l): 3/3 DM runs against
+  the logged-out `linkedin-6966fe1e` profile correctly returned
+  `session_expired` instead of misleading `not_connected`. Account health
+  auto-flipped to `warning` after repeated failures (ABAN-07 state machine).
+  Runs: 4bb5cee7 (122s), 0bf90359 (257s), d518dd25 (213s) — deterministic.
+  The DM executor's failure-mode taxonomy is now correctly partitioned:
+  session_expired ≠ not_connected.
+stated_intent_still_blocked_on: "Need a confirmed non-1st-degree target
+  viewed from a LOGGED-IN session to validate the `not_connected` branch.
+  Both currently-logged-in targets (via rich-repco) need assignment fixup +
+  day-0 warmup bump (already done for rich-repco). Deferred — follows from
+  user re-logging linkedin-6966fe1e OR testing via rich-repco against a
+  fresh non-1st-degree prospect."
 evidence: |
   Ran DM action a036bf22 against aleksander-azarow via `linkedin-6966fe1e` on prod (dpl_1f93rxmnl).
   - HTTP response: {"success":false,"error":"not_connected"}, duration 159s
@@ -96,20 +115,20 @@ inconclusive: 2 (Tests 2, 3)
   artifacts: [src/app/api/cron/linkedin-prescreen/route.ts]
 
 - truth: "Prescreen classifier distinguishes viewable-profile results from no-access results"
-  status: open_new_finding
+  status: fixed
   reason: "classifyPrescreenResult returns null (valid candidate) when all three DOM signals are absent. This state matches BOTH the intended happy path (viewable profile with Message button just below 1500ms locator timeout, or no UI for connect because already-connected via different UI variant) AND the undesired 'session logged out so LinkedIn serves signup wall' state. The classifier silently keeps such prospects as 'detected', masking the underlying session failure."
   severity: major
   test: 7
-  remediation_suggestion: "Add a login-wall detector to PrescreenState (e.g. `urlContainsAuthwall: /linkedin.com\\/(login|signup|join)/.test(currentUrl)` OR a check for specific signup-wall markup). Treat as a different failure mode — either a new verdict `account_logged_out` that flips social_accounts.health_status='warning' immediately, or at minimum log it as a warning + skip the prospect without stamping last_prescreen_attempt_at."
-  artifacts: [src/app/api/cron/linkedin-prescreen/route.ts:44-53, src/app/api/cron/linkedin-prescreen/route.ts:204-234]
+  fix: "Added shared detectLinkedInAuthwall helper (URL + DOM landmark + body-text fallback). PrescreenState gained `isAuthwall` field; classifier gained `account_logged_out` verdict with priority right below checkpoint. Cron flips account health=warning and breaks the run (mirrors security_checkpoint). Prospects are NOT stamped with last_prescreen_attempt_at on this path so they get re-classified on the next cron tick with a healthy account. PR #3 (commit 0b57aa6), strengthened in PR #4 (commit 0095a08). Deployed prod dpl_7agiadu7l."
+  artifacts: [src/lib/action-worker/actions/linkedin-authwall.ts, src/app/api/cron/linkedin-prescreen/route.ts]
 
 - truth: "LinkedIn DM executor distinguishes non-1st-degree from logged-out state"
-  status: open_new_finding
+  status: fixed
   reason: "Same underlying issue — linkedin-dm-executor.ts detects absence of Message button selector and maps to `not_connected`. The dm executor has no signal that would differentiate 'target is non-1st-degree (expected 2nd/3rd degree UX)' from 'account is logged out so we can't see any profile at all'. On prod Test 2, action a036bf22 reported not_connected despite the screenshot showing LinkedIn's signup wall."
   severity: major
   test: 2
-  remediation_suggestion: "Before classifying as not_connected, verify the executor is viewing a profile page, not an auth wall. Add a precondition check (URL pattern for /in/{slug}/ + profile-header DOM signal) and emit a distinct failure_mode `session_expired` when the check fails — already in the taxonomy per worker.ts:612-615, just not wired in the DM executor."
-  artifacts: [src/lib/action-worker/actions/linkedin-dm-executor.ts]
+  fix: "Applied the same detectLinkedInAuthwall preflight to DM / Follow / Like / Comment executors — all now emit `session_expired` when the authwall is detected before reading target-specific DOM signals. Live retest: 3/3 DM runs via logged-out account returned session_expired (was not_connected pre-fix). Account health auto-flipped to warning after repeated failures via ABAN-07 state machine."
+  artifacts: [src/lib/action-worker/actions/linkedin-dm-executor.ts, src/lib/action-worker/actions/linkedin-follow-executor.ts, src/lib/action-worker/actions/linkedin-like-executor.ts, src/lib/action-worker/actions/linkedin-comment-executor.ts]
 
 - truth: "GoLogin profile `linkedin-6966fe1e` has an authenticated LinkedIn session"
   status: open_operational
@@ -120,12 +139,12 @@ inconclusive: 2 (Tests 2, 3)
   artifacts: [https://cmkifdwjunojgigrqwnr.supabase.co/storage/v1/object/sign/screenshots/actions/a036bf22-10f7-47e2-900c-a644d80405ab/step-1.png]
 
 - truth: "GoLogin Cloud plan supports enough parallel launches for executor UAT"
-  status: open_operational
+  status: fixed
   reason: "During Test 3 retry, GoLogin Cloud returned HTTP 503 wrapping 403 `You've reached max parallel cloud launches limit. To run more update your plan`. Session from the previous DM run (Test 2) was still consuming a slot. Retry after 90s did not free it."
   severity: major
   test: 3, 4, 5, 6 (any live executor UAT)
-  remediation_suggestion: "Either (a) upgrade GoLogin plan, (b) ensure `disconnectProfile` is always called — particularly on fast-fail paths (origin guard, preflight rejections) where the worker may exit without going through the finally block, (c) reduce MAX_RETRIES or BASE_DELAY_MS in adapter for preflight failures, or (d) add an ops ping to check active parallel sessions before triggering a burst of UAT actions."
-  artifacts: [src/lib/gologin/adapter.ts:30-75]
+  fix: "Root cause was `disconnectProfile(browser)` being an intentional no-op. Added `releaseProfile(connection)` that closes CDP AND calls GoLogin stopCloudBrowser(profileId) to free the parallel-launch slot. Wired into worker.ts, linkedin-prescreen, check-replies finally blocks. GoLoginConnection now includes profileId. Live retest: 3 back-to-back DM executor runs with no `max parallel launches` 403. PR #3 (commit 0b57aa6)."
+  artifacts: [src/lib/gologin/adapter.ts]
 
 - truth: "Tests 1-6 exercise DM / Follow / Like / Comment / followup_dm executors end-to-end"
   status: blocked
