@@ -7,7 +7,7 @@
  */
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
-import { connectToProfile, disconnectProfile } from "@/lib/gologin/adapter"
+import { connectToProfile, releaseProfile } from "@/lib/gologin/adapter"
 import { executeCUAction } from "@/lib/computer-use/executor"
 import { sendLinkedInConnection } from "@/lib/action-worker/actions/linkedin-connect-executor"
 import { sendLinkedInDM } from "@/lib/action-worker/actions/linkedin-dm-executor"
@@ -651,9 +651,13 @@ export async function executeAction(
     runStatus = "failed"
     return { success: false, error: runError }
   } finally {
-    if (connection?.browser) {
-      await disconnectProfile(connection.browser)
-    }
+    // releaseProfile both closes the CDP connection AND calls GoLogin's
+    // stopCloudBrowser API to free the parallel-launch slot. Without
+    // the server-side stop, the cloud browser lingers until GoLogin's
+    // auto-close timeout and blocks subsequent runs with HTTP 403
+    // "max parallel cloud launches limit". Surfaced by Phase 13 UAT
+    // 2026-04-24.
+    await releaseProfile(connection)
     const finishMs = Date.now()
     await supabase.from("job_logs").insert({
       job_type: "action" as const,

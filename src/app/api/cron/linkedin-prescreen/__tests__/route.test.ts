@@ -11,8 +11,10 @@ vi.mock("@/lib/gologin/adapter", () => ({
     browser: { close: async () => {} },
     context: {},
     page: { goto: async () => {}, url: () => "about:blank" },
+    profileId: "test-profile",
   })),
   disconnectProfile: vi.fn(async () => {}),
+  releaseProfile: vi.fn(async () => {}),
 }))
 
 // Fluent Supabase query mock — chainable no-ops that return empty data.
@@ -89,6 +91,7 @@ describe("classifyPrescreenResult — DOM signal priority order", () => {
     expect(
       classifyPrescreenResult({
         urlContainsCheckpoint: true,
+        isAuthwall: true,
         is404: true,
         hasMessageSidebar: true,
         hasConnectButton: true,
@@ -97,11 +100,28 @@ describe("classifyPrescreenResult — DOM signal priority order", () => {
     ).toBe("security_checkpoint")
   })
 
+  it("account_logged_out wins over 404 / button signals (but not checkpoint)", async () => {
+    const { classifyPrescreenResult } = await import("../route")
+    expect(
+      classifyPrescreenResult({
+        urlContainsCheckpoint: false,
+        isAuthwall: true,
+        is404: true,
+        hasMessageSidebar: false,
+        hasConnectButton: false,
+        hasFollowButton: false,
+      }),
+    ).toBe("account_logged_out")
+    // Classifier never emits account_logged_out when checkpoint wins — that
+    // case is tested above.
+  })
+
   it("profile_unreachable on 404", async () => {
     const { classifyPrescreenResult } = await import("../route")
     expect(
       classifyPrescreenResult({
         urlContainsCheckpoint: false,
+        isAuthwall: false,
         is404: true,
         hasMessageSidebar: false,
         hasConnectButton: false,
@@ -115,6 +135,7 @@ describe("classifyPrescreenResult — DOM signal priority order", () => {
     expect(
       classifyPrescreenResult({
         urlContainsCheckpoint: false,
+        isAuthwall: false,
         is404: false,
         hasMessageSidebar: true,
         hasConnectButton: false,
@@ -128,6 +149,7 @@ describe("classifyPrescreenResult — DOM signal priority order", () => {
     expect(
       classifyPrescreenResult({
         urlContainsCheckpoint: false,
+        isAuthwall: false,
         is404: false,
         hasMessageSidebar: false,
         hasConnectButton: false,
@@ -136,14 +158,29 @@ describe("classifyPrescreenResult — DOM signal priority order", () => {
     ).toBe("creator_mode_no_connect")
   })
 
-  it("returns null (leave as new) when Connect button visible", async () => {
+  it("returns null (leave as new) when Connect button visible and no auth wall", async () => {
     const { classifyPrescreenResult } = await import("../route")
     expect(
       classifyPrescreenResult({
         urlContainsCheckpoint: false,
+        isAuthwall: false,
         is404: false,
         hasMessageSidebar: false,
         hasConnectButton: true,
+        hasFollowButton: false,
+      }),
+    ).toBeNull()
+  })
+
+  it("returns null only when NO signals present and NOT authwalled (belt-and-braces)", async () => {
+    const { classifyPrescreenResult } = await import("../route")
+    expect(
+      classifyPrescreenResult({
+        urlContainsCheckpoint: false,
+        isAuthwall: false,
+        is404: false,
+        hasMessageSidebar: false,
+        hasConnectButton: false,
         hasFollowButton: false,
       }),
     ).toBeNull()

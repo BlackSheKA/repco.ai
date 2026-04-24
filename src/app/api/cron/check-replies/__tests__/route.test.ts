@@ -40,8 +40,10 @@ vi.mock("@/lib/gologin/adapter", () => ({
       goto: vi.fn(async () => undefined),
       screenshot: vi.fn(async () => Buffer.from("fake")),
     },
+    profileId: "test-profile",
   })),
   disconnectProfile: vi.fn(async () => undefined),
+  releaseProfile: vi.fn(async () => undefined),
 }))
 
 // Mock screenshot util — Haiku only needs a non-empty base64 string

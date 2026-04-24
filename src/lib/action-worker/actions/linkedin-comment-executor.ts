@@ -17,6 +17,7 @@
  */
 
 import type { Page } from "playwright-core"
+import { detectLinkedInAuthwall } from "./linkedin-authwall"
 
 export interface LinkedInCommentResult {
   success: boolean
@@ -81,6 +82,13 @@ export async function commentLinkedInPost(
   }
 
   await page.waitForTimeout(2500)
+
+  // Inline signup/sign-in wall — must run BEFORE 404/comment-CTA
+  // detection so `comment_disabled` is not misattributed from an
+  // auth wall. Surfaced by Phase 13 UAT 2026-04-24.
+  if (await detectLinkedInAuthwall(page)) {
+    return { success: false, failureMode: "session_expired" }
+  }
   // W-02: narrow 404 detection to URL redirects or dedicated 404 DOM so
   // comments containing the literal "404" aren't mis-classified.
   if (/\/404(\b|\/)/.test(url)) {
