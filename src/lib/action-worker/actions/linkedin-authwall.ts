@@ -22,13 +22,15 @@
 import type { Page } from "playwright-core"
 
 const URL_PATTERN = /\/(login|authwall|signup|join|uas\/login|checkpoint\/rm)\b/i
-const HEADING_TIMEOUT_MS = 600
+const LOCATOR_TIMEOUT_MS = 1500
 
 /**
  * Returns `true` if the page is currently showing LinkedIn's auth wall
  * (signup / sign-in wall), regardless of the URL path.
  *
  * Tolerant to transient renders: only returns true on POSITIVE signals.
+ * Uses three independent checks (URL → DOM → body text) so LinkedIn
+ * A/B-variant markup or slow renders don't produce false negatives.
  */
 export async function detectLinkedInAuthwall(page: Page): Promise<boolean> {
   const url = page.url()
@@ -43,7 +45,7 @@ export async function detectLinkedInAuthwall(page: Page): Promise<boolean> {
       "h1:has-text('Join LinkedIn'), h1:has-text('Sign in'), h2:has-text('Join LinkedIn'), h2:has-text('Sign in to LinkedIn')",
     )
     .first()
-    .isVisible({ timeout: HEADING_TIMEOUT_MS })
+    .isVisible({ timeout: LOCATOR_TIMEOUT_MS })
     .catch(() => false)
   if (heading) return true
 
@@ -56,7 +58,24 @@ export async function detectLinkedInAuthwall(page: Page): Promise<boolean> {
       "section.authwall, form[data-tracking-control-name='auth-join-form'], form[data-tracking-control-name='auth-signin-form']",
     )
     .first()
-    .isVisible({ timeout: HEADING_TIMEOUT_MS })
+    .isVisible({ timeout: LOCATOR_TIMEOUT_MS })
     .catch(() => false)
-  return authForm
+  if (authForm) return true
+
+  // Body-text fallback — last-resort signal for A/B variants whose
+  // markup escapes the selectors above. Use a narrow, specific
+  // phrase-set so authenticated profile views (which also contain
+  // "LinkedIn" everywhere) don't false-positive.
+  const body = (await page.textContent("body").catch(() => "")) ?? ""
+  if (
+    /Join LinkedIn[\s\S]{0,120}(Agree & Join|Continue with Google|Already on LinkedIn)/i.test(
+      body,
+    )
+  ) {
+    return true
+  }
+  if (/Sign in to LinkedIn[\s\S]{0,200}(New to LinkedIn|Forgot password)/i.test(body)) {
+    return true
+  }
+  return false
 }

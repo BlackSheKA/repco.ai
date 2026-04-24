@@ -57,10 +57,12 @@ describe("/api/cron/linkedin-prescreen GET — auth + happy path", () => {
   })
 
   it("returns 401 when Authorization header is missing", async () => {
+    // Higher timeout: first import in this file pays cold-module-load
+    // cost for the whole transitive graph (playwright-core, linkedin-authwall).
     const { GET } = await import("../route")
     const res = await GET(new Request("http://x/api/cron/linkedin-prescreen"))
     expect(res.status).toBe(401)
-  })
+  }, 20000)
 
   it("returns 401 when Bearer secret is wrong", async () => {
     const { GET } = await import("../route")

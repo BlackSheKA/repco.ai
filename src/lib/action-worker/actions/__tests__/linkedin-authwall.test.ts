@@ -15,6 +15,7 @@ function makePage(opts: {
   url: string
   headingVisible?: boolean
   formVisible?: boolean
+  bodyText?: string
 }): Page {
   const locator = vi.fn((sel: string) => ({
     first: () => ({
@@ -31,6 +32,7 @@ function makePage(opts: {
   return {
     url: () => opts.url,
     locator,
+    textContent: vi.fn(async () => opts.bodyText ?? ""),
   } as unknown as Page
 }
 
@@ -85,6 +87,33 @@ describe("detectLinkedInAuthwall", () => {
   it("returns false for an activity/post URL when authenticated", async () => {
     const page = makePage({
       url: "https://www.linkedin.com/feed/update/urn:li:activity:123/",
+    })
+    expect(await detectLinkedInAuthwall(page)).toBe(false)
+  })
+
+  it("body-text fallback: catches Join LinkedIn wall when selectors miss", async () => {
+    const page = makePage({
+      url: "https://www.linkedin.com/in/someone/",
+      bodyText:
+        "Join LinkedIn\n\nEmail\nPassword (6+ characters)\nBy clicking Agree & Join, you agree to the LinkedIn",
+    })
+    expect(await detectLinkedInAuthwall(page)).toBe(true)
+  })
+
+  it("body-text fallback: catches Sign in wall when selectors miss", async () => {
+    const page = makePage({
+      url: "https://www.linkedin.com/in/someone/",
+      bodyText:
+        "Sign in to LinkedIn\n\nEmail\nPassword\nForgot password?\nNew to LinkedIn? Join now",
+    })
+    expect(await detectLinkedInAuthwall(page)).toBe(true)
+  })
+
+  it("body-text fallback: does NOT false-positive on authenticated profile containing the word LinkedIn", async () => {
+    const page = makePage({
+      url: "https://www.linkedin.com/in/legit-user/",
+      bodyText:
+        "About\n\nI work at LinkedIn on the feed team. Passionate about open source.",
     })
     expect(await detectLinkedInAuthwall(page)).toBe(false)
   })
