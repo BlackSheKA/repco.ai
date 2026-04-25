@@ -7,12 +7,20 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { Separator } from "@/components/ui/separator";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
+interface OnboardingState {
+  productDescribed: boolean;
+  keywordsGenerated: boolean;
+  redditConnected: boolean;
+  firstDmApproved: boolean;
+}
+
 interface AppShellProps {
   user: { email: string };
   terminalHeader?: React.ReactNode;
   children: React.ReactNode;
   hasAccountAlerts?: boolean;
   creditBalance?: number;
+  onboarding?: OnboardingState;
 }
 
 export function AppShell({
@@ -21,6 +29,7 @@ export function AppShell({
   children,
   hasAccountAlerts,
   creditBalance,
+  onboarding,
 }: AppShellProps) {
   const initial = user.email.charAt(0).toUpperCase();
 
@@ -31,6 +40,7 @@ export function AppShell({
           user={user}
           hasAccountAlerts={hasAccountAlerts}
           creditBalance={creditBalance}
+          onboarding={onboarding}
         />
         <SidebarInset>
           <header className="flex h-12 items-center gap-2 border-b px-4">

@@ -17,6 +17,7 @@ import logoDark from "@/app/images/repco-dark-mode.svg"
 import logoLight from "@/app/images/repco-light-mode.svg"
 import { SignOutButton } from "@/features/auth/components/sign-out-button"
 import { CreditBalance } from "@/features/billing/components/credit-balance"
+import { OnboardingChecklist } from "@/features/onboarding/components/onboarding-checklist"
 import {
   Sidebar,
   SidebarContent,
@@ -39,16 +40,25 @@ const NAV_ITEMS = [
   { label: "Settings", icon: Settings, href: "/settings" },
 ]
 
+interface OnboardingState {
+  productDescribed: boolean
+  keywordsGenerated: boolean
+  redditConnected: boolean
+  firstDmApproved: boolean
+}
+
 interface AppSidebarProps {
   user: { email: string }
   hasAccountAlerts?: boolean
   creditBalance?: number
+  onboarding?: OnboardingState
 }
 
 export function AppSidebar({
   user,
   hasAccountAlerts,
   creditBalance,
+  onboarding,
 }: AppSidebarProps) {
   const pathname = usePathname()
   const { resolvedTheme } = useTheme()
@@ -95,6 +105,16 @@ export function AppSidebar({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {onboarding && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <OnboardingChecklist {...onboarding} />
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter>
