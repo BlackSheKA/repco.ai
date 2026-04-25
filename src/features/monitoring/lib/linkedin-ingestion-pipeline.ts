@@ -28,27 +28,15 @@ function normalizeUrl(url: string): string {
 }
 
 /**
- * Runs the per-user LinkedIn ingestion: invokes the Apify adapter, dedups
- * posts (ignoring utm_* params in URLs), filters out posts older than 48h,
- * and upserts fresh posts into intent_signals with ignoreDuplicates.
- *
- * Returns the count of inserted signals, the count of stale posts skipped,
- * and the Apify run id that sourced the batch (for audit correlation).
+ * Dedupe + freshness filter + upsert of pre-fetched LinkedIn posts. Both the
+ * sync ingestion path and the async webhook handler call this.
  */
-export async function runLinkedInIngestionForUser(
-  config: MonitoringConfig,
+export async function ingestLinkedInPosts(
+  posts: LinkedInPost[],
+  userId: string,
+  apifyRunId: string | null,
   supabaseAdmin: SupabaseClient,
-): Promise<{
-  signalCount: number
-  skippedCount: number
-  apifyRunId: string | null
-}> {
-  if (config.keywords.length === 0) {
-    return { signalCount: 0, skippedCount: 0, apifyRunId: null }
-  }
-
-  const { posts, apifyRunId } = await searchLinkedInPosts(config.keywords)
-
+): Promise<{ signalCount: number; skippedCount: number }> {
   const uniquePosts = new Map<string, LinkedInPost>()
   for (const post of posts) {
     if (!post?.url) continue
@@ -59,11 +47,11 @@ export async function runLinkedInIngestionForUser(
   const freshPosts = Array.from(uniquePosts.values()).filter(isFresh)
   const skippedCount = uniquePosts.size - freshPosts.length
   if (freshPosts.length === 0) {
-    return { signalCount: 0, skippedCount, apifyRunId }
+    return { signalCount: 0, skippedCount }
   }
 
   const signals = freshPosts.map((post) => ({
-    user_id: config.userId,
+    user_id: userId,
     platform: "linkedin" as const,
     post_url: normalizeUrl(post.url),
     post_content: truncate(post.text ?? "", 500),
@@ -89,7 +77,35 @@ export async function runLinkedInIngestionForUser(
   if (error) {
     throw new Error(`Failed to upsert LinkedIn signals: ${error.message}`)
   }
+  return { signalCount: data?.length ?? 0, skippedCount }
+}
 
-  const signalCount = data?.length ?? 0
-  return { signalCount, skippedCount, apifyRunId }
+/**
+ * Runs the per-user LinkedIn ingestion: invokes the Apify adapter, dedups
+ * posts (ignoring utm_* params in URLs), filters out posts older than 48h,
+ * and upserts fresh posts into intent_signals with ignoreDuplicates.
+ *
+ * Returns the count of inserted signals, the count of stale posts skipped,
+ * and the Apify run id that sourced the batch (for audit correlation).
+ */
+export async function runLinkedInIngestionForUser(
+  config: MonitoringConfig,
+  supabaseAdmin: SupabaseClient,
+): Promise<{
+  signalCount: number
+  skippedCount: number
+  apifyRunId: string | null
+}> {
+  if (config.keywords.length === 0) {
+    return { signalCount: 0, skippedCount: 0, apifyRunId: null }
+  }
+
+  const { posts, apifyRunId } = await searchLinkedInPosts(config.keywords)
+  const result = await ingestLinkedInPosts(
+    posts,
+    config.userId,
+    apifyRunId,
+    supabaseAdmin,
+  )
+  return { ...result, apifyRunId }
 }

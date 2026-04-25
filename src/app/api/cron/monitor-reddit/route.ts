@@ -3,10 +3,28 @@ import { createClient } from "@supabase/supabase-js"
 import { logger } from "@/lib/logger"
 import { runIngestionForUser } from "@/features/monitoring/lib/ingestion-pipeline"
 import { classifyPendingSignals } from "@/features/monitoring/lib/classification-pipeline"
+import { startAsyncSearch } from "@/features/monitoring/lib/reddit-adapter"
 import type { MonitoringConfig } from "@/features/monitoring/lib/types"
 
 export const runtime = "nodejs"
 export const maxDuration = 300
+
+// Preview + production deployments use the async webhook flow so cron returns
+// fast (<5s) and Apify drives ingestion via /api/webhooks/apify on completion.
+// Local dev keeps the synchronous .call() path because there's no public URL
+// for Apify to POST back to.
+function isAsyncEnv(): boolean {
+  const env = process.env.VERCEL_ENV
+  return env === "production" || env === "preview"
+}
+
+function webhookUrl(): string {
+  const base = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : process.env.NEXT_PUBLIC_SITE_URL
+  if (!base) throw new Error("Cannot determine webhook base URL")
+  return `${base}/api/webhooks/apify`
+}
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization")
@@ -41,6 +59,16 @@ export async function GET(request: Request) {
 
     let totalSignals = 0
     let usersProcessed = 0
+    let runsStarted = 0
+
+    const useAsync = isAsyncEnv()
+    const hookUrl = useAsync ? webhookUrl() : ""
+    const hookSecret = process.env.APIFY_WEBHOOK_SECRET ?? ""
+    if (useAsync && !hookSecret) {
+      throw new Error(
+        "APIFY_WEBHOOK_SECRET must be set for async monitor flow",
+      )
+    }
 
     for (const userId of userIds) {
       try {
@@ -70,15 +98,42 @@ export async function GET(request: Request) {
           continue
         }
 
-        // Fetch product profile for context
+        if (useAsync) {
+          // Async path: kick off Apify runs, record them in apify_runs, exit.
+          // The webhook handler does ingestion + classification per run.
+          const { runIds } = await startAsyncSearch(
+            subreddits,
+            keywords,
+            hookUrl,
+            hookSecret,
+          )
+          if (runIds.length > 0) {
+            await supabase.from("apify_runs").insert(
+              runIds.map((runId) => ({
+                run_id: runId,
+                user_id: userId,
+                platform: "reddit" as const,
+                metadata: { cron: "monitor-reddit", correlationId },
+              })),
+            )
+          }
+          runsStarted += runIds.length
+          usersProcessed++
+          logger.info("Reddit async runs started", {
+            correlationId,
+            userId,
+            runCount: runIds.length,
+          })
+          continue
+        }
+
+        // Sync path (local dev) — fetches + ingests inline.
         const { data: profiles } = await supabase
           .from("product_profiles")
           .select("name, description")
           .eq("user_id", userId)
           .limit(1)
-
         const profile = profiles?.[0]
-
         const config: MonitoringConfig = {
           userId,
           keywords,
@@ -87,11 +142,9 @@ export async function GET(request: Request) {
           productName: profile?.name ?? "",
           productDescription: profile?.description ?? "",
         }
-
         const result = await runIngestionForUser(config, supabase)
         totalSignals += result.signalCount
         usersProcessed++
-
         logger.info("User ingestion complete", {
           correlationId,
           userId,
@@ -108,6 +161,41 @@ export async function GET(request: Request) {
             userErr instanceof Error ? userErr.message : String(userErr),
         })
       }
+    }
+
+    // In async mode there are no signals yet — skip classification (the
+    // webhook will trigger it after each run completes).
+    if (useAsync) {
+      const finishedAt = new Date()
+      const durationMs = finishedAt.getTime() - startedAt.getTime()
+      await supabase.from("job_logs").insert({
+        job_type: "monitor" as const,
+        status: "completed" as const,
+        started_at: startedAt.toISOString(),
+        finished_at: finishedAt.toISOString(),
+        duration_ms: durationMs,
+        metadata: {
+          cron: "monitor-reddit",
+          correlation_id: correlationId,
+          mode: "async",
+          users_processed: usersProcessed,
+          runs_started: runsStarted,
+        },
+      })
+      logger.info("Monitor-reddit cron started async runs", {
+        correlationId,
+        usersProcessed,
+        runsStarted,
+        durationMs,
+      })
+      await logger.flush()
+      return NextResponse.json({
+        ok: true,
+        mode: "async",
+        usersProcessed,
+        runsStarted,
+        durationMs,
+      })
     }
 
     // Classify pending signals (structural match + Sonnet fallback)

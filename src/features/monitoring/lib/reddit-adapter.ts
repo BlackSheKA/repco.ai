@@ -134,6 +134,79 @@ export async function searchAll(
   return results.flat()
 }
 
+/**
+ * Fire-and-forget version: kicks off one actor run per subreddit and returns
+ * the resulting Apify runIds without waiting for completion. Each run is
+ * configured with a webhook callback (`webhookUrl`) carrying an Authorization
+ * header (`webhookSecret`) so the receiving endpoint can verify the call.
+ *
+ * Used by the production cron path; the dev/local cron still uses searchAll().
+ */
+export async function startAsyncSearch(
+  subreddits: string[],
+  keywords: string[],
+  webhookUrl: string,
+  webhookSecret: string,
+): Promise<{ runIds: string[] }> {
+  if (subreddits.length === 0 || keywords.length === 0) {
+    return { runIds: [] }
+  }
+  const c = getClient()
+  const id = actorId()
+
+  const starts = subreddits.map(async (sub) => {
+    const subName = sub.startsWith("r/") ? sub.slice(2) : sub
+    const run = await c.actor(id).start(
+      {
+        subredditName: subName,
+        subredditKeywords: keywords,
+        subredditSort: "new",
+        subredditTimeframe: "day",
+        maxPosts: 25,
+        scrapeComments: false,
+      },
+      {
+        timeout: ACTOR_TIMEOUT_SECS,
+        memory: ACTOR_MEMORY_MB,
+        webhooks: [
+          {
+            eventTypes: [
+              "ACTOR.RUN.SUCCEEDED",
+              "ACTOR.RUN.FAILED",
+              "ACTOR.RUN.TIMED_OUT",
+              "ACTOR.RUN.ABORTED",
+            ],
+            requestUrl: webhookUrl,
+            headersTemplate: JSON.stringify({
+              Authorization: `Bearer ${webhookSecret}`,
+            }),
+          },
+        ],
+      },
+    )
+    return run.id
+  })
+
+  const runIds = await Promise.all(starts)
+  return { runIds }
+}
+
+/**
+ * Fetch the dataset for a finished run and normalize into RedditPost[].
+ * Used by the webhook handler to ingest results without re-running the actor.
+ */
+export async function fetchRunPosts(
+  runId: string,
+): Promise<RedditPost[]> {
+  const c = getClient()
+  const run = await c.run(runId).get()
+  if (!run?.defaultDatasetId) return []
+  const { items } = await c.dataset(run.defaultDatasetId).listItems()
+  return items
+    .map((raw) => normalizeFatihtahtaPost(raw as Record<string, unknown>))
+    .filter((p): p is RedditPost => p !== null)
+}
+
 // Reset internal client cache -- intended for tests only.
 export function __resetRedditAdapterClient(): void {
   client = null

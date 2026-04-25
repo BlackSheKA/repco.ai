@@ -5,12 +5,26 @@ import { logger } from "@/lib/logger"
 import { runCanaryCheck } from "@/features/monitoring/lib/linkedin-canary"
 import { runLinkedInIngestionForUser } from "@/features/monitoring/lib/linkedin-ingestion-pipeline"
 import { classifyPendingSignals } from "@/features/monitoring/lib/classification-pipeline"
+import { startAsyncLinkedInSearch } from "@/features/monitoring/lib/linkedin-adapter"
 import type { MonitoringConfig } from "@/features/monitoring/lib/types"
 
 export const runtime = "nodejs"
 export const maxDuration = 300
 
 const DEFAULT_APIFY_ACTOR = "apimaestro~linkedin-post-search-scraper"
+
+function isAsyncEnv(): boolean {
+  const env = process.env.VERCEL_ENV
+  return env === "production" || env === "preview"
+}
+
+function webhookUrl(): string {
+  const base = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : process.env.NEXT_PUBLIC_SITE_URL
+  if (!base) throw new Error("Cannot determine webhook base URL")
+  return `${base}/api/webhooks/apify`
+}
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization")
@@ -101,6 +115,16 @@ export async function GET(request: Request) {
 
     let totalSignals = 0
     let usersProcessed = 0
+    let runsStarted = 0
+
+    const useAsync = isAsyncEnv()
+    const hookUrl = useAsync ? webhookUrl() : ""
+    const hookSecret = process.env.APIFY_WEBHOOK_SECRET ?? ""
+    if (useAsync && !hookSecret) {
+      throw new Error(
+        "APIFY_WEBHOOK_SECRET must be set for async monitor flow",
+      )
+    }
 
     for (const userId of userIds) {
       try {
@@ -130,14 +154,34 @@ export async function GET(request: Request) {
           continue
         }
 
+        if (useAsync) {
+          const { runId } = await startAsyncLinkedInSearch(
+            keywords,
+            hookUrl,
+            hookSecret,
+          )
+          await supabase.from("apify_runs").insert({
+            run_id: runId,
+            user_id: userId,
+            platform: "linkedin" as const,
+            metadata: { cron: "monitor-linkedin", correlationId },
+          })
+          runsStarted++
+          usersProcessed++
+          logger.info("LinkedIn async run started", {
+            correlationId,
+            userId,
+            runId,
+          })
+          continue
+        }
+
         const { data: profiles } = await supabase
           .from("product_profiles")
           .select("name, description")
           .eq("user_id", userId)
           .limit(1)
-
         const profile = profiles?.[0]
-
         const config: MonitoringConfig = {
           userId,
           keywords,
@@ -146,11 +190,9 @@ export async function GET(request: Request) {
           productName: profile?.name ?? "",
           productDescription: profile?.description ?? "",
         }
-
         const result = await runLinkedInIngestionForUser(config, supabase)
         totalSignals += result.signalCount
         usersProcessed++
-
         logger.info("User LinkedIn ingestion complete", {
           correlationId,
           userId,
@@ -168,6 +210,42 @@ export async function GET(request: Request) {
             userErr instanceof Error ? userErr.message : String(userErr),
         })
       }
+    }
+
+    // In async mode classification runs in the webhook per completed run.
+    if (useAsync) {
+      const finishedAt = new Date()
+      const durationMs = finishedAt.getTime() - startedAt.getTime()
+      await supabase.from("job_logs").insert({
+        job_type: "monitor" as const,
+        status: "completed" as const,
+        started_at: startedAt.toISOString(),
+        finished_at: finishedAt.toISOString(),
+        duration_ms: durationMs,
+        metadata: {
+          cron: "monitor-linkedin",
+          correlation_id: correlationId,
+          mode: "async",
+          users_processed: usersProcessed,
+          runs_started: runsStarted,
+          canary_count: canaryResult.resultCount,
+        },
+      })
+      logger.info("Monitor-linkedin cron started async runs", {
+        correlationId,
+        usersProcessed,
+        runsStarted,
+        durationMs,
+      })
+      await logger.flush()
+      return NextResponse.json({
+        ok: true,
+        mode: "async",
+        usersProcessed,
+        runsStarted,
+        canaryCount: canaryResult.resultCount,
+        durationMs,
+      })
     }
 
     // Classify pending signals (shared pipeline — platform-agnostic)

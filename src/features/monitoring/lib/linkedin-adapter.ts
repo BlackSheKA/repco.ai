@@ -101,3 +101,56 @@ function normalizeHarvestApiPost(
 export function __resetLinkedInAdapterClient(): void {
   client = null
 }
+
+/**
+ * Fire-and-forget version of searchLinkedInPosts: starts a single actor run
+ * with the full keyword batch and registers a webhook callback so the result
+ * is ingested asynchronously. Returns the Apify runId immediately.
+ */
+export async function startAsyncLinkedInSearch(
+  queries: string[],
+  webhookUrl: string,
+  webhookSecret: string,
+  options?: { maxItemsPerQuery?: number },
+): Promise<{ runId: string }> {
+  const maxItems = options?.maxItemsPerQuery ?? 25
+  const c = getClient()
+  const run = await c.actor(actorId()).start(
+    { searchQueries: queries, maxPosts: maxItems },
+    {
+      timeout: ACTOR_TIMEOUT_SECS,
+      memory: ACTOR_MEMORY_MB,
+      webhooks: [
+        {
+          eventTypes: [
+            "ACTOR.RUN.SUCCEEDED",
+            "ACTOR.RUN.FAILED",
+            "ACTOR.RUN.TIMED_OUT",
+            "ACTOR.RUN.ABORTED",
+          ],
+          requestUrl: webhookUrl,
+          headersTemplate: JSON.stringify({
+            Authorization: `Bearer ${webhookSecret}`,
+          }),
+        },
+      ],
+    },
+  )
+  return { runId: run.id }
+}
+
+/**
+ * Fetch dataset items for a finished LinkedIn run and normalize into the
+ * internal LinkedInPost shape. Used by the webhook handler.
+ */
+export async function fetchLinkedInRunPosts(
+  runId: string,
+): Promise<LinkedInPost[]> {
+  const c = getClient()
+  const run = await c.run(runId).get()
+  if (!run?.defaultDatasetId) return []
+  const { items } = await c.dataset(run.defaultDatasetId).listItems()
+  return items
+    .map((raw) => normalizeHarvestApiPost(raw as Record<string, unknown>))
+    .filter((p): p is LinkedInPost => p !== null)
+}
