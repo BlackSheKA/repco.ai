@@ -29,9 +29,20 @@ const PAGE_SIZE = 20
 interface SignalFeedProps {
   initialSignals: IntentSignal[]
   userId: string
+  /**
+   * Render a trimmed dashboard preview: hides filters and infinite scroll,
+   * caps to the first 5 signals, and shows a "View all signals" link.
+   */
+  compact?: boolean
 }
 
-export function SignalFeed({ initialSignals, userId }: SignalFeedProps) {
+const COMPACT_LIMIT = 5
+
+export function SignalFeed({
+  initialSignals,
+  userId,
+  compact = false,
+}: SignalFeedProps) {
   const searchParams = useSearchParams()
   const [signals, setSignals] = useState<IntentSignal[]>(initialSignals)
   const [filters, setFilters] = useState<Filters>(() =>
@@ -118,6 +129,7 @@ export function SignalFeed({ initialSignals, userId }: SignalFeedProps) {
 
   // IntersectionObserver for sentinel
   useEffect(() => {
+    if (compact) return
     const sentinel = sentinelRef.current
     if (!sentinel) return
 
@@ -132,7 +144,7 @@ export function SignalFeed({ initialSignals, userId }: SignalFeedProps) {
 
     observer.observe(sentinel)
     return () => observer.disconnect()
-  }, [loadMore])
+  }, [loadMore, compact])
 
   // Optimistic action handlers
   const handleContact = useCallback(
@@ -212,12 +224,20 @@ export function SignalFeed({ initialSignals, userId }: SignalFeedProps) {
   const isNoSignalsAtAll = signals.length === 0
   const isFilteredEmpty = !isNoSignalsAtAll && isEmpty
 
+  const displaySignals = compact
+    ? filteredSignals.slice(0, COMPACT_LIMIT)
+    : filteredSignals
+  const hasMoreInCompact =
+    compact && filteredSignals.length > COMPACT_LIMIT
+
   return (
     <div>
       <StalenessBanner />
-      <div className="mt-2">
-        <FilterBar filters={filters} onFiltersChange={setFilters} />
-      </div>
+      {!compact && (
+        <div className="mt-2">
+          <FilterBar filters={filters} onFiltersChange={setFilters} />
+        </div>
+      )}
 
       <div className="mt-4 flex flex-col gap-4">
         {isEmpty && isNoSignalsAtAll && (
@@ -245,7 +265,7 @@ export function SignalFeed({ initialSignals, userId }: SignalFeedProps) {
           </div>
         )}
 
-        {filteredSignals.map((signal) => (
+        {displaySignals.map((signal) => (
           <div
             key={signal.id}
             className="animate-in fade-in slide-in-from-top-2 duration-300"
@@ -260,7 +280,7 @@ export function SignalFeed({ initialSignals, userId }: SignalFeedProps) {
           </div>
         ))}
 
-        {isLoading && (
+        {!compact && isLoading && (
           <>
             <Skeleton className="h-[140px] rounded-lg" />
             <Skeleton className="h-[140px] rounded-lg" />
@@ -268,7 +288,17 @@ export function SignalFeed({ initialSignals, userId }: SignalFeedProps) {
           </>
         )}
 
-        <div ref={sentinelRef} className="h-1" />
+        {compact && hasMoreInCompact && (
+          <div className="flex justify-center pt-2">
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/signals">
+                View all signals →
+              </Link>
+            </Button>
+          </div>
+        )}
+
+        {!compact && <div ref={sentinelRef} className="h-1" />}
       </div>
     </div>
   )

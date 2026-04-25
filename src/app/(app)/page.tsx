@@ -255,7 +255,11 @@ export default async function DashboardPage() {
         avgDealValue={avgDealValue}
       />
       <ResultsCard stats={weeklyStats} imageUrl={resultsCardImageUrl} />
-      <SignalFeed initialSignals={initialSignals ?? []} userId={user.id} />
+      <SignalFeed
+        initialSignals={initialSignals ?? []}
+        userId={user.id}
+        compact
+      />
       <RepliesSection initialReplies={replyRows} userId={user.id} />
       <div className="mt-2">
         <ApprovalQueue
