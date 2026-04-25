@@ -105,10 +105,27 @@ export async function getInvoices(): Promise<InvoiceSummary[]> {
     return []
   }
 
-  const invoices = await stripe.invoices.list({
-    customer: customerId,
-    limit: 20,
-  })
+  let invoices: Stripe.ApiList<Stripe.Invoice>
+  try {
+    invoices = await stripe.invoices.list({
+      customer: customerId,
+      limit: 20,
+    })
+  } catch (err) {
+    // Stale customer ID (e.g. test-mode id stored before live keys were swapped
+    // in). Treat as "no invoices" rather than crashing the billing page.
+    if (
+      err instanceof Stripe.errors.StripeInvalidRequestError &&
+      err.code === "resource_missing"
+    ) {
+      logger.warn("Stale stripe_customer_id; returning empty invoice list", {
+        userId: user.id,
+        customerId,
+      })
+      return []
+    }
+    throw err
+  }
 
   return invoices.data.map((inv) => ({
     id: inv.id ?? "",
