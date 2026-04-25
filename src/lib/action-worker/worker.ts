@@ -75,6 +75,57 @@ export async function executeAction(
     .eq("id", action.account_id)
     .single<SocialAccount>()
 
+  // Phase 14: account-quarantine guard (LNKD-02, LNKD-06).
+  // Defense-in-depth — claim_action RPC (migration 00018) already filters
+  // quarantined accounts at row-lock time, but a stale webhook firing against
+  // an already-claimed action, or a race where health_status flips after
+  // claim, would still get here. Re-check before any GoLogin/Playwright work
+  // to prevent session burn on a flagged profile.
+  if (account) {
+    const isQuarantined =
+      account.health_status === "warning" ||
+      account.health_status === "banned" ||
+      (account.cooldown_until !== null &&
+        account.cooldown_until !== undefined &&
+        new Date(account.cooldown_until).getTime() > Date.now())
+    if (isQuarantined) {
+      runError = "account_quarantined"
+      runStatus = "failed"
+      runPlatform = account.platform as string
+      await updateActionStatus(supabase, actionId, "failed", "account_quarantined")
+      // Insert job_logs synchronously here — the existing finally block also
+      // writes job_logs but only when the pipeline reaches the try{}.
+      // We short-circuit BEFORE the try block to avoid touching GoLogin, so
+      // we mirror the finally block's job_logs schema EXACTLY.
+      // job_type MUST be "action" per the enum in 00001_enums.sql.
+      await supabase.from("job_logs").insert({
+        job_type: "action" as const,
+        status: "failed",
+        user_id: runUserId,
+        action_id: runActionId,
+        started_at: new Date(startMs).toISOString(),
+        finished_at: new Date().toISOString(),
+        duration_ms: Date.now() - startMs,
+        error: "account_quarantined",
+        metadata: {
+          correlation_id: correlationId,
+          platform: runPlatform,
+          action_type: runActionType,
+          failure_mode: "account_quarantined",
+        },
+      })
+      logger.warn("Action blocked: account quarantined", {
+        actionId,
+        correlationId,
+        accountId: account.id,
+        healthStatus: account.health_status,
+        cooldownUntil: account.cooldown_until,
+      })
+      await logger.flush()
+      return { success: false, error: "account_quarantined" }
+    }
+  }
+
   // 3. Check GoLogin profile — must exist before active-hours check (both are pre-try)
   if (!account?.gologin_profile_id) {
     // This is a configuration error — log it in job_logs via the try/finally below
