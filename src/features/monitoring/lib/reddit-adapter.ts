@@ -1,53 +1,140 @@
-import Snoowrap from "snoowrap"
+import { ApifyClient } from "apify-client"
 import type { RedditPost } from "./types"
 
-let client: Snoowrap | null = null
+const DEFAULT_ACTOR_ID = "fatihtahta~reddit-scraper-search-fast"
+const ACTOR_TIMEOUT_SECS = 240
+const ACTOR_MEMORY_MB = 1024
 
-function getClient(): Snoowrap {
-  if (!process.env.REDDIT_CLIENT_ID) {
-    throw new Error("Reddit API credentials not configured")
+let client: ApifyClient | null = null
+
+function getClient(): ApifyClient {
+  if (!process.env.APIFY_API_TOKEN) {
+    throw new Error("Apify API token not configured (APIFY_API_TOKEN)")
   }
-
   if (!client) {
-    client = new Snoowrap({
-      userAgent: "repco.ai/1.0 (monitoring)",
-      clientId: process.env.REDDIT_CLIENT_ID!,
-      clientSecret: process.env.REDDIT_CLIENT_SECRET!,
-      refreshToken: process.env.REDDIT_REFRESH_TOKEN!,
-    })
-    client.config({ requestDelay: 1000 })
+    client = new ApifyClient({ token: process.env.APIFY_API_TOKEN })
   }
   return client
 }
 
-export async function searchSubreddit(
-  subreddit: string,
-  query: string,
-  options?: { time?: string; limit?: number },
-): Promise<RedditPost[]> {
-  const r = getClient()
-  // snoowrap's Subreddit.search types are incomplete — limit exists on
-  // the Reddit API but is only typed on the top-level SearchOptions.
-  // Cast to pass limit through safely.
-  const results = await r.getSubreddit(subreddit).search({
-    query,
-    time: (options?.time ?? "day") as "day",
-    sort: "new",
-    ...({ limit: options?.limit ?? 25 } as Record<string, unknown>),
-  })
-  return results as unknown as RedditPost[]
+function actorId(): string {
+  return process.env.APIFY_REDDIT_ACTOR_ID ?? DEFAULT_ACTOR_ID
 }
 
+/**
+ * Run the Apify Reddit scraper for one subreddit and a batch of search queries.
+ * The actor uses Reddit's native search API (no Puppeteer) and accepts the full
+ * keyword set in a single run via `subredditKeywords`, so callers do one run
+ * per subreddit rather than per (subreddit × keyword) pair.
+ *
+ * Reads the dataset even on TIMED-OUT — Reddit scrapers persist items as they
+ * arrive, so partial output is still useful.
+ */
+async function searchSubredditViaApify(
+  subreddit: string,
+  keywords: string[],
+  options?: { maxPostsPerKeyword?: number },
+): Promise<RedditPost[]> {
+  const subName = subreddit.startsWith("r/") ? subreddit.slice(2) : subreddit
+  const c = getClient()
+  const run = await c.actor(actorId()).call(
+    {
+      subredditName: subName,
+      subredditKeywords: keywords,
+      subredditSort: "new",
+      subredditTimeframe: "day",
+      maxPosts: options?.maxPostsPerKeyword ?? 25,
+      scrapeComments: false,
+    },
+    { timeout: ACTOR_TIMEOUT_SECS, memory: ACTOR_MEMORY_MB },
+  )
+
+  if (run.status === "FAILED" || run.status === "ABORTED") {
+    throw new Error(
+      `Apify Reddit actor did not succeed: status=${run.status} runId=${run.id}`,
+    )
+  }
+
+  const { items } = await c.dataset(run.defaultDatasetId).listItems()
+  return items
+    .map((raw) => normalizeFatihtahtaPost(raw as Record<string, unknown>))
+    .filter((p): p is RedditPost => p !== null)
+}
+
+// Normalize fatihtahta/reddit-scraper-search-fast output to the existing
+// RedditPost shape. Returns null when required fields are missing.
+function normalizeFatihtahtaPost(
+  raw: Record<string, unknown>,
+): RedditPost | null {
+  if (raw.kind && raw.kind !== "post") return null
+  const url = raw.url as string | undefined
+  const title = raw.title as string | undefined
+  if (!url || !title) return null
+
+  // The actor returns `created_utc` as either a Unix integer or an ISO string
+  // depending on the post; normalize both into seconds-since-epoch.
+  const rawCreated = raw.created_utc
+  let createdUtc: number
+  if (typeof rawCreated === "number") {
+    createdUtc = rawCreated
+  } else if (typeof rawCreated === "string") {
+    const parsed = Date.parse(rawCreated)
+    if (Number.isNaN(parsed)) return null
+    createdUtc = Math.floor(parsed / 1000)
+  } else {
+    return null
+  }
+
+  let permalink: string
+  if (typeof raw.permalink === "string") {
+    permalink = raw.permalink.startsWith("/")
+      ? raw.permalink
+      : `/${raw.permalink}`
+  } else {
+    try {
+      permalink = new URL(url).pathname
+    } catch {
+      permalink = url
+    }
+  }
+
+  return {
+    id: (raw.id as string | undefined) ?? "",
+    title,
+    selftext: (raw.body as string | undefined) ?? "",
+    author: { name: (raw.author as string | undefined) ?? "deleted" },
+    subreddit: {
+      display_name:
+        (raw.subreddit as string | undefined) ??
+        (raw.subreddit_name_prefixed as string | undefined)?.replace(
+          /^r\//,
+          "",
+        ) ??
+        "",
+    },
+    url,
+    created_utc: createdUtc,
+    permalink,
+  }
+}
+
+/**
+ * Run the Apify Reddit scraper across multiple subreddits with one call per
+ * subreddit (all keywords passed as `subredditKeywords`). Calls run in
+ * parallel via Promise.all. Returns raw posts; the ingestion pipeline performs
+ * dedup + freshness filter.
+ */
 export async function searchAll(
   subreddits: string[],
-  query: string,
+  keywords: string[],
 ): Promise<RedditPost[]> {
-  const allPosts: RedditPost[] = []
-  for (const sub of subreddits) {
-    // Strip "r/" prefix if present for snoowrap API
-    const subName = sub.startsWith("r/") ? sub.slice(2) : sub
-    const posts = await searchSubreddit(subName, query)
-    allPosts.push(...posts)
-  }
-  return allPosts
+  if (subreddits.length === 0 || keywords.length === 0) return []
+  const calls = subreddits.map((sub) => searchSubredditViaApify(sub, keywords))
+  const results = await Promise.all(calls)
+  return results.flat()
+}
+
+// Reset internal client cache -- intended for tests only.
+export function __resetRedditAdapterClient(): void {
+  client = null
 }

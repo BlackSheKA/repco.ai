@@ -6,7 +6,7 @@ import { classifyPendingSignals } from "@/features/monitoring/lib/classification
 import type { MonitoringConfig } from "@/features/monitoring/lib/types"
 
 export const runtime = "nodejs"
-export const maxDuration = 60
+export const maxDuration = 300
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization")

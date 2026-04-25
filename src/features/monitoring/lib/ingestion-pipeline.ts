@@ -17,13 +17,12 @@ export async function runIngestionForUser(
   config: MonitoringConfig,
   supabaseAdmin: SupabaseClient,
 ): Promise<{ signalCount: number; skippedCount: number }> {
-  const allPosts: RedditPost[] = []
-
-  // Search for each keyword across all subreddits
-  for (const keyword of config.keywords) {
-    const posts = await searchAll(config.subreddits, keyword)
-    allPosts.push(...posts)
-  }
+  // Apify Reddit actor accepts a batch of keywords per subreddit, so we make
+  // one call per subreddit instead of per (keyword, subreddit) combo.
+  const allPosts: RedditPost[] = await searchAll(
+    config.subreddits,
+    config.keywords,
+  )
 
   // Deduplicate by post permalink (same post may match multiple keywords)
   const uniquePosts = new Map<string, RedditPost>()

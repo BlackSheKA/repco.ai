@@ -1,7 +1,7 @@
 import { ApifyClient } from "apify-client"
 import type { LinkedInPost, LinkedInSearchResult } from "./types"
 
-const DEFAULT_ACTOR_ID = "apimaestro~linkedin-post-search-scraper"
+const DEFAULT_ACTOR_ID = "harvestapi~linkedin-post-search"
 const ACTOR_TIMEOUT_SECS = 120
 const ACTOR_MEMORY_MB = 1024
 
@@ -36,7 +36,7 @@ export async function searchLinkedInPosts(
   const maxItems = options?.maxItemsPerQuery ?? 25
   const c = getClient()
   const run = await c.actor(actorId()).call(
-    { searchQueries: queries, maxItems },
+    { searchQueries: queries, maxPosts: maxItems },
     { timeout: ACTOR_TIMEOUT_SECS, memory: ACTOR_MEMORY_MB },
   )
   if (run.status !== "SUCCEEDED") {
@@ -45,8 +45,56 @@ export async function searchLinkedInPosts(
     )
   }
   const { items } = await c.dataset(run.defaultDatasetId).listItems()
-  const posts = (items as unknown as LinkedInPost[]).filter(Boolean)
+  const posts = items
+    .map((raw) => normalizeHarvestApiPost(raw as Record<string, unknown>))
+    .filter((p): p is LinkedInPost => p !== null)
   return { posts, apifyRunId: run.id }
+}
+
+// Normalize harvestapi/linkedin-post-search output to the internal LinkedInPost
+// shape. Returns null when the raw item is missing required fields.
+function normalizeHarvestApiPost(
+  raw: Record<string, unknown>,
+): LinkedInPost | null {
+  const url =
+    (raw.linkedinUrl as string | undefined) ??
+    (raw.url as string | undefined) ??
+    null
+  if (!url) return null
+
+  const author = (raw.author ?? {}) as Record<string, unknown>
+  const postedAt = raw.postedAt as Record<string, unknown> | undefined
+  const postedAtIso =
+    (postedAt?.date as string | undefined) ??
+    (typeof raw.postedAt === "string" ? (raw.postedAt as string) : null)
+  if (!postedAtIso) return null
+
+  const engagement = (raw.engagement ?? {}) as Record<string, unknown>
+
+  return {
+    url,
+    text: (raw.content as string | undefined) ?? "",
+    postedAt: postedAtIso,
+    reactions: typeof engagement.reactions === "number"
+      ? (engagement.reactions as number)
+      : Array.isArray(raw.reactions)
+        ? (raw.reactions as unknown[]).length
+        : 0,
+    comments: typeof engagement.comments === "number"
+      ? (engagement.comments as number)
+      : Array.isArray(raw.comments)
+        ? (raw.comments as unknown[]).length
+        : 0,
+    author: {
+      name: (author.name as string | undefined) ?? "",
+      headline: (author.info as string | undefined) ?? null,
+      company: null,
+      profileUrl: (author.linkedinUrl as string | undefined) ?? "",
+      urn: (author.urn as string | undefined) ?? "",
+    },
+    postType: raw.type === "post" ? "post" : null,
+    contentLanguage: null,
+  }
 }
 
 // Reset internal client cache -- intended for tests only.
