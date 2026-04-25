@@ -244,12 +244,10 @@ export function SignalFeed({
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <h2 className="text-lg font-semibold">No signals yet</h2>
             <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              repco is scanning Reddit for intent signals. Add keywords
-              and subreddits in Settings to get started.
+              repco is scanning Reddit and LinkedIn for intent signals. Add
+              keywords, subreddits, or LinkedIn targets on the Sources tab to
+              get started.
             </p>
-            <Button asChild className="mt-4" size="sm">
-              <Link href="/settings">Go to Settings</Link>
-            </Button>
           </div>
         )}
 

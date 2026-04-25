@@ -3,84 +3,49 @@
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 
-export async function addKeyword(keyword: string) {
-  const trimmed = keyword.trim().toLowerCase()
+export type SourceType =
+  | "reddit_keyword"
+  | "subreddit"
+  | "linkedin_keyword"
+  | "linkedin_company"
+  | "linkedin_author"
 
-  if (trimmed.length < 1) {
-    return { error: "Keyword must be at least 1 character" }
-  }
-
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return { error: "Not authenticated" }
-  }
-
-  // Check for duplicate
-  const { data: existing } = await supabase
-    .from("monitoring_signals")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("signal_type", "reddit_keyword")
-    .eq("value", trimmed)
-    .limit(1)
-
-  if (existing && existing.length > 0) {
-    return { error: "Keyword already added" }
-  }
-
-  const { error } = await supabase.from("monitoring_signals").insert({
-    user_id: user.id,
-    signal_type: "reddit_keyword" as const,
-    value: trimmed,
-  })
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  revalidatePath("/settings")
-  return { success: true }
-}
-
-export async function removeKeyword(id: string) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return { error: "Not authenticated" }
-  }
-
-  const { error } = await supabase
-    .from("monitoring_signals")
-    .delete()
-    .eq("id", id)
-    .eq("user_id", user.id)
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  revalidatePath("/settings")
-  return { success: true }
-}
-
-export async function addSubreddit(subreddit: string) {
-  let normalized = subreddit.trim().toLowerCase()
-
-  // Auto-prepend r/ if missing
+function normalizeSubreddit(value: string): string | null {
+  let normalized = value.trim().toLowerCase()
+  if (!normalized) return null
   if (!normalized.startsWith("r/")) {
     normalized = `r/${normalized}`
   }
-
-  // Validate format
   if (!/^r\/\w+$/.test(normalized)) {
-    return { error: "Invalid subreddit format (e.g., r/SaaS)" }
+    return null
+  }
+  return normalized
+}
+
+function validate(
+  value: string,
+  signalType: SourceType,
+): { ok: true; value: string } | { ok: false; error: string } {
+  const trimmed = value.trim()
+  if (signalType === "subreddit") {
+    const normalized = normalizeSubreddit(trimmed)
+    if (!normalized) {
+      return { ok: false, error: "Invalid subreddit format (e.g., r/SaaS)" }
+    }
+    return { ok: true, value: normalized }
+  }
+
+  const lower = trimmed.toLowerCase()
+  if (lower.length < 1) {
+    return { ok: false, error: "Value must be at least 1 character" }
+  }
+  return { ok: true, value: lower }
+}
+
+export async function addSource(value: string, signalType: SourceType) {
+  const result = validate(value, signalType)
+  if (!result.ok) {
+    return { error: result.error }
   }
 
   const supabase = await createClient()
@@ -92,34 +57,33 @@ export async function addSubreddit(subreddit: string) {
     return { error: "Not authenticated" }
   }
 
-  // Check for duplicate
   const { data: existing } = await supabase
     .from("monitoring_signals")
     .select("id")
     .eq("user_id", user.id)
-    .eq("signal_type", "subreddit")
-    .eq("value", normalized)
+    .eq("signal_type", signalType)
+    .eq("value", result.value)
     .limit(1)
 
   if (existing && existing.length > 0) {
-    return { error: "Subreddit already added" }
+    return { error: "Already added" }
   }
 
   const { error } = await supabase.from("monitoring_signals").insert({
     user_id: user.id,
-    signal_type: "subreddit" as const,
-    value: normalized,
+    signal_type: signalType,
+    value: result.value,
   })
 
   if (error) {
     return { error: error.message }
   }
 
-  revalidatePath("/settings")
+  revalidatePath("/signals")
   return { success: true }
 }
 
-export async function removeSubreddit(id: string) {
+export async function removeSource(id: string) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -139,6 +103,6 @@ export async function removeSubreddit(id: string) {
     return { error: error.message }
   }
 
-  revalidatePath("/settings")
+  revalidatePath("/signals")
   return { success: true }
 }

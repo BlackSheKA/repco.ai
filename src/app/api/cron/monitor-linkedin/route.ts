@@ -72,6 +72,7 @@ export async function GET(request: Request) {
       correlationId,
       canaryReason: canaryResult.reason,
       canaryCount: canaryResult.resultCount,
+      errorMessage: canaryResult.errorMessage,
     })
 
     await logger.flush()
@@ -87,7 +88,11 @@ export async function GET(request: Request) {
     const { data: activeUsers, error: usersError } = await supabase
       .from("monitoring_signals")
       .select("user_id")
-      .eq("signal_type", "linkedin_keyword")
+      .in("signal_type", [
+        "linkedin_keyword",
+        "linkedin_company",
+        "linkedin_author",
+      ])
       .eq("active", true)
 
     if (usersError) throw usersError
@@ -105,15 +110,20 @@ export async function GET(request: Request) {
           .eq("user_id", userId)
           .eq("active", true)
 
+        const linkedinSignalTypes = new Set([
+          "linkedin_keyword",
+          "linkedin_company",
+          "linkedin_author",
+        ])
         const keywords = (signals ?? [])
-          .filter((s) => s.signal_type === "linkedin_keyword")
+          .filter((s) => linkedinSignalTypes.has(s.signal_type))
           .map((s) => s.value)
         const competitors = (signals ?? [])
           .filter((s) => s.signal_type === "competitor")
           .map((s) => s.value)
 
         if (keywords.length === 0) {
-          logger.info("Skipping user — no linkedin_keyword rows", {
+          logger.info("Skipping user — no linkedin source rows", {
             correlationId,
             userId,
           })
