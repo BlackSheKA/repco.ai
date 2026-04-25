@@ -32,7 +32,7 @@ import {
 
 const NAV_ITEMS = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/" },
-  { label: "Signals", icon: Radio, href: "#" },
+  { label: "Signals", icon: Radio, href: "/signals" },
   { label: "Approvals", icon: CheckCircle, href: "#" },
   { label: "Prospects", icon: Users, href: "/prospects" },
   { label: "Accounts", icon: Shield, href: "/accounts" },
