@@ -4,7 +4,6 @@ import { AgentCard } from "@/features/dashboard/components/agent-card"
 import { SignalFeed } from "@/features/dashboard/components/signal-feed"
 import { ApprovalQueue } from "@/features/actions/components/approval-queue"
 import type { ApprovalCardData } from "@/features/actions/lib/types"
-import { OnboardingChecklist } from "@/features/onboarding/components/onboarding-checklist"
 import { InboxWarningBanner } from "@/features/sequences/components/inbox-warning-banner"
 import { RepliesSection } from "@/features/sequences/components/replies-section"
 import type { ReplyData } from "@/features/sequences/lib/use-realtime-replies"
@@ -15,14 +14,7 @@ import { ResultsCard } from "@/features/growth/components/results-card"
 import { createClient } from "@/lib/supabase/server"
 import { fetchPendingActions } from "@/features/actions/actions/approval-actions"
 
-interface DashboardPageProps {
-  searchParams?: Promise<{ onboarded?: string }>
-}
-
-export default async function DashboardPage({
-  searchParams,
-}: DashboardPageProps) {
-  const resolvedSearchParams = (await searchParams) ?? {}
+export default async function DashboardPage() {
   const supabase = await createClient()
   const {
     data: { user },
@@ -43,9 +35,6 @@ export default async function DashboardPage({
     { data: pendingActions },
     { data: repliedProspects },
     { data: failedAccounts },
-    { count: productProfileCount },
-    { count: redditAccountCount },
-    { count: completedActionCount },
     { data: userRow },
     { count: weeklySignalsCount },
     { count: weeklyDmsCount },
@@ -92,20 +81,6 @@ export default async function DashboardPage({
       .eq("user_id", user.id)
       .gt("consecutive_inbox_failures", 0)
       .limit(1),
-    supabase
-      .from("product_profiles")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id),
-    supabase
-      .from("social_accounts")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .eq("platform", "reddit"),
-    supabase
-      .from("actions")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .eq("status", "completed"),
     supabase
       .from("users")
       .select("credits_balance, avg_deal_value")
@@ -159,20 +134,6 @@ export default async function DashboardPage({
 
   const creditBalance = (userRow?.credits_balance as number | null) ?? 0
   const avgDealValue = (userRow?.avg_deal_value as number | null) ?? null
-
-  const productDescribed = (productProfileCount ?? 0) > 0
-  const keywordsGenerated = productDescribed
-  const redditConnected = (redditAccountCount ?? 0) > 0
-  const firstDmApproved = (completedActionCount ?? 0) > 0
-  const checklistCompletedCount = [
-    productDescribed,
-    keywordsGenerated,
-    redditConnected,
-    firstDmApproved,
-  ].filter(Boolean).length
-  const showChecklist =
-    resolvedSearchParams.onboarded === "true" ||
-    checklistCompletedCount < 4
 
   // Weekly results card stats (7-day rolling window)
   const weeklyStats = {
@@ -273,14 +234,6 @@ export default async function DashboardPage({
   return (
     <div className="flex flex-col gap-6 p-6">
       <UpgradeBanner balance={creditBalance} />
-      {showChecklist && (
-        <OnboardingChecklist
-          productDescribed={productDescribed}
-          keywordsGenerated={keywordsGenerated}
-          redditConnected={redditConnected}
-          firstDmApproved={firstDmApproved}
-        />
-      )}
       {failedAccount && (
         <InboxWarningBanner
           accountHandle={failedAccount.handle ?? "unknown"}
