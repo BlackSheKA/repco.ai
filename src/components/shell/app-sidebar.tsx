@@ -43,14 +43,12 @@ interface AppSidebarProps {
   user: { email: string }
   hasAccountAlerts?: boolean
   creditBalance?: number
-  dailyBurn?: number
 }
 
 export function AppSidebar({
   user,
   hasAccountAlerts,
   creditBalance,
-  dailyBurn,
 }: AppSidebarProps) {
   const pathname = usePathname()
   const { resolvedTheme } = useTheme()
@@ -102,10 +100,7 @@ export function AppSidebar({
       <SidebarFooter>
         <div className="space-y-2 p-2">
           {typeof creditBalance === "number" && (
-            <CreditBalance
-              balance={creditBalance}
-              dailyBurn={dailyBurn ?? 0}
-            />
+            <CreditBalance balance={creditBalance} />
           )}
           <p className="truncate text-sm text-muted-foreground">
             {user.email}
