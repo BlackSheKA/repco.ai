@@ -21,10 +21,13 @@ key-decisions:
   - "failure_mode='account_quarantined' is a free-form metadata string — no enum migration"
   - "Guard runs BEFORE active-hours check so quarantined accounts are not silently re-queued"
 metrics:
-  tasks_completed: 3
-  tasks_pending_checkpoint: 1
+  tasks_completed: 4
+  tasks_pending_checkpoint: 0
   tests_added: 6
   tests_total: 374
+  dev_branch_ref: effppfiphrykllkpkdbv
+  prod_ref: cmkifdwjunojgigrqwnr
+  applied_at: 2026-04-25T19:10Z
 ---
 
 # Phase 14 Plan 01: Account Quarantine Enforcement Summary
@@ -128,20 +131,91 @@ Six tests in describe block `executeAction quarantine guard (Phase 14)`:
   - LinkedIn quarantine WRITERS still present (lines 665, 680)
 - `pnpm typecheck`: no errors in `worker.ts` or new test file. (Pre-existing svg-import errors in `src/app/(auth)/login/page.tsx`, `src/app/(public)/layout.tsx`, `src/components/shell/app-sidebar.tsx` are unrelated to this plan and reproducible on the base commit — out of scope per deviation rules.)
 
-## Pending — Task 4 (BLOCKING checkpoint)
+## Task 4 — Schema push completed (2026-04-25)
 
-Schema push required before the RPC layer of defense takes effect:
+The original plan called for `supabase db push` against the dev branch `dvmfeswlhlbgzqhtoytl`, then prod. During Task 4 we discovered the dev branch had been auto-removed by Supabase Branching cleanup (it was non-persistent). Recovery + apply went via the Management API end-to-end (Supabase CLI is not installed; PAT `SUPABASE_ACCESS_TOKEN` already at User-level Windows env).
 
-1. `supabase link --project-ref dvmfeswlhlbgzqhtoytl` → `supabase db push` (dev)
-2. Run `/tmp/14-smoke.sql` (transactional BEGIN/ROLLBACK) — expect 0/0/0/1/1 across warning/banned/cooldown_future/cooldown_past/healthy and PRE==POST counts
-3. Re-run for prod `cmkifdwjunojgigrqwnr`
-4. Reply `dev-applied` / `prod-applied` with output
+### Deviation 1 — Recreated dev as a persistent branch
 
-The worker guard (Task 2) is already effective without the schema push — it operates on data already loaded by `from('social_accounts').select('*')`. The RPC push only adds the second layer of defense at row-claim time.
+- Old dev `dvmfeswlhlbgzqhtoytl` returned `Resource has been removed` from `/v1/projects/<ref>` (auto-cleanup of non-persistent branches).
+- Recreated under prod project `cmkifdwjunojgigrqwnr` via `POST /v1/projects/cmkifdwjunojgigrqwnr/branches` with `{branch_name:"development", git_branch:"development", persistent:true, region:"us-west-2"}`.
+- New dev: **`effppfiphrykllkpkdbv`** — persistent (won't auto-evaporate again).
 
-## Deviations from Plan
+### Deviation 2 — Applied via Management API instead of `supabase db push`
 
-None — all three executor tasks shipped per spec. Task 4 (schema push) is the planned [BLOCKING] checkpoint and is being returned to the user.
+The Supabase CLI is not installed locally; rather than installing it just for this apply, we used `POST /v1/projects/<ref>/database/query` with the persistent PAT. After applying the function body, we backfilled `supabase_migrations.schema_migrations (version='00018', name='phase14_quarantine_enforcement', statements=ARRAY[<full SQL>])` so future `supabase db push` doesn't try to re-apply.
+
+### Deviation 3 — Smoke test seed inside transaction
+
+The new dev branch had with_data:false (empty tables), and prod had zero approved actions, so the original "pick a real approved action" path was infeasible. Replaced with a minimal seed-then-test pattern inside `BEGIN; SET LOCAL session_replication_role = replica; … ROLLBACK;` — same five quarantine cases, zero residue. Single Management-API call per environment (the API returns only the last resultset, so each test result is captured into a `_smoke (ord, label, rows)` temp table and read out with one final SELECT before the ROLLBACK).
+
+### Apply outputs
+
+#### Dev (`effppfiphrykllkpkdbv`)
+
+`pg_get_functiondef('public.claim_action(uuid)')` after apply (snippet):
+
+```
+CREATE OR REPLACE FUNCTION public.claim_action(p_action_id uuid)
+ RETURNS SETOF actions
+ LANGUAGE sql SECURITY DEFINER SET search_path TO ''
+AS $function$
+  UPDATE public.actions
+  SET status = 'executing', executed_at = now()
+  WHERE id = (
+    SELECT a.id
+    FROM public.actions a
+    JOIN public.social_accounts sa ON sa.id = a.account_id
+    WHERE a.id = p_action_id
+      AND a.status = 'approved'
+      AND sa.health_status NOT IN ('warning','banned')
+      AND (sa.cooldown_until IS NULL OR sa.cooldown_until <= now())
+    FOR UPDATE OF a SKIP LOCKED
+  )
+  RETURNING *;
+$function$
+```
+
+Smoke results:
+
+| label | rows | expected |
+|---|---:|---:|
+| expect_0_warning | 0 | 0 |
+| expect_0_banned | 0 | 0 |
+| expect_0_cooldown_future | 0 | 0 |
+| expect_1_cooldown_past | 1 | 1 |
+| expect_1_healthy | 1 | 1 |
+
+PRE/POST row counts on dev (must match — proves zero residue):
+- users: 0 == 0 ✓ · social_accounts: 0 == 0 ✓ · prospects: 0 == 0 ✓ · actions: 0 == 0 ✓
+
+`schema_migrations` row inserted: `00018, phase14_quarantine_enforcement` ✓.
+
+#### Prod (`cmkifdwjunojgigrqwnr`)
+
+`pg_get_functiondef` body identical to dev (same JOIN + filter clauses).
+
+Smoke results:
+
+| label | rows | expected |
+|---|---:|---:|
+| expect_0_warning | 0 | 0 |
+| expect_0_banned | 0 | 0 |
+| expect_0_cooldown_future | 0 | 0 |
+| expect_1_cooldown_past | 1 | 1 |
+| expect_1_healthy | 1 | 1 |
+
+PRE/POST row counts on prod:
+- users: 6 == 6 ✓ · social_accounts: 3 == 3 ✓ · prospects: 3 == 3 ✓ · actions: 11 == 11 ✓
+- job_logs: 1883 → 1885 (+2) — verified those two rows are live `monitor` cron runs (action_id=NULL, started_at within the smoke window). Zero rows reference the synthetic action_id `dddddddd-…-dddd`. **Smoke residue = 0.**
+
+`schema_migrations` row inserted: `00018, phase14_quarantine_enforcement` ✓.
+
+### Side effects of the recreation
+
+- `.env.local` updated to point `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` at the new persistent dev branch (`effppfiphrykllkpkdbv`).
+- Vercel preview env (Preview → development git branch) — same three vars rotated with `vercel env rm … --yes && vercel env add … --value … --yes`.
+- `CLAUDE.md` dev-branch reference updated `dvmfeswlhlbgzqhtoytl` → `effppfiphrykllkpkdbv`.
 
 ## Self-Check: PASSED
 
@@ -150,3 +224,6 @@ None — all three executor tasks shipped per spec. Task 4 (schema push) is the 
 - Test file present: `src/lib/action-worker/__tests__/worker-quarantine.test.ts`
 - Commits 68ef5e6, 7b2336f, b0c7cca present in git log
 - 374/374 vitest pass; quarantine subset 6/6
+- Migration applied + tracked on **both** dev (`effppfiphrykllkpkdbv`) and prod (`cmkifdwjunojgigrqwnr`); JOIN clause confirmed via `pg_get_functiondef` on both
+- Smoke 0/0/0/1/1 on both environments; zero residue on both
+- `.env.local` + Vercel preview/development env rotated to new dev branch

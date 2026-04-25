@@ -95,7 +95,7 @@ pnpm build | start | lint | format | typecheck
 Google OAuth + magic links → `/auth/callback` → `/`. Middleware redirects: unauthenticated → `/login`, authenticated off `/login` → `/`. Route groups: `(auth)` public, `(app)` protected. Server actions for sign in/out.
 
 ### Supabase
-- Prod: `cmkifdwjunojgigrqwnr` (West US Oregon) · Dev branch: `dvmfeswlhlbgzqhtoytl`
+- Prod: `cmkifdwjunojgigrqwnr` (West US Oregon) · Dev branch: `effppfiphrykllkpkdbv`
 - Management API: `SUPABASE_ACCESS_TOKEN` env; use `--ssl-no-revoke` with curl on Windows
 - Clients: `lib/supabase/server.ts` (SSR), `lib/supabase/client.ts` (browser), `lib/supabase/middleware.ts` (token refresh). Service role client inline for admin/cron only — never in client code.
 - All data access enforced by RLS.
@@ -133,7 +133,7 @@ Strict separation across Git, Vercel, Supabase and local disk. **Never mix them.
 |---|---|---|
 | Git branch | `main` | `development` (+ PR branches) |
 | Vercel deployment | Production (auto on push to `main`) | Preview (auto on push to `development`) |
-| Supabase | prod `cmkifdwjunojgigrqwnr` | dev branch `dvmfeswlhlbgzqhtoytl` |
+| Supabase | prod `cmkifdwjunojgigrqwnr` | dev branch `effppfiphrykllkpkdbv` |
 | Stripe | LIVE keys (`sk_live_…`) | TEST keys (`sk_test_…`) |
 | Site URL | `https://repco.ai` | Vercel preview URL / `http://localhost:3001` |
 | Local file | _none — do NOT keep prod env on disk_ | `.env.local` (dev Supabase + Stripe test) |
