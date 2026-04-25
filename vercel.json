@@ -44,6 +44,10 @@
     {
       "path": "/api/cron/linkedin-prescreen",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/apify-zombie-cleanup",
+      "schedule": "*/30 * * * *"
     }
   ]
 }
