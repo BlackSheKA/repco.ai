@@ -89,29 +89,29 @@ Landing copy dla repco.ai. Layout 1:1 z live (`https://repco.ai/`) — podmienia
 ### 3. Platforms section
 
 **Section headline:**
-> Your buyers don't hang out in email lists. They post on LinkedIn. They vent on Reddit.
+> Your buyers aren't on email lists. They're on Reddit and LinkedIn.
 
 **Subhead:**
-> Apollo sells you 10M dead emails. Clay sells you a workflow you'll never finish building. repco listens for *real humans asking for what you sell in public* — then DMs them from your account. Today: Reddit + LinkedIn. On the roadmap: every platform your buyers open before coffee.
+> repco listens for people asking for what you sell — then DMs them from your account. More platforms coming.
 
 **Platform card 1 — Reddit** · badge: `Live`
-> **Where people ask "what should I use for ___" and "who can recommend ___"**
-> Monitors ~200k subreddits · keyword + semantic intent scoring · DM within 15 minutes · 3-touch follow-up · auto-stop on reply
+> **"What should I use for ___"**
+> ~200k subreddits · intent scoring · DM in 15 min · 3-touch follow-up
 
 **Platform card 2 — LinkedIn** · badge: `Live`
-> **Where "looking for" posts, competitor rants and job changes trigger buying decisions**
-> Post + comment monitoring · job-change signals · connection request with context · warm DM sequences · anti-ban behavioral patterns
+> **"Looking for ___" posts, competitor rants, job changes**
+> Posts + comments · job-change signals · warm connects · anti-ban patterns
 
-**Platform card 3 — X / Twitter** · badge: `Q3 2026 · vote →`
-> **Where founders publicly shame the tools they just cancelled**
-> Mention + quote-tweet intent · reply-to-DM funnel · competitor-churn triggers
+**Platform card 3 — X / Twitter** · badge: `Q3 2026`
+> **Founders publicly shaming tools they just cancelled**
+> Mentions · quote-tweet intent · reply-to-DM
 
-**Platform card 4 — Instagram** · badge: `Q4 2026 · vote →`
-> **Where creators and DTC buyers actually convert**
-> Story replies · comment triggers · DM sequences tuned for IG tone
+**Platform card 4 — Instagram** · badge: `Q4 2026`
+> **Creators and DTC buyers**
+> Story replies · comment triggers · IG-tuned DMs
 
-**Microcopy below cards (clickable):**
-> Vote on the next platform → (links to public roadmap)
+**Microcopy below cards:**
+> Vote on the next platform →
 
 ---
 
@@ -128,32 +128,25 @@ Landing copy dla repco.ai. Layout 1:1 z live (`https://repco.ai/`) — podmienia
 
 ---
 
-### 5. Use cases — "This actually happened this week"
+### 5. Use cases
 
 **Section headline:**
-> Last week, while founders were shipping features, repco was sending their first DMs.
+> The kind of DMs repco sends for you.
 
-**Subhead:**
-> Real intent signals. Real DMs from real accounts. Real replies. No hypotheticals, no staged testimonials.
+**Card 1 — Reddit**
+> Someone posts: *"Any tool to monitor Reddit for leads?"*
+> repco DMs them in 11 minutes → demo booked same day.
 
-**Card 1 — Reddit · 11 minutes from post to DM**
-> **9:47 AM** — founder posts in r/SaaS: *"Anyone know a tool that monitors Reddit for buying intent?"*
-> **9:58 AM** — repco scores the intent at 94/100 and DMs the founder a reply referencing the exact post, plus a 30-second Loom.
-> **2:14 PM** — demo booked.
-> *Cost: 8 credits (~\$0.40). New customer MRR: \$99.*
+**Card 2 — LinkedIn**
+> Someone rage-comments on a competitor: *"Renewal hit. Pricing is a joke."*
+> repco sends a warm connect naming the pain → reply in 8 days.
 
-**Card 2 — LinkedIn · spotted a churn-in-progress**
-> Prospect rage-commented on a competitor's post: *"Been on [X] 2 years. Renewal just hit. Pricing is a joke."*
-> repco scored churn intent at 88/100 and sent a connection request naming the pain — not a pitch.
-> Day 7: soft follow-up. Day 8: warm reply. Now in active sales cycle.
-
-**Card 3 — LinkedIn · new decision-maker at an ICP account**
-> Monday: new Head of Growth starts at a perfect-fit account.
-> repco catches the job-change signal, sends congrats + soft intro Tuesday.
-> Friday: discovery call. Quote sent. *Deal size: \$48k ARR.*
+**Card 3 — LinkedIn**
+> New Head of Growth starts at an ICP account.
+> repco sends congrats + soft intro → discovery call that week.
 
 **Microcopy below cards:**
-> Want to see real (anonymized) intent signals landing right now? → `See it run live`
+> See real signals landing right now →
 
 ---
 
@@ -163,17 +156,16 @@ Landing copy dla repco.ai. Layout 1:1 z live (`https://repco.ai/`) — podmienia
 > You set the outcome. repco chases it until it's yours.
 
 **Subhead:**
-> Forget "messages sent" and other vanity numbers. Tell repco what actually pays the bills — demos, trials, pilots, paid intros — and it reverse-engineers every DM, every follow-up, every sequence toward that goal. Miss it? Credits refunded automatically.
+> Forget "messages sent". Tell repco what actually pays the bills — demos, trials, pilots — and it reverse-engineers every DM toward that goal. Miss? Credits back.
 
-**Outcome chips (selectable):**
-- `📅 Book a demo`
-- `🚀 Free trial signup`
-- `📋 Waitlist opt-in`
-- `📬 Newsletter subscriber`
-- `💰 Paid pilot`
-- `🤝 Partnership intro`
-- `🧪 Beta tester`
-- `💬 Warm reply`
+**Outcome chips (4 — each has a label + one-line descriptor):**
+
+| Emoji · Label | Descriptor (under label) |
+|---|---|
+| 📅 **Book a call** | Qualify first, book the right calls |
+| 💬 **Warm lead** | Start the conversation, you close it |
+| 🚀 **Signup or install** | Drive signups, trials, app installs |
+| 💰 **Sale** | Skip the talk — close the deal |
 
 **Microcopy below chips:**
 > Change goals anytime. repco adapts DM tone, length and CTA the same day.

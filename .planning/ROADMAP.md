@@ -25,6 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 11: Nyquist Validation Compliance** (GAP CLOSURE) - Complete 6 VALIDATION.md files + retroactive Phase 6 VERIFICATION.md (completed 2026-04-21)
 - [x] **Phase 12: Trial Auto-Activation + Expiry Reconciliation** (GAP CLOSURE) - BILL-01 auto-trial + ACTN-10 expiry spec reconciliation (completed 2026-04-21)
 - [x] **Phase 13: LinkedIn Action Expansion** (v1.1) - Port deterministic DOM flow to DM/Follow/Like/Comment + LinkedIn followup_dm + pre-screening queue (completed 2026-04-23)
+- [ ] **Phase 14: LinkedIn Account Quarantine Enforcement** (v1.1, GAP CLOSURE) - Read-side enforcement of social_accounts.health_status / cooldown_until in worker.ts + claim_action RPC so flagged accounts stop executing approved actions
 
 ## Phase Details
 
@@ -265,10 +266,26 @@ Plans:
 - [x] 13-04-PLAN.md — Followup DM sequences for LinkedIn (wire day 3/7/14 cron → new executor)
 - [x] 13-05-PLAN.md — Prospect pre-screening job (detect unreachable Connect path, mark pipeline_status)
 
+### Phase 14: LinkedIn Account Quarantine Enforcement
+**Goal**: Make `social_accounts.health_status` and `cooldown_until` actually gate execution — flagged accounts must stop dispatching approved actions until manually remediated, preventing session burn after a checkpoint or weekly-limit event
+**Depends on**: Phase 13 (writes the `health_status='warning'` / `cooldown_until` flags this phase will read)
+**Requirements**: LNKD-02, LNKD-06 (read-path enforcement of write-side contracts already shipped in Phase 13)
+**Milestone**: v1.1 — gap closure from `/gsd-audit-milestone` (integration finding: write paths wired, read gate absent)
+**Rationale**: Phase 13's audit found that `worker.ts:614` (security_checkpoint / session_expired) and `worker.ts:629` (weekly_limit_reached), plus the prescreen cron, all write `health_status='warning'` / `cooldown_until` correctly — but no execution gate reads them. An approved action on a warning-flagged account continues to execute through to the GoLogin connect step, risking the session-burn outcome that the quarantine was designed to prevent. `claim_action` RPC (migration 00006) does not join `social_accounts` either.
+**Success Criteria** (what must be TRUE):
+  1. `executeAction` in `worker.ts` fails fast with typed `failure_mode='account_quarantined'` when `social_accounts.health_status in ('warning','banned')` or `cooldown_until > now()`
+  2. `claim_action` RPC (new migration 00018) joins `social_accounts` and skips rows whose account is quarantined — defense-in-depth so a stale webhook cannot bypass the worker guard
+  3. Both Reddit and LinkedIn paths covered (the guard is platform-agnostic)
+  4. Unit tests cover all three quarantine triggers (warning, banned, future cooldown_until) and the green-path
+  5. Typecheck + full test suite green (no regression of the 355 existing tests)
+
+Plans:
+- [ ] 14-01-PLAN.md — worker.ts quarantine guard + claim_action RPC join + tests
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -285,3 +302,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 11. Nyquist Validation Compliance (GAP) | 0/0 | Complete    | 2026-04-21 |
 | 12. Trial Auto-Activation + Expiry (GAP) | 3/3 | Complete    | 2026-04-21 |
 | 13. LinkedIn Action Expansion (v1.1) | 5/5 | Complete    | 2026-04-23 |
+| 14. LinkedIn Account Quarantine Enforcement (v1.1, GAP) | 0/1 | Pending | - |
