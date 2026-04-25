@@ -25,7 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 11: Nyquist Validation Compliance** (GAP CLOSURE) - Complete 6 VALIDATION.md files + retroactive Phase 6 VERIFICATION.md (completed 2026-04-21)
 - [x] **Phase 12: Trial Auto-Activation + Expiry Reconciliation** (GAP CLOSURE) - BILL-01 auto-trial + ACTN-10 expiry spec reconciliation (completed 2026-04-21)
 - [x] **Phase 13: LinkedIn Action Expansion** (v1.1) - Port deterministic DOM flow to DM/Follow/Like/Comment + LinkedIn followup_dm + pre-screening queue (completed 2026-04-23)
-- [ ] **Phase 14: LinkedIn Account Quarantine Enforcement** (v1.1, GAP CLOSURE) - Read-side enforcement of social_accounts.health_status / cooldown_until in worker.ts + claim_action RPC so flagged accounts stop executing approved actions
+- [x] **Phase 14: LinkedIn Account Quarantine Enforcement** (v1.1, GAP CLOSURE) - Read-side enforcement of social_accounts.health_status / cooldown_until in worker.ts + claim_action RPC so flagged accounts stop executing approved actions (completed 2026-04-25)
 
 ## Phase Details
 
@@ -280,7 +280,7 @@ Plans:
   5. Typecheck + full test suite green (no regression of the 355 existing tests)
 
 Plans:
-- [ ] 14-01-PLAN.md — worker.ts quarantine guard + claim_action RPC join + tests
+- [x] 14-01-PLAN.md — worker.ts quarantine guard + claim_action RPC join + tests
 
 ## Progress
 
@@ -302,4 +302,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 11. Nyquist Validation Compliance (GAP) | 0/0 | Complete    | 2026-04-21 |
 | 12. Trial Auto-Activation + Expiry (GAP) | 3/3 | Complete    | 2026-04-21 |
 | 13. LinkedIn Action Expansion (v1.1) | 5/5 | Complete    | 2026-04-23 |
-| 14. LinkedIn Account Quarantine Enforcement (v1.1, GAP) | 0/1 | Pending | - |
+| 14. LinkedIn Account Quarantine Enforcement (v1.1, GAP) | 1/1 | Complete   | 2026-04-25 |
