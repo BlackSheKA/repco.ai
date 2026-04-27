@@ -68,13 +68,15 @@ export async function saveOnboarding(
     ...generated.competitorKeywords,
   ].map((value) => ({
     user_id: user.id,
-    signal_type: "reddit_keyword" as const,
+    mechanism_id: "R3" as const,
+    frequency: "6 hours" as const,
     value: value.trim().toLowerCase(),
   }))
 
   const subredditSignals = generated.subreddits.map((value) => ({
     user_id: user.id,
-    signal_type: "subreddit" as const,
+    mechanism_id: "R1" as const,
+    frequency: "6 hours" as const,
     value: value.trim().toLowerCase(),
   }))
 
