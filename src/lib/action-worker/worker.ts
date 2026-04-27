@@ -8,6 +8,7 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import { connectToProfile, releaseProfile } from "@/lib/gologin/adapter"
+import { getBrowserProfileForAccount } from "@/features/browser-profiles/lib/get-browser-profile"
 import { executeCUAction } from "@/lib/computer-use/executor"
 import { sendLinkedInConnection } from "@/lib/action-worker/actions/linkedin-connect-executor"
 import { sendLinkedInDM } from "@/lib/action-worker/actions/linkedin-dm-executor"
@@ -126,27 +127,28 @@ export async function executeAction(
     }
   }
 
-  // 3. Check GoLogin profile — must exist before active-hours check (both are pre-try)
-  if (!account?.gologin_profile_id) {
-    // This is a configuration error — log it in job_logs via the try/finally below
-    // by falling through to the try block with earlyReturn set
-  }
+  // 3. Resolve browser profile via Phase 15 helper (replaces legacy
+  //    social_accounts.gologin_profile_id read). Resolved ONCE here and
+  //    reused below to avoid three round-trips.
+  const browserProfile = account
+    ? await getBrowserProfileForAccount(account.id, supabase)
+    : null
 
   // 4. ANTI-BAN: Check active hours (ABAN-05) — re-queue path does NOT log to job_logs.
-  //    Only check if account exists and has a profile (otherwise fall to try block for logging).
-  if (account?.gologin_profile_id) {
+  //    Only check if account exists and has a browser profile (otherwise fall to try block for logging).
+  if (browserProfile) {
     if (
       !isWithinActiveHours(
-        account.timezone ?? "UTC",
-        account.active_hours_start ?? 8,
-        account.active_hours_end ?? 22,
+        account!.timezone ?? "UTC",
+        account!.active_hours_start ?? 8,
+        account!.active_hours_end ?? 22,
       )
     ) {
       await updateActionStatus(supabase, actionId, "approved", null) // Re-queue
       logger.info("Action deferred: outside active hours", {
         actionId,
         correlationId,
-        timezone: account.timezone,
+        timezone: account!.timezone,
       })
       return { success: false, error: "Outside active hours -- re-queued" }
     }
@@ -158,9 +160,12 @@ export async function executeAction(
     // LinkedIn profile handle stashed from step 10 navigation (for use in step 12)
     let linkedinProfileHandle: string | null = null
 
-    // 5. Check GoLogin profile (failed accounts log via finally block)
-    if (!account?.gologin_profile_id) {
-      runError = "No GoLogin profile"
+    // 5. Check browser profile (failed accounts log via finally block).
+    //    A null browserProfile here means either the account row was missing
+    //    or the account has no browser_profile_id assigned yet (Phase 17 allocator
+    //    will populate it). Either way, we cannot launch a session.
+    if (!browserProfile) {
+      runError = "No browser profile"
       runStatus = "failed"
       await updateActionStatus(supabase, actionId, "failed", runError)
       earlyReturn = { success: false, error: runError }
@@ -257,7 +262,7 @@ export async function executeAction(
 
     // 9. Connect GoLogin profile
     try {
-      connection = await connectToProfile(account!.gologin_profile_id!)
+      connection = await connectToProfile(browserProfile!.gologin_profile_id)
     } catch (err) {
       runError = `GoLogin connection failed: ${err}`
       runStatus = "failed"

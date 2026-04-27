@@ -9,6 +9,10 @@ import {
   startCloudBrowser,
   stopCloudBrowser,
 } from "@/lib/gologin/client"
+import {
+  getBrowserProfileForAccount,
+  getBrowserProfileById,
+} from "@/features/browser-profiles/lib/get-browser-profile"
 
 // Login URLs shown to the user in the connection flow. GoLogin's Cloud
 // Browser web-viewer mode ignores profile startUrl, so the user navigates
@@ -36,9 +40,10 @@ export async function connectAccount(
       ? `linkedin-${user.id.slice(0, 8)}`
       : handle
 
-  // 1. Create GoLogin Cloud profile
-  // (startUrl is set but the cloud web viewer ignores it; kept for the
-  // desktop app where users may run the profile manually.)
+  // Phase 15 transition: account is created with browser_profile_id=null.
+  // Phase 17's allocator will populate it. createProfile() retained for now
+  // so its returned profileId can be surfaced to the caller, but the column
+  // is no longer written here (the allocator owns browser_profiles inserts).
   let profileId: string
   try {
     profileId = await createProfile(
@@ -49,14 +54,14 @@ export async function connectAccount(
     return { error: `Failed to create browser profile: ${err}` }
   }
 
-  // 2. Insert social account record
+  // Insert social account record
   const { data, error } = await supabase
     .from("social_accounts")
     .insert({
       user_id: user.id,
       platform,
       handle: effectiveHandle,
-      gologin_profile_id: profileId,
+      browser_profile_id: null,
       health_status: "warmup",
       warmup_day: 1,
     })
@@ -104,17 +109,25 @@ export async function startAccountBrowser(accountId: string): Promise<{
 
   const { data: account } = await supabase
     .from("social_accounts")
-    .select("gologin_profile_id, platform")
+    .select("browser_profile_id, platform")
     .eq("id", accountId)
     .eq("user_id", user.id)
     .single()
 
-  if (!account?.gologin_profile_id) {
-    return { success: false, error: "No GoLogin profile on this account" }
+  if (!account) {
+    return { success: false, error: "Account not found" }
+  }
+
+  const browserProfile = await getBrowserProfileForAccount(accountId, supabase)
+  if (!browserProfile) {
+    return {
+      success: false,
+      error: "Account has no browser profile yet. Reconnect after the allocator ships.",
+    }
   }
 
   try {
-    const session = await startCloudBrowser(account.gologin_profile_id)
+    const session = await startCloudBrowser(browserProfile.gologin_profile_id)
     return {
       success: true,
       url: session.remoteOrbitaUrl,
@@ -137,19 +150,13 @@ export async function stopAccountBrowser(
   } = await supabase.auth.getUser()
   if (!user) return { success: false, error: "Not authenticated" }
 
-  const { data: account } = await supabase
-    .from("social_accounts")
-    .select("gologin_profile_id")
-    .eq("id", accountId)
-    .eq("user_id", user.id)
-    .single()
-
-  if (!account?.gologin_profile_id) {
+  const browserProfile = await getBrowserProfileForAccount(accountId, supabase)
+  if (!browserProfile) {
     return { success: true }
   }
 
   try {
-    await stopCloudBrowser(account.gologin_profile_id)
+    await stopCloudBrowser(browserProfile.gologin_profile_id)
     return { success: true }
   } catch (err) {
     return {
@@ -189,10 +196,19 @@ export async function deleteAccount(accountId: string): Promise<{
   // Look up profile ID before deleting the row so we can clean up GoLogin.
   const { data: account } = await supabase
     .from("social_accounts")
-    .select("gologin_profile_id")
+    .select("browser_profile_id")
     .eq("id", accountId)
     .eq("user_id", user.id)
     .single()
+
+  let gologinProfileId: string | null = null
+  if (account?.browser_profile_id) {
+    const browserProfile = await getBrowserProfileById(
+      account.browser_profile_id,
+      supabase,
+    )
+    gologinProfileId = browserProfile?.gologin_profile_id ?? null
+  }
 
   const { error } = await supabase
     .from("social_accounts")
@@ -203,14 +219,15 @@ export async function deleteAccount(accountId: string): Promise<{
   if (error) return { success: false, error: error.message }
 
   // Best-effort GoLogin cleanup — don't fail the whole op if these 500.
-  if (account?.gologin_profile_id) {
+  // Accounts with no browser_profile_id (Phase 16 transitional, D-04) skip cleanup.
+  if (gologinProfileId) {
     try {
-      await stopCloudBrowser(account.gologin_profile_id)
+      await stopCloudBrowser(gologinProfileId)
     } catch {
       // ignore
     }
     try {
-      await deleteProfile(account.gologin_profile_id)
+      await deleteProfile(gologinProfileId)
     } catch {
       // ignore
     }

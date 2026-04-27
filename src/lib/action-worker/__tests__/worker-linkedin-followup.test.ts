@@ -12,6 +12,25 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import type { BrowserProfile } from "@/features/accounts/lib/types"
+
+const mockBrowserProfile = (
+  overrides: Partial<BrowserProfile> = {},
+): BrowserProfile => ({
+  id: "bp-test-id",
+  gologin_profile_id: "gp-test-id",
+  gologin_proxy_id: "proxy-test-id",
+  country_code: "PL",
+  timezone: "Europe/Warsaw",
+  locale: "pl-PL",
+  display_name: null,
+  ...overrides,
+})
+
+vi.mock("@/features/browser-profiles/lib/get-browser-profile", () => ({
+  getBrowserProfileForAccount: vi.fn(async () => mockBrowserProfile()),
+  getBrowserProfileById: vi.fn(async () => mockBrowserProfile()),
+}))
 
 // ---- Executor mocks (the whole point of the test) ----
 const sendLinkedInDMMock = vi.fn()
@@ -114,7 +133,7 @@ type SuParams = {
   account: {
     id: string
     platform: "reddit" | "linkedin"
-    gologin_profile_id: string
+    browser_profile_id: string | null
     warmup_day: number
     timezone: string
     active_hours_start: number
@@ -264,7 +283,7 @@ describe("worker LinkedIn followup_dm dispatch (LNKD-05)", () => {
       account: {
         id: "acct-1",
         platform: "linkedin",
-        gologin_profile_id: "gp-1",
+        browser_profile_id: "bp-1",
         warmup_day: 10,
         timezone: "UTC",
         active_hours_start: 0,
@@ -322,7 +341,7 @@ describe("worker LinkedIn followup_dm dispatch (LNKD-05)", () => {
       account: {
         id: "acct-1",
         platform: "linkedin",
-        gologin_profile_id: "gp-1",
+        browser_profile_id: "bp-1",
         warmup_day: 10,
         timezone: "UTC",
         active_hours_start: 0,
@@ -368,7 +387,7 @@ describe("worker LinkedIn followup_dm dispatch (LNKD-05)", () => {
       account: {
         id: "acct-2",
         platform: "reddit",
-        gologin_profile_id: "gp-2",
+        browser_profile_id: "bp-2",
         warmup_day: 10,
         timezone: "UTC",
         active_hours_start: 0,

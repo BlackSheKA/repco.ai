@@ -17,6 +17,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { logger } from "@/lib/logger"
 import { connectToProfile, releaseProfile } from "@/lib/gologin/adapter"
+import { getBrowserProfileById } from "@/features/browser-profiles/lib/get-browser-profile"
 import { extractLinkedInSlug } from "@/lib/action-worker/actions/linkedin-connect-executor"
 import { detectLinkedInAuthwall } from "@/lib/action-worker/actions/linkedin-authwall"
 
@@ -92,13 +93,13 @@ export async function GET(request: Request): Promise<Response> {
   let connection: Awaited<ReturnType<typeof connectToProfile>> | undefined
 
   try {
-    // 1. Pick a healthy LinkedIn account with a GoLogin profile.
+    // 1. Pick a healthy LinkedIn account with a browser profile.
     const { data: accounts } = await supabase
       .from("social_accounts")
-      .select("id, gologin_profile_id, user_id")
+      .select("id, browser_profile_id, user_id")
       .eq("platform", "linkedin")
       .eq("health_status", "healthy")
-      .not("gologin_profile_id", "is", null)
+      .not("browser_profile_id", "is", null)
       .order("session_verified_at", { ascending: true, nullsFirst: true })
       .limit(1)
 
@@ -168,8 +169,38 @@ export async function GET(request: Request): Promise<Response> {
       return NextResponse.json({ ok: true, screened: 0, reasons })
     }
 
-    // 3. Open GoLogin session.
-    connection = await connectToProfile(account.gologin_profile_id as string)
+    // 3. Open GoLogin session via the browser profile FK.
+    const browserProfile = await getBrowserProfileById(
+      account.browser_profile_id as string,
+      supabase,
+    )
+    if (!browserProfile) {
+      logger.warn("linkedin-prescreen: browser profile not found", {
+        correlationId,
+        accountId: account.id,
+      })
+      await supabase.from("job_logs").insert({
+        job_type: "monitor" as const,
+        status: "completed" as const,
+        user_id: account.user_id,
+        started_at: startedAt.toISOString(),
+        finished_at: new Date().toISOString(),
+        duration_ms: Date.now() - startedAt.getTime(),
+        metadata: {
+          cron: "linkedin-prescreen",
+          correlation_id: correlationId,
+          reason: "browser_profile_not_found",
+          screened: 0,
+        },
+      })
+      await logger.flush()
+      return NextResponse.json({
+        ok: true,
+        screened: 0,
+        reason: "browser_profile_not_found",
+      })
+    }
+    connection = await connectToProfile(browserProfile.gologin_profile_id)
     await connection.page.setViewportSize({ width: 1280, height: 900 })
 
     // 4. Iterate prospects. Abort entire run on first checkpoint.

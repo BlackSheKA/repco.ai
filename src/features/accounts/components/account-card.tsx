@@ -163,7 +163,7 @@ export function AccountCard({
               onClick={() =>
                 onReconnect(
                   account.id,
-                  account.gologin_profile_id,
+                  account.browser_profile_id,
                   account.platform,
                 )
               }
