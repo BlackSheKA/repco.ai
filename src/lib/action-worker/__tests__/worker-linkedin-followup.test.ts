@@ -18,6 +18,7 @@ const mockBrowserProfile = (
   overrides: Partial<BrowserProfile> = {},
 ): BrowserProfile => ({
   id: "bp-test-id",
+  browserbase_context_id: "ctx-test-id",
   gologin_profile_id: "gp-test-id",
   gologin_proxy_id: "proxy-test-id",
   country_code: "PL",

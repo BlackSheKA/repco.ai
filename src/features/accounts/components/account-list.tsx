@@ -63,7 +63,7 @@ export function AccountList({
         return
       }
       setNewAccountId(result.accountId ?? null)
-      setNewProfileId(result.profileId ?? null)
+      setNewProfileId(result.contextId ?? null)
       setNewAccountPlatform("linkedin")
     }
   }
@@ -91,7 +91,7 @@ export function AccountList({
     }
 
     setNewAccountId(result.accountId ?? null)
-    setNewProfileId(result.profileId ?? null)
+    setNewProfileId(result.contextId ?? null)
     setNewAccountPlatform("reddit")
   }
 

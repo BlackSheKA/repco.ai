@@ -224,7 +224,8 @@ export async function GET(request: Request) {
 
       try {
         // 1. Connect to the GoLogin profile
-        connection = await connectToProfile(browserProfile.gologin_profile_id)
+        // Phase 17.5 transitional: plan 17.5-03 rewrites this to Browserbase.
+        connection = await connectToProfile(browserProfile.gologin_profile_id ?? "")
 
         // 2. Read the inbox with Haiku vision
         const messages = await readInboxWithHaiku(connection.page)

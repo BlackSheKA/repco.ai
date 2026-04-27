@@ -262,7 +262,9 @@ export async function executeAction(
 
     // 9. Connect GoLogin profile
     try {
-      connection = await connectToProfile(browserProfile!.gologin_profile_id)
+      // Phase 17.5 transitional: gologin_profile_id deprecated; plan 17.5-03 rewrites
+      // this entire path to use Browserbase createSession + chromium.connectOverCDP.
+      connection = await connectToProfile(browserProfile!.gologin_profile_id ?? "")
     } catch (err) {
       runError = `GoLogin connection failed: ${err}`
       runStatus = "failed"

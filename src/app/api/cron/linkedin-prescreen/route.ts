@@ -200,7 +200,8 @@ export async function GET(request: Request): Promise<Response> {
         reason: "browser_profile_not_found",
       })
     }
-    connection = await connectToProfile(browserProfile.gologin_profile_id)
+    // Phase 17.5 transitional: plan 17.5-03 rewrites this to Browserbase.
+    connection = await connectToProfile(browserProfile.gologin_profile_id ?? "")
     await connection.page.setViewportSize({ width: 1280, height: 900 })
 
     // 4. Iterate prospects. Abort entire run on first checkpoint.

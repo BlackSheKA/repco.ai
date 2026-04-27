@@ -29,10 +29,12 @@ const D11_COPY =
 export async function connectAccount(
   platform: "reddit" | "linkedin",
   handle: string,
-): Promise<
-  | { success: true; accountId: string; contextId: string }
-  | { success?: false; error: string }
-> {
+): Promise<{
+  success?: boolean
+  accountId?: string
+  contextId?: string
+  error?: string
+}> {
   const supabase = await createClient()
   const {
     data: { user },

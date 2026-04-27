@@ -18,9 +18,9 @@ export interface BrowserProfile {
   id: string
   /**
    * Phase 17.5: Browserbase context id (replaces gologin_profile_id at the DB layer).
-   * Old fields are kept on the type as `string | null` for transitional compatibility
-   * with callers in worker.ts / cron routes / executor tests that plan 17.5-03 refits.
-   * Once plan 03 ships, the old fields are removed.
+   * Optional for transitional compatibility with worker.ts / cron routes / executor
+   * test fixtures that plan 17.5-03 refits. Plan 03 tightens this to required and
+   * removes the deprecated fields.
    */
   browserbase_context_id: string
   /** @deprecated Phase 17.5 — column dropped in 00025; remove with plan 03. */
