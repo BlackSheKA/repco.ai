@@ -1,22 +1,21 @@
 ---
 sketch: 001
 name: pricing-page
-question: "Jak slider + comparison table 4-kolumnowa + monthly/annual toggle razem komunikują 'wybierz tier na podstawie objętości outreachu'?"
+question: "Two-section design: Free-vs-Paid decision + tier picker — czy to czyściej niż comparison table z 4 kolumnami i 7 wierszami 'unlimited × N'?"
 winner: null
-tags: [pricing, landing, slider, table, billing-toggle]
+tags: [pricing, landing, two-section, tier-picker, billing-toggle]
 ---
 
-# Sketch 001: Pricing Page
+# Sketch 001: Pricing Page (two-section redesign)
 
 ## Design Question
 
-Layout publicznej `/pricing` strony repco.ai. Trzy interactive elementy do skoordynowania:
+Poprzednia iteracja używała comparison table 4-kolumnowej × 7 wierszy. Większość paid tierów ma identyczne features → tabela powtarzała "✓ ✓ ✓ ✓" w 5 wierszach co wyglądało jak fake differentiation.
 
-1. **Comparison table 4 kolumny** — Free / Starter / Growth ⭐ / Scale
-2. **Monthly/Annual toggle** nad tabelą (orthogonal -20%)
-3. **Slider "ile DMs/m"** z highlight rekomendowanej kolumny
+Reframe: **paid tiery różnią się TYLKO ceną i ilością credits**. Comparison table dla nich nie ma sensu. Więc:
 
-Pytanie: które wykonanie tej koncepcji daje najlepszy balans między czytelnością tabeli a "feel" interakcji ze sliderem + toggle. Wszystkie 3 variants mają **identyczne dane** — różnią się **wyłącznie wizualnym treatmentem highlight'u kolumny + sticky behavior**.
+- **Sekcja 1 (Free vs Paid):** dwie duże karty z prawdziwą decyzją — "monitor only" vs "monitor + reach out". Tu są realne differences w features.
+- **Sekcja 2 (Tier picker):** 3 paid cards z monthly/annual toggle. Pokazują tylko: cena · credits · "fits ~N DMs". Wszystkie features paid wymienione raz w sekcji "Every paid tier includes".
 
 ## How to View
 
@@ -24,42 +23,33 @@ Pytanie: które wykonanie tej koncepcji daje najlepszy balans między czytelnoś
 open .planning/sketches/001-pricing-page/index.html
 ```
 
-Slider math (z [PRICING.md §2](../../PRICING.md)):
-- ≤5 DMs/m → **Free** (banner: "monitoring only — upgrade to send messages")
+Slider math (B + C):
+- ≤5 DMs/m → no tier highlighted (recommends Free)
 - 6-30 → **Starter** ($25/m monthly · $20/m annual)
 - 31-100 → **Growth** ⭐ ($59/m monthly · $47/m annual)
 - 101+ → **Scale** ($129/m monthly · $103/m annual)
 
-Annual toggle powoduje:
-- Ceny w nagłówkach przełączają się na effective monthly ($25→$20, $59→$47, $129→$103)
-- Pojawia się second line: "$240/yr", "$566/yr", "$1 238/yr"
-- Slider rekomendacja "$25/mo" → "$20/mo billed annually"
-
 ## Variants
 
-- **A: Quiet** — minimalistyczna tabela, slider above, highlight rekomendowanej kolumny przez subtle `--color-primary-soft` background fill + 1px border ring na headerze. Konserwatywne, professional, niski wizualny "noise".
+- **A: Static** — dwie sekcje, brak slidera, brak sticky. Czysta konstrukcja "decision then volume". Najszybszy do build w real app.
 
-- **B: Bold** — slider above + agresywniejszy highlight: gradient fill na całą kolumnę, glow shadow na headerze, **scale translate-y -4px** na rekomendowanej kolumnie (wyskakuje do przodu), kolor ceny zmienia się na primary. Best for: PLG-friendly, "fun".
+- **B: With slider** — dodaje slider między toggle'em a tier cards. "How many DMs/month?" → highlight rekomendowanej karty (border ring + glow + scale 1.04 dla popular Growth). Slider live-updates.
 
-- **C: Sticky interactive** — slider w **sticky strip** pod variant nav (zostaje na ekranie przy scrollowaniu), kolumny tabeli mają **kolorowe top stripes** per plan (zinc / indigo light / indigo / cyan), highlight via `scale(1.03)` + glow. Plus FAQ section pod spodem.
+- **C: Sticky toggle + slider** — toggle + slider sticky pod variant nav. User scrolluje przez tier cards / includes / FAQ a slider zostaje "dotykalny" cały czas. Best for long pages.
 
 ## What to Look For
 
-1. **Slider feel** — drag slider, sprawdź czy highlight przechodzi płynnie między 4 kolumnami zgodnie z math powyżej.
-2. **Toggle interplay** — przełącz monthly ↔ annual, sprawdź czy:
-   - Ceny w nagłówkach update'ują się płynnie
-   - Slider recommendation "why" copy też się przełącza ("$25/mo" vs "$20/mo billed annually")
-   - "Save 20%" badge na annual button czy się komunikuje wartość
-3. **Free framing** — przesuń slider na 0-5. Recommendation: "Free · monitoring only — upgrade to send messages". Czy to motywuje do upgrade?
-4. **Most popular** — Growth ma badge "Most popular" zawsze. Czy w wariancie B (gdzie jest scale + glow) wystarczająco wybija się wśród rekomendacji?
-5. **Density** — 7 wierszy tabeli. Wszystkie paid mają identyczne ✓✓✓ na większości wierszy — czy to dobrze (clear "you only pay for volume") czy nudno (looks like fake differentiation)?
-6. **Annual badge spot** — czy "Save 20%" w toggle pillu jest czytelne, czy potrzeba dodatkowo na całej annual column?
-7. **Mobile** — zwęź window do <900px → tabela degraduje do single column.
-8. **Bez burn math** — verify: nigdzie nie ma "X cr/day", "wystarczy na N dni", "burn rate". Tylko monthly credits totals + "fits ~Y DMs" hint przy sliderze (pre-purchase value calc).
+1. **Decision card balance** — Free vs Paid. Czy "from $20/mo" w Paid karcie jest dobrym anchor czy lepiej dać bigger price? Czy `cross` items na Free ("No DMs", "1 account, slower scan") są clear constraint czy negative selling?
+2. **Tier picker density** — 3 karty obok siebie (Starter / Growth ⭐ / Scale). Każda: name, price, credits, "fits ~N DMs", CTA. Dużo białej przestrzeni — czy to good breathing room czy puste?
+3. **"Most popular" badge na Growth** — w wariancie A/C tylko badge + border. W wariancie B Growth zawsze ma scale 1.04 + glow (więcej attention zawsze). Który feels right?
+4. **Slider interplay** (B + C) — drag → highlight tier. Co się dzieje gdy slider trafia w Growth (i tak popular by default)? Double highlight czy override?
+5. **"Includes" sekcja** — pod tier cards jedna lista "Every paid tier includes:" z 6 itemami w 2 kolumny. Czy to lepiej niż pokazywanie każdego itema 3× w cards columns?
+6. **Annual toggle** — kliknij Monthly ↔ Annual. Cena się zmienia, billing line update'uje na "$240/yr · billed annually". Jasne czy mylące?
+7. **Mobile (<800px)** — wszystko w 1 column. Czy decision cards działają stack'owane?
 
 ## Open Questions
 
-- Czy "Most popular" Growth potrzebuje silniejszego visual treatment (np. większa karta zawsze, niezależnie od slidera)?
-- Save 20% — communicate jako badge w pillu (current) czy jako floating banner pod tabelą (np. "→ Save $144/yr by paying upfront")?
-- Czy slider w MVP czy odpalamy bez (faster ship)?
-- FAQ pod tabelą — w jakim wariancie ostatecznie? (Wariant C ma).
+- Czy cross items na Free karcie (5 features w tym 2 z ✕) to dobry mix czy za dużo "no's"?
+- "fits ~25 DMs / month" przy każdym tierze — pre-purchase value calc (dozwolone) czy zaczyna się ślizgać w burn-rate territory?
+- Slider w MVP czy odpalamy bez (ship faster)?
+- Variants B i C robią dokładnie to samo poza sticky — czy worth utrzymywać oba?
