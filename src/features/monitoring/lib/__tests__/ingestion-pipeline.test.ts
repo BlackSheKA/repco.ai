@@ -98,14 +98,12 @@ describe("runIngestionForUser — 48h freshness filter (MNTR-05)", () => {
   })
 
   it("deduplicates posts with the same permalink before upsert", async () => {
-    // Same permalink matched by two different keywords
+    // Same permalink returned twice in a single searchAll batch (same post
+    // matched by two different keywords inside one Apify run).
     const post1 = makePost("post-abc", 3600)
     const post2 = { ...post1 } // identical permalink
 
-    // searchAll is called once per keyword; simulate two keywords returning same post
-    mockSearchAll
-      .mockResolvedValueOnce([post1]) // keyword 1 result
-      .mockResolvedValueOnce([post2]) // keyword 2 result
+    mockSearchAll.mockResolvedValue([post1, post2])
 
     const multiKeywordConfig = { ...config, keywords: ["crm", "sales tool"] }
     const supabase = makeSupabaseStub()

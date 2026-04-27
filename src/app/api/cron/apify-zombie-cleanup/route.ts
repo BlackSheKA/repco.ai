@@ -56,6 +56,12 @@ export async function GET(request: Request) {
   const expiredCount = zombies?.length ?? 0
 
   if (expiredCount > 0) {
+    // Surface user_id + platform so an operator can tell whether one user's
+    // monitoring is broken vs all of LinkedIn (or all of Reddit) being down.
+    const byPlatform = zombies?.reduce<Record<string, number>>((acc, r) => {
+      acc[r.platform] = (acc[r.platform] ?? 0) + 1
+      return acc
+    }, {})
     Sentry.captureMessage(
       `Apify zombie runs expired: count=${expiredCount}`,
       {
@@ -64,7 +70,8 @@ export async function GET(request: Request) {
         extra: {
           correlationId,
           expiredCount,
-          runIds: zombies?.map((r) => r.run_id),
+          byPlatform,
+          zombies: zombies?.slice(0, 50),
         },
       },
     )

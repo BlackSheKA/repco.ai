@@ -81,12 +81,12 @@ export async function ingestLinkedInPosts(
 }
 
 /**
- * Runs the per-user LinkedIn ingestion: invokes the Apify adapter, dedups
- * posts (ignoring utm_* params in URLs), filters out posts older than 48h,
- * and upserts fresh posts into intent_signals with ignoreDuplicates.
+ * Sync convenience wrapper: fetches via the Apify adapter and ingests in one
+ * call. Used by the local-dev cron path; production uses
+ * startAsyncLinkedInSearch + the /api/webhooks/apify handler instead.
  *
- * Returns the count of inserted signals, the count of stale posts skipped,
- * and the Apify run id that sourced the batch (for audit correlation).
+ * Returns inserted-signal count, stale-skip count, and the Apify runId that
+ * sourced the batch (for audit correlation).
  */
 export async function runLinkedInIngestionForUser(
   config: MonitoringConfig,

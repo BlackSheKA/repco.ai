@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { logger } from "@/lib/logger"
 import { createClient } from "@/lib/supabase/server"
 
 export type SourceType =
@@ -43,66 +44,87 @@ function validate(
 }
 
 export async function addSource(value: string, signalType: SourceType) {
-  const result = validate(value, signalType)
-  if (!result.ok) {
-    return { error: result.error }
+  try {
+    const result = validate(value, signalType)
+    if (!result.ok) {
+      return { error: result.error }
+    }
+
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { error: "Not authenticated" }
+    }
+
+    // Case-insensitive dedup check — Postgres .eq() on lowercased value is
+    // already correct since validate() lowercases keywords/companies/authors,
+    // and subreddits are normalized to canonical r/<name> casing.
+    const { data: existing } = await supabase
+      .from("monitoring_signals")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("signal_type", signalType)
+      .eq("value", result.value)
+      .limit(1)
+
+    if (existing && existing.length > 0) {
+      return { error: "Already added" }
+    }
+
+    const { error } = await supabase.from("monitoring_signals").insert({
+      user_id: user.id,
+      signal_type: signalType,
+      value: result.value,
+    })
+
+    if (error) {
+      return { error: error.message }
+    }
+
+    revalidatePath("/signals")
+    return { success: true }
+  } catch (err) {
+    logger.error("addSource action failed", {
+      signalType,
+      error: err instanceof Error ? err : new Error(String(err)),
+      errorMessage: err instanceof Error ? err.message : String(err),
+    })
+    return { error: "Something went wrong. Try again." }
   }
-
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return { error: "Not authenticated" }
-  }
-
-  const { data: existing } = await supabase
-    .from("monitoring_signals")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("signal_type", signalType)
-    .eq("value", result.value)
-    .limit(1)
-
-  if (existing && existing.length > 0) {
-    return { error: "Already added" }
-  }
-
-  const { error } = await supabase.from("monitoring_signals").insert({
-    user_id: user.id,
-    signal_type: signalType,
-    value: result.value,
-  })
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  revalidatePath("/signals")
-  return { success: true }
 }
 
 export async function removeSource(id: string) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-  if (!user) {
-    return { error: "Not authenticated" }
+    if (!user) {
+      return { error: "Not authenticated" }
+    }
+
+    const { error } = await supabase
+      .from("monitoring_signals")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user.id)
+
+    if (error) {
+      return { error: error.message }
+    }
+
+    revalidatePath("/signals")
+    return { success: true }
+  } catch (err) {
+    logger.error("removeSource action failed", {
+      sourceId: id,
+      error: err instanceof Error ? err : new Error(String(err)),
+      errorMessage: err instanceof Error ? err.message : String(err),
+    })
+    return { error: "Something went wrong. Try again." }
   }
-
-  const { error } = await supabase
-    .from("monitoring_signals")
-    .delete()
-    .eq("id", id)
-    .eq("user_id", user.id)
-
-  if (error) {
-    return { error: error.message }
-  }
-
-  revalidatePath("/signals")
-  return { success: true }
 }

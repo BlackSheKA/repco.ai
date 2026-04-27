@@ -5,22 +5,27 @@ import { logger } from "@/lib/logger"
 import { runCanaryCheck } from "@/features/monitoring/lib/linkedin-canary"
 import { runLinkedInIngestionForUser } from "@/features/monitoring/lib/linkedin-ingestion-pipeline"
 import { classifyPendingSignals } from "@/features/monitoring/lib/classification-pipeline"
-import { startAsyncLinkedInSearch } from "@/features/monitoring/lib/linkedin-adapter"
+import {
+  effectiveLinkedInActorId,
+  startAsyncLinkedInSearch,
+} from "@/features/monitoring/lib/linkedin-adapter"
 import type { MonitoringConfig } from "@/features/monitoring/lib/types"
 
 export const runtime = "nodejs"
 export const maxDuration = 300
 
-const DEFAULT_APIFY_ACTOR = "apimaestro~linkedin-post-search-scraper"
-
+// Production deployments use the async webhook flow so cron returns fast
+// (<5s) and Apify drives ingestion via /api/webhooks/apify on completion.
+// Local dev (`development` branch is excluded from Vercel deploys) keeps the
+// synchronous .call() path — there's no public URL for Apify to POST back to.
 function isAsyncEnv(): boolean {
   return process.env.VERCEL_ENV === "production"
 }
 
 function webhookUrl(): string {
-  const base = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : process.env.NEXT_PUBLIC_SITE_URL
+  const base =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
   if (!base) throw new Error("Cannot determine webhook base URL")
   return `${base}/api/webhooks/apify`
 }
@@ -159,12 +164,28 @@ export async function GET(request: Request) {
             hookUrl,
             hookSecret,
           )
-          await supabase.from("apify_runs").insert({
-            run_id: runId,
-            user_id: userId,
-            platform: "linkedin" as const,
-            metadata: { cron: "monitor-linkedin", correlationId },
-          })
+          const { error: insertErr } = await supabase
+            .from("apify_runs")
+            .insert({
+              run_id: runId,
+              user_id: userId,
+              platform: "linkedin" as const,
+              metadata: {
+                cron: "monitor-linkedin",
+                correlation_id: correlationId,
+              },
+            })
+          if (insertErr) {
+            // Apify started but we couldn't record — webhook will reject as
+            // unknown runId. Surface at error severity for Sentry.
+            logger.error("Failed to insert LinkedIn apify_runs row", {
+              correlationId,
+              userId,
+              runId,
+              error: insertErr,
+              errorMessage: insertErr.message,
+            })
+          }
           runsStarted++
           usersProcessed++
           logger.info("LinkedIn async run started", {
@@ -283,7 +304,7 @@ export async function GET(request: Request) {
         canary_count: canaryResult.resultCount,
         classified: classResult.classified,
         classification_errors: classResult.errors,
-        apify_actor: process.env.APIFY_ACTOR_ID ?? DEFAULT_APIFY_ACTOR,
+        apify_actor: effectiveLinkedInActorId(),
       },
     })
 

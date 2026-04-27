@@ -1,5 +1,26 @@
 import { ApifyClient } from "apify-client"
+import { z } from "zod"
+import { logger } from "@/lib/logger"
 import type { RedditPost } from "./types"
+
+// Boundary schema for fatihtahta/reddit-scraper-search-fast output. We don't
+// reject items at the parse step (the actor occasionally yields non-post
+// records); instead the normalizer narrows + returns null on drift, and a
+// warn is logged so future schema changes surface in Sentry/Axiom rather
+// than silently producing zero posts.
+const FatihtahtaPostSchema = z.object({
+  kind: z.string().optional(),
+  url: z.string(),
+  title: z.string(),
+  body: z.string().optional(),
+  id: z.string().optional(),
+  parsedId: z.string().optional(),
+  username: z.string().optional(),
+  subreddit: z.string().optional(),
+  subreddit_name_prefixed: z.string().optional(),
+  created_utc: z.union([z.number(), z.string()]),
+  permalink: z.string().optional(),
+})
 
 const DEFAULT_ACTOR_ID = "fatihtahta~reddit-scraper-search-fast"
 const ACTOR_TIMEOUT_SECS = 240
@@ -49,47 +70,77 @@ async function searchSubredditViaApify(
     { timeout: ACTOR_TIMEOUT_SECS, memory: ACTOR_MEMORY_MB },
   )
 
-  if (run.status === "FAILED" || run.status === "ABORTED") {
+  // Explicitly allow only SUCCEEDED + TIMED-OUT (partial data still useful).
+  // Any other status (FAILED, ABORTED, RUNNING, or future Apify-introduced
+  // values we haven't audited) is treated as an error so future schema drift
+  // surfaces in Sentry rather than silently producing zero posts.
+  if (run.status !== "SUCCEEDED" && run.status !== "TIMED-OUT") {
     throw new Error(
-      `Apify Reddit actor did not succeed: status=${run.status} runId=${run.id}`,
+      `Apify Reddit actor unexpected status: ${run.status} runId=${run.id}`,
     )
   }
 
-  const { items } = await c.dataset(run.defaultDatasetId).listItems()
+  const items = await listAllDatasetItems(c, run.defaultDatasetId)
   return items
     .map((raw) => normalizeFatihtahtaPost(raw as Record<string, unknown>))
     .filter((p): p is RedditPost => p !== null)
 }
 
+// listItems() defaults to a 1000-item page; large TIMED-OUT batches need
+// pagination to avoid silent truncation. Iterates until offset >= total.
+async function listAllDatasetItems(
+  c: ApifyClient,
+  datasetId: string,
+): Promise<Record<string, unknown>[]> {
+  const PAGE = 1000
+  const all: Record<string, unknown>[] = []
+  for (let offset = 0; ; offset += PAGE) {
+    const { items, total } = await c
+      .dataset(datasetId)
+      .listItems({ offset, limit: PAGE })
+    all.push(...(items as Record<string, unknown>[]))
+    if (items.length < PAGE || all.length >= total) break
+  }
+  return all
+}
+
 // Normalize fatihtahta/reddit-scraper-search-fast output to the existing
-// RedditPost shape. Returns null when required fields are missing.
-function normalizeFatihtahtaPost(
+// RedditPost shape. Returns null when the item isn't a post or required
+// fields drift; logs a warn on schema drift so changes surface in Sentry
+// instead of silently zeroing the feed.
+export function normalizeFatihtahtaPost(
   raw: Record<string, unknown>,
 ): RedditPost | null {
   if (raw.kind && raw.kind !== "post") return null
-  const url = raw.url as string | undefined
-  const title = raw.title as string | undefined
-  if (!url || !title) return null
+  const parsed = FatihtahtaPostSchema.safeParse(raw)
+  if (!parsed.success) {
+    logger.warn("Fatihtahta post failed schema validation", {
+      issues: parsed.error.issues.slice(0, 5),
+      sampleKeys: Object.keys(raw).slice(0, 25),
+    })
+    return null
+  }
+  const data = parsed.data
+  const url = data.url
+  const title = data.title
 
   // The actor returns `created_utc` as either a Unix integer or an ISO string
   // depending on the post; normalize both into seconds-since-epoch.
-  const rawCreated = raw.created_utc
+  const rawCreated = data.created_utc
   let createdUtc: number
   if (typeof rawCreated === "number") {
     createdUtc = rawCreated
-  } else if (typeof rawCreated === "string") {
-    const parsed = Date.parse(rawCreated)
-    if (Number.isNaN(parsed)) return null
-    createdUtc = Math.floor(parsed / 1000)
   } else {
-    return null
+    const parsedDate = Date.parse(rawCreated)
+    if (Number.isNaN(parsedDate)) return null
+    createdUtc = Math.floor(parsedDate / 1000)
   }
 
   let permalink: string
-  if (typeof raw.permalink === "string") {
-    permalink = raw.permalink.startsWith("/")
-      ? raw.permalink
-      : `/${raw.permalink}`
+  if (typeof data.permalink === "string") {
+    permalink = data.permalink.startsWith("/")
+      ? data.permalink
+      : `/${data.permalink}`
   } else {
     try {
       permalink = new URL(url).pathname
@@ -99,17 +150,14 @@ function normalizeFatihtahtaPost(
   }
 
   return {
-    id: (raw.id as string | undefined) ?? "",
+    id: data.parsedId ?? data.id ?? "",
     title,
-    selftext: (raw.body as string | undefined) ?? "",
-    author: { name: (raw.author as string | undefined) ?? "deleted" },
+    selftext: data.body ?? "",
+    author: { name: data.username ?? "deleted" },
     subreddit: {
       display_name:
-        (raw.subreddit as string | undefined) ??
-        (raw.subreddit_name_prefixed as string | undefined)?.replace(
-          /^r\//,
-          "",
-        ) ??
+        data.subreddit ??
+        data.subreddit_name_prefixed?.replace(/^r\//, "") ??
         "",
     },
     url,
@@ -134,74 +182,97 @@ export async function searchAll(
   return results.flat()
 }
 
+export type StartedRun =
+  | { status: "fulfilled"; subreddit: string; runId: string }
+  | { status: "rejected"; subreddit: string; error: string }
+
 /**
  * Fire-and-forget version: kicks off one actor run per subreddit and returns
- * the resulting Apify runIds without waiting for completion. Each run is
- * configured with a webhook callback (`webhookUrl`) carrying an Authorization
- * header (`webhookSecret`) so the receiving endpoint can verify the call.
- *
- * Used by the production cron path; the dev/local cron still uses searchAll().
+ * a per-subreddit result. Uses Promise.allSettled so one failed start doesn't
+ * orphan runs that already started for other subreddits — the cron caller
+ * uses the fulfilled entries to record runIds in apify_runs and the rejected
+ * entries for Sentry-actionable error logs.
  */
 export async function startAsyncSearch(
   subreddits: string[],
   keywords: string[],
   webhookUrl: string,
   webhookSecret: string,
-): Promise<{ runIds: string[] }> {
-  if (subreddits.length === 0 || keywords.length === 0) {
-    return { runIds: [] }
-  }
+): Promise<StartedRun[]> {
+  if (subreddits.length === 0 || keywords.length === 0) return []
   const c = getClient()
   const id = actorId()
 
-  const starts = subreddits.map(async (sub) => {
-    const subName = sub.startsWith("r/") ? sub.slice(2) : sub
-    const run = await c.actor(id).start(
-      {
-        subredditName: subName,
-        subredditKeywords: keywords,
-        subredditSort: "new",
-        subredditTimeframe: "day",
-        maxPosts: 25,
-        scrapeComments: false,
-      },
-      {
-        timeout: ACTOR_TIMEOUT_SECS,
-        memory: ACTOR_MEMORY_MB,
-        webhooks: [
-          {
-            eventTypes: [
-              "ACTOR.RUN.SUCCEEDED",
-              "ACTOR.RUN.FAILED",
-              "ACTOR.RUN.TIMED_OUT",
-              "ACTOR.RUN.ABORTED",
-            ],
-            requestUrl: webhookUrl,
-            headersTemplate: JSON.stringify({
-              Authorization: `Bearer ${webhookSecret}`,
-            }),
-          },
-        ],
-      },
-    )
-    return run.id
-  })
+  const settled = await Promise.allSettled(
+    subreddits.map(async (sub) => {
+      const subName = sub.startsWith("r/") ? sub.slice(2) : sub
+      const run = await c.actor(id).start(
+        {
+          subredditName: subName,
+          subredditKeywords: keywords,
+          subredditSort: "new",
+          subredditTimeframe: "day",
+          maxPosts: 25,
+          scrapeComments: false,
+        },
+        {
+          timeout: ACTOR_TIMEOUT_SECS,
+          memory: ACTOR_MEMORY_MB,
+          webhooks: [
+            {
+              eventTypes: [
+                "ACTOR.RUN.SUCCEEDED",
+                "ACTOR.RUN.FAILED",
+                "ACTOR.RUN.TIMED_OUT",
+                "ACTOR.RUN.ABORTED",
+              ],
+              requestUrl: webhookUrl,
+              headersTemplate: JSON.stringify({
+                Authorization: `Bearer ${webhookSecret}`,
+              }),
+            },
+          ],
+        },
+      )
+      return { sub, runId: run.id }
+    }),
+  )
 
-  const runIds = await Promise.all(starts)
-  return { runIds }
+  return settled.map((r, i) =>
+    r.status === "fulfilled"
+      ? { status: "fulfilled" as const, subreddit: r.value.sub, runId: r.value.runId }
+      : {
+          status: "rejected" as const,
+          subreddit: subreddits[i],
+          error: r.reason instanceof Error ? r.reason.message : String(r.reason),
+        },
+  )
 }
 
 /**
  * Fetch the dataset for a finished run and normalize into RedditPost[].
- * Used by the webhook handler to ingest results without re-running the actor.
+ * Throws on FAILED/ABORTED runs and on missing datasets so the webhook
+ * handler can fail-mark the row instead of silently recording 0 posts.
  */
 export async function fetchRunPosts(
   runId: string,
 ): Promise<RedditPost[]> {
   const c = getClient()
   const run = await c.run(runId).get()
-  if (!run?.defaultDatasetId) return []
-  const { items } = await c.dataset(run.defaultDatasetId).listItems()
+  if (!run) {
+    throw new Error(`Apify run not found: runId=${runId}`)
+  }
+  if (run.status === "FAILED" || run.status === "ABORTED") {
+    throw new Error(
+      `Apify run not in usable state: status=${run.status} runId=${runId}`,
+    )
+  }
+  if (!run.defaultDatasetId) {
+    throw new Error(
+      `Apify run has no dataset: runId=${runId} status=${run.status}`,
+    )
+  }
+  const items = await listAllDatasetItems(c, run.defaultDatasetId)
   return items
     .map((raw) => normalizeFatihtahtaPost(raw as Record<string, unknown>))
     .filter((p): p is RedditPost => p !== null)

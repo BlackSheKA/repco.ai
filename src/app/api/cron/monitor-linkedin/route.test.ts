@@ -47,6 +47,12 @@ function makeSupabaseMock(state: QueryState) {
       state.eqFilters.push([col, val])
       return chain
     }
+    // The route now uses .in("signal_type", [...linkedin_*]) instead of a
+    // single .eq filter to discover users with any linkedin source type.
+    chain.in = (col: string, vals: unknown[]) => {
+      state.eqFilters.push([col, vals])
+      return chain
+    }
     chain.contains = (_col: string, _val: unknown) => chain
     chain.order = (_col: string, _opts: unknown) => chain
     chain.limit = (_n: number) => {
@@ -62,8 +68,13 @@ function makeSupabaseMock(state: QueryState) {
     // Default terminal: resolve to appropriate rows for this table.
     chain.then = (resolve: (val: { data: unknown[]; error: null }) => void) => {
       if (table === "monitoring_signals") {
+        // The active-users discovery query uses .in("signal_type", [...]),
+        // the per-user follow-up uses .eq("user_id", x).
         const isUserQuery = state.eqFilters.some(
-          ([c, v]) => c === "signal_type" && v === "linkedin_keyword",
+          ([c, v]) =>
+            c === "signal_type" &&
+            (v === "linkedin_keyword" ||
+              (Array.isArray(v) && v.includes("linkedin_keyword"))),
         )
         const isAllSignalTypes = state.eqFilters.some(
           ([c]) => c === "user_id",

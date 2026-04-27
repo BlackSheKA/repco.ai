@@ -18,9 +18,14 @@ function isAsyncEnv(): boolean {
 }
 
 function webhookUrl(): string {
-  const base = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : process.env.NEXT_PUBLIC_SITE_URL
+  // Prefer the canonical alias (repco.ai) over the per-deployment hostname.
+  // VERCEL_URL points at the immutable deployment URL; routing through it
+  // bypasses any WAF/middleware bound to repco.ai and breaks if we ever
+  // need to roll back via alias swap. Fall back to VERCEL_URL only when
+  // NEXT_PUBLIC_SITE_URL isn't set.
+  const base =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
   if (!base) throw new Error("Cannot determine webhook base URL")
   return `${base}/api/webhooks/apify`
 }
@@ -98,30 +103,69 @@ export async function GET(request: Request) {
         }
 
         if (useAsync) {
-          // Async path: kick off Apify runs, record them in apify_runs, exit.
-          // The webhook handler does ingestion + classification per run.
-          const { runIds } = await startAsyncSearch(
+          // Async path: kick off Apify runs, record fulfilled runIds in
+          // apify_runs, log rejected ones for Sentry. The webhook handler
+          // does ingestion + classification per run.
+          const started = await startAsyncSearch(
             subreddits,
             keywords,
             hookUrl,
             hookSecret,
           )
-          if (runIds.length > 0) {
-            await supabase.from("apify_runs").insert(
-              runIds.map((runId) => ({
-                run_id: runId,
-                user_id: userId,
-                platform: "reddit" as const,
-                metadata: { cron: "monitor-reddit", correlationId },
-              })),
-            )
+          const fulfilled = started.filter(
+            (s): s is Extract<typeof s, { status: "fulfilled" }> =>
+              s.status === "fulfilled",
+          )
+          const rejected = started.filter(
+            (s): s is Extract<typeof s, { status: "rejected" }> =>
+              s.status === "rejected",
+          )
+
+          if (fulfilled.length > 0) {
+            const { error: insertErr } = await supabase
+              .from("apify_runs")
+              .insert(
+                fulfilled.map((f) => ({
+                  run_id: f.runId,
+                  user_id: userId,
+                  platform: "reddit" as const,
+                  metadata: {
+                    cron: "monitor-reddit",
+                    correlation_id: correlationId,
+                    subreddit: f.subreddit,
+                  },
+                })),
+              )
+            if (insertErr) {
+              // Apify started runs but we couldn't record them — webhooks
+              // will arrive and be rejected as unknown runIds. Surface this
+              // at error severity so Sentry alerts.
+              logger.error("Failed to insert apify_runs rows", {
+                correlationId,
+                userId,
+                runIds: fulfilled.map((f) => f.runId),
+                error: insertErr,
+                errorMessage: insertErr.message,
+              })
+            }
           }
-          runsStarted += runIds.length
+
+          for (const r of rejected) {
+            logger.error("Reddit async start rejected", {
+              correlationId,
+              userId,
+              subreddit: r.subreddit,
+              errorMessage: r.error,
+            })
+          }
+
+          runsStarted += fulfilled.length
           usersProcessed++
           logger.info("Reddit async runs started", {
             correlationId,
             userId,
-            runCount: runIds.length,
+            runCount: fulfilled.length,
+            rejectedCount: rejected.length,
           })
           continue
         }
