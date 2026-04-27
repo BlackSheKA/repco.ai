@@ -14,4 +14,4 @@ Dark, warm-zinc UI with indigo primary (matching radix-nova preset used in the r
 
 | # | Name | Design Question | Winner | Tags |
 |---|------|----------------|--------|------|
-| 001 | pricing-page | Jak slider + comparison table razem komunikują "wybierz plan na podstawie skali outreachu"? | _pending_ | pricing, landing, slider, table |
+| 001 | pricing-page | Jak slider + comparison table 4-kolumnowa + monthly/annual toggle razem komunikują "wybierz tier na podstawie objętości outreachu"? | _pending_ | pricing, landing, slider, table, billing-toggle |

@@ -48,7 +48,7 @@
 }
 .hero {
   text-align: center;
-  margin-bottom: var(--space-12);
+  margin-bottom: var(--space-10);
 }
 .hero h1 {
   font-size: clamp(2rem, 4vw, var(--text-5xl));
@@ -64,7 +64,50 @@
   line-height: 1.5;
 }
 
-/* Slider section */
+/* ─────────────── Billing cycle toggle ─────────────── */
+.billing-toggle {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-8);
+}
+.billing-toggle-pill {
+  display: inline-flex;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: 4px;
+  gap: 2px;
+  position: relative;
+}
+.billing-toggle-pill button {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  transition: all 160ms;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.billing-toggle-pill button.active {
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+}
+.billing-toggle-pill .save-badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+/* ─────────────── Slider section ─────────────── */
 .slider-section {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -131,6 +174,7 @@ input[type="range"]::-moz-range-thumb {
   border-top: 1px solid var(--color-border);
   display: flex; align-items: center; gap: var(--space-3);
   font-size: var(--text-sm);
+  flex-wrap: wrap;
 }
 .recommendation .label { color: var(--color-text-muted); }
 .recommendation .pick {
@@ -184,11 +228,20 @@ input[type="range"]::-moz-range-thumb {
   font-family: var(--font-mono);
   font-size: var(--text-2xl); font-weight: 600;
   color: var(--color-text);
+  transition: color 200ms;
 }
 .compare-cell.col-header .plan-billing {
   font-size: var(--text-xs); color: var(--color-text-muted);
   margin-top: var(--space-1);
   font-family: var(--font-mono);
+  min-height: 1.4em;
+}
+.compare-cell.col-header .plan-secondary {
+  font-size: 11px;
+  color: var(--color-text-subtle);
+  font-family: var(--font-mono);
+  margin-top: 2px;
+  min-height: 1em;
 }
 .badge {
   display: inline-block;
@@ -198,8 +251,9 @@ input[type="range"]::-moz-range-thumb {
   letter-spacing: 0.02em;
   margin-bottom: var(--space-2);
 }
-.badge-best { background: var(--color-accent-soft); color: var(--color-accent); }
+.badge-popular { background: var(--color-primary-soft); color: var(--color-primary-hover); }
 .badge-free { background: rgba(255,255,255,0.06); color: var(--color-text-muted); }
+.badge-save { background: var(--color-accent-soft); color: var(--color-accent); }
 
 .check { color: var(--color-success); font-weight: 600; }
 .cross { color: var(--color-text-subtle); }
@@ -222,11 +276,6 @@ input[type="range"]::-moz-range-thumb {
   color: white;
 }
 .cta-primary:hover { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
-.cta-accent {
-  background: var(--color-accent); border-color: var(--color-accent);
-  color: #0a1418;
-}
-.cta-accent:hover { filter: brightness(1.1); }
 
 .faq-row {
   margin-top: var(--space-12);
@@ -270,15 +319,13 @@ input[type="range"]::-moz-range-thumb {
   transform: translateY(-4px);
   position: relative; z-index: 2;
 }
-.variant-b .compare-cell.col-header.best-value {
-  box-shadow: inset 0 2px 0 var(--color-accent);
+.variant-b .compare-cell.col-header.popular {
+  box-shadow: inset 0 2px 0 var(--color-primary);
 }
-.variant-b .compare-cell.col-header.recommended.best-value {
-  box-shadow: inset 0 2px 0 var(--color-accent), var(--shadow-glow-accent);
+.variant-b .compare-cell.col-header.recommended.popular {
+  box-shadow: inset 0 2px 0 var(--color-primary), var(--shadow-glow-primary);
 }
-.variant-b .compare-cell .plan-price { transition: color 200ms; }
 .variant-b .compare-cell.recommended .plan-price { color: var(--color-primary-hover); }
-.variant-b .compare-cell.recommended.best-value .plan-price { color: var(--color-accent); }
 
 /* ─────────────── Variant C: Sticky interactive ─────────────── */
 .variant-c .slider-section {
@@ -290,15 +337,24 @@ input[type="range"]::-moz-range-thumb {
   background: rgba(28, 26, 24, 0.95);
   backdrop-filter: blur(16px);
 }
+.variant-c .billing-toggle {
+  position: sticky;
+  top: 56px;
+  z-index: 49;
+  padding: var(--space-3) 0;
+  background: rgba(19, 17, 16, 0.85);
+  backdrop-filter: blur(12px);
+  margin-bottom: 0;
+}
 .variant-c .compare-cell.col-header {
   background: linear-gradient(180deg, var(--color-surface-elevated), var(--color-surface));
   position: relative;
   overflow: hidden;
 }
 .variant-c .compare-cell.col-header.free::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #71717a; }
-.variant-c .compare-cell.col-header.monthly::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #818cf8; }
-.variant-c .compare-cell.col-header.quarterly::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #6366f1; }
-.variant-c .compare-cell.col-header.annual::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--color-accent); }
+.variant-c .compare-cell.col-header.starter::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #818cf8; }
+.variant-c .compare-cell.col-header.growth::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--color-primary); }
+.variant-c .compare-cell.col-header.scale::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--color-accent); }
 .variant-c .compare-cell.recommended {
   background: var(--color-primary-soft);
   position: relative;
@@ -308,9 +364,6 @@ input[type="range"]::-moz-range-thumb {
   box-shadow: var(--shadow-glow-primary);
   transform: scale(1.03);
   z-index: 5;
-}
-.variant-c .compare-cell.col-header.recommended.annual {
-  box-shadow: var(--shadow-glow-accent);
 }
 
 /* sketch toolbar */
@@ -346,18 +399,28 @@ input[type="range"]::-moz-range-thumb {
   <button class="variant-tab active" data-variant="a">A: Quiet</button>
   <button class="variant-tab" data-variant="b">B: Bold</button>
   <button class="variant-tab" data-variant="c">C: Sticky</button>
-  <span id="variant-nav-meta">Sketch 001 · pricing-page</span>
+  <span id="variant-nav-meta">Sketch 001 · pricing-page · 4 tiers + annual toggle</span>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     VARIANT A — Quiet: minimal table, subtle highlight ring
+     Shared template — duplicated 3× because each variant has its
+     own scoped styles. Data is identical across variants.
      ═══════════════════════════════════════════════════════════════ -->
+
+<!-- ─── VARIANT A: Quiet ─── -->
 <div id="variant-a" class="variant active variant-a">
   <main class="page">
     <header class="hero">
       <h1>Pricing that scales with your outreach</h1>
-      <p>Start free with monitoring. Upgrade when you're ready to send messages, connect, and engage at scale.</p>
+      <p>Start free with monitoring. Pick a tier when you're ready to send messages, connect, and engage at scale.</p>
     </header>
+
+    <div class="billing-toggle">
+      <div class="billing-toggle-pill">
+        <button class="active" data-cycle="monthly">Monthly</button>
+        <button data-cycle="annual">Annual <span class="save-badge">Save 20%</span></button>
+      </div>
+    </div>
 
     <section class="slider-section">
       <div class="slider-label">
@@ -370,245 +433,8 @@ input[type="range"]::-moz-range-thumb {
       </div>
       <div class="recommendation">
         <span class="label">Best fit:</span>
-        <span class="pick" data-output="plan-name">Monthly</span>
-        <span class="why" data-output="plan-why">$49/mo · enough credits for ~60 DMs after monitoring</span>
-      </div>
-    </section>
-
-    <section class="compare" data-table>
-      <!-- Header row -->
-      <div class="compare-row">
-        <div class="compare-cell"></div>
-        <div class="compare-cell col-header" data-col="free">
-          <span class="badge badge-free">Free</span>
-          <div class="plan-name">Get started</div>
-          <div class="plan-price">$0</div>
-          <div class="plan-billing">forever</div>
-        </div>
-        <div class="compare-cell col-header" data-col="monthly">
-          <div class="plan-name">Monthly</div>
-          <div class="plan-price">$49</div>
-          <div class="plan-billing">/ month</div>
-        </div>
-        <div class="compare-cell col-header" data-col="quarterly">
-          <div class="plan-name">Quarterly</div>
-          <div class="plan-price">$35</div>
-          <div class="plan-billing">/ mo · billed $105 /3mo</div>
-        </div>
-        <div class="compare-cell col-header best-value" data-col="annual">
-          <span class="badge badge-best">Best value</span>
-          <div class="plan-name">Annual</div>
-          <div class="plan-price">$25</div>
-          <div class="plan-billing">/ mo · billed $300 /yr</div>
-        </div>
-      </div>
-
-      <!-- Rows -->
-      <div class="compare-row">
-        <div class="compare-cell row-label">Monthly credits</div>
-        <div class="compare-cell value-cell muted" data-col="free">250</div>
-        <div class="compare-cell value-cell" data-col="monthly">2,000</div>
-        <div class="compare-cell value-cell" data-col="quarterly">3,000</div>
-        <div class="compare-cell value-cell" data-col="annual">4,000</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-cell row-label">Active mechanisms</div>
-        <div class="compare-cell value-cell muted" data-col="free">2 max</div>
-        <div class="compare-cell value-cell" data-col="monthly">unlimited</div>
-        <div class="compare-cell value-cell" data-col="quarterly">unlimited</div>
-        <div class="compare-cell value-cell" data-col="annual">unlimited</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-cell row-label">Outreach (DMs, comments, connections)</div>
-        <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
-        <div class="compare-cell" data-col="monthly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="quarterly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="annual"><span class="check">✓</span></div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-cell row-label">Multi-account (2 free + add)</div>
-        <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
-        <div class="compare-cell" data-col="monthly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="quarterly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="annual"><span class="check">✓</span></div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-cell row-label">Premium signals (own engagement, mentions, inbound)</div>
-        <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
-        <div class="compare-cell" data-col="monthly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="quarterly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="annual"><span class="check">✓</span></div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-cell row-label">Scan speed</div>
-        <div class="compare-cell value-cell muted" data-col="free">4h or slower</div>
-        <div class="compare-cell value-cell" data-col="monthly">any speed</div>
-        <div class="compare-cell value-cell" data-col="quarterly">any speed</div>
-        <div class="compare-cell value-cell" data-col="annual">any speed</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-cell row-label">Top-up credit packs</div>
-        <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
-        <div class="compare-cell" data-col="monthly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="quarterly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="annual"><span class="check">✓</span></div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-cell"></div>
-        <div class="compare-cell" data-col="free"><button class="cta">Get started free</button></div>
-        <div class="compare-cell" data-col="monthly"><button class="cta cta-primary">Start monthly</button></div>
-        <div class="compare-cell" data-col="quarterly"><button class="cta cta-primary">Start quarterly</button></div>
-        <div class="compare-cell" data-col="annual"><button class="cta cta-accent">Start annual</button></div>
-      </div>
-    </section>
-
-    <p class="faq-row">
-      Questions? <a href="#">See pricing FAQ</a> · Need more than 5,000 DMs/mo? <a href="#">Talk to us</a>
-    </p>
-  </main>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════
-     VARIANT B — Bold: glow + scale on recommended column
-     ═══════════════════════════════════════════════════════════════ -->
-<div id="variant-b" class="variant variant-b">
-  <main class="page">
-    <header class="hero">
-      <h1>Pick the plan that fits your week</h1>
-      <p>Move the slider — we'll point you at the plan with enough credits for the messages you want to send.</p>
-    </header>
-
-    <section class="slider-section">
-      <div class="slider-label">
-        <h3>How many outbound messages per month?</h3>
-        <div class="value"><span data-output="dm-count">50</span><span class="unit">DMs/month</span></div>
-      </div>
-      <input type="range" min="0" max="200" value="50" data-slider step="1">
-      <div class="slider-ticks">
-        <span>0</span><span>50</span><span>100</span><span>150</span><span>200+</span>
-      </div>
-      <div class="recommendation">
-        <span class="label">Best fit:</span>
-        <span class="pick" data-output="plan-name">Monthly</span>
-        <span class="why" data-output="plan-why">$49/mo · enough credits for ~60 DMs after monitoring</span>
-      </div>
-    </section>
-
-    <section class="compare" data-table>
-      <div class="compare-row">
-        <div class="compare-cell"></div>
-        <div class="compare-cell col-header" data-col="free">
-          <span class="badge badge-free">Free</span>
-          <div class="plan-name">Get started</div>
-          <div class="plan-price">$0</div>
-          <div class="plan-billing">forever</div>
-        </div>
-        <div class="compare-cell col-header" data-col="monthly">
-          <div class="plan-name">Monthly</div>
-          <div class="plan-price">$49</div>
-          <div class="plan-billing">/ month</div>
-        </div>
-        <div class="compare-cell col-header" data-col="quarterly">
-          <div class="plan-name">Quarterly</div>
-          <div class="plan-price">$35</div>
-          <div class="plan-billing">/ mo · billed $105 /3mo</div>
-        </div>
-        <div class="compare-cell col-header best-value" data-col="annual">
-          <span class="badge badge-best">Best value · save 49%</span>
-          <div class="plan-name">Annual</div>
-          <div class="plan-price">$25</div>
-          <div class="plan-billing">/ mo · billed $300 /yr</div>
-        </div>
-      </div>
-
-      <div class="compare-row">
-        <div class="compare-cell row-label">Monthly credits</div>
-        <div class="compare-cell value-cell muted" data-col="free">250</div>
-        <div class="compare-cell value-cell" data-col="monthly">2,000</div>
-        <div class="compare-cell value-cell" data-col="quarterly">3,000</div>
-        <div class="compare-cell value-cell" data-col="annual">4,000</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-cell row-label">Active mechanisms</div>
-        <div class="compare-cell value-cell muted" data-col="free">2 max</div>
-        <div class="compare-cell value-cell" data-col="monthly">unlimited</div>
-        <div class="compare-cell value-cell" data-col="quarterly">unlimited</div>
-        <div class="compare-cell value-cell" data-col="annual">unlimited</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-cell row-label">Outreach (DMs, comments, connections)</div>
-        <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
-        <div class="compare-cell" data-col="monthly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="quarterly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="annual"><span class="check">✓</span></div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-cell row-label">Multi-account (2 free + add)</div>
-        <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
-        <div class="compare-cell" data-col="monthly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="quarterly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="annual"><span class="check">✓</span></div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-cell row-label">Premium signals (own engagement, mentions, inbound)</div>
-        <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
-        <div class="compare-cell" data-col="monthly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="quarterly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="annual"><span class="check">✓</span></div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-cell row-label">Scan speed</div>
-        <div class="compare-cell value-cell muted" data-col="free">4h or slower</div>
-        <div class="compare-cell value-cell" data-col="monthly">any speed</div>
-        <div class="compare-cell value-cell" data-col="quarterly">any speed</div>
-        <div class="compare-cell value-cell" data-col="annual">any speed</div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-cell row-label">Top-up credit packs</div>
-        <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
-        <div class="compare-cell" data-col="monthly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="quarterly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="annual"><span class="check">✓</span></div>
-      </div>
-      <div class="compare-row">
-        <div class="compare-cell"></div>
-        <div class="compare-cell" data-col="free"><button class="cta">Get started free</button></div>
-        <div class="compare-cell" data-col="monthly"><button class="cta cta-primary">Start monthly</button></div>
-        <div class="compare-cell" data-col="quarterly"><button class="cta cta-primary">Start quarterly</button></div>
-        <div class="compare-cell" data-col="annual"><button class="cta cta-accent">Start annual</button></div>
-      </div>
-    </section>
-
-    <p class="faq-row">
-      Questions? <a href="#">See pricing FAQ</a> · Need more than 5,000 DMs/mo? <a href="#">Talk to us</a>
-    </p>
-  </main>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════
-     VARIANT C — Sticky interactive: slider stays on screen,
-     plan headers get color-coded top stripes
-     ═══════════════════════════════════════════════════════════════ -->
-<div id="variant-c" class="variant variant-c">
-  <main class="page">
-    <header class="hero">
-      <h1>Find your plan in two clicks</h1>
-      <p>Drag the slider to your monthly outreach volume. Your match stays highlighted as you scroll.</p>
-    </header>
-
-    <section class="slider-section">
-      <div class="slider-label">
-        <h3>How many outbound messages per month?</h3>
-        <div class="value"><span data-output="dm-count">50</span><span class="unit">DMs/month</span></div>
-      </div>
-      <input type="range" min="0" max="200" value="50" data-slider step="1">
-      <div class="slider-ticks">
-        <span>0</span><span>50</span><span>100</span><span>150</span><span>200+</span>
-      </div>
-      <div class="recommendation">
-        <span class="label">Best fit:</span>
-        <span class="pick" data-output="plan-name">Monthly</span>
-        <span class="why" data-output="plan-why">$49/mo · enough credits for ~60 DMs after monitoring</span>
+        <span class="pick" data-output="plan-name">Growth</span>
+        <span class="why" data-output="plan-why">$59/mo · 3 000 credits / month — comfortable for ~80 DMs after monitoring</span>
       </div>
     </section>
 
@@ -620,80 +446,336 @@ input[type="range"]::-moz-range-thumb {
           <div class="plan-name">Get started</div>
           <div class="plan-price">$0</div>
           <div class="plan-billing">forever</div>
+          <div class="plan-secondary">&nbsp;</div>
         </div>
-        <div class="compare-cell col-header monthly" data-col="monthly">
-          <div class="plan-name">Monthly</div>
-          <div class="plan-price">$49</div>
-          <div class="plan-billing">/ month</div>
+        <div class="compare-cell col-header starter" data-col="starter">
+          <div class="plan-name">Starter</div>
+          <div class="plan-price" data-price-monthly="$25" data-price-annual="$20">$25</div>
+          <div class="plan-billing" data-billing-monthly="/ month" data-billing-annual="/ mo · billed annually">/ month</div>
+          <div class="plan-secondary" data-secondary-monthly="" data-secondary-annual="$240/yr">&nbsp;</div>
         </div>
-        <div class="compare-cell col-header quarterly" data-col="quarterly">
-          <div class="plan-name">Quarterly</div>
-          <div class="plan-price">$35</div>
-          <div class="plan-billing">/ mo · billed $105 /3mo</div>
+        <div class="compare-cell col-header growth popular" data-col="growth">
+          <span class="badge badge-popular">Most popular</span>
+          <div class="plan-name">Growth</div>
+          <div class="plan-price" data-price-monthly="$59" data-price-annual="$47">$59</div>
+          <div class="plan-billing" data-billing-monthly="/ month" data-billing-annual="/ mo · billed annually">/ month</div>
+          <div class="plan-secondary" data-secondary-monthly="" data-secondary-annual="$566/yr">&nbsp;</div>
         </div>
-        <div class="compare-cell col-header annual best-value" data-col="annual">
-          <span class="badge badge-best">Best value</span>
-          <div class="plan-name">Annual</div>
-          <div class="plan-price">$25</div>
-          <div class="plan-billing">/ mo · billed $300 /yr</div>
+        <div class="compare-cell col-header scale" data-col="scale">
+          <div class="plan-name">Scale</div>
+          <div class="plan-price" data-price-monthly="$129" data-price-annual="$103">$129</div>
+          <div class="plan-billing" data-billing-monthly="/ month" data-billing-annual="/ mo · billed annually">/ month</div>
+          <div class="plan-secondary" data-secondary-monthly="" data-secondary-annual="$1 238/yr">&nbsp;</div>
         </div>
       </div>
 
       <div class="compare-row">
         <div class="compare-cell row-label">Monthly credits</div>
         <div class="compare-cell value-cell muted" data-col="free">250</div>
-        <div class="compare-cell value-cell" data-col="monthly">2,000</div>
-        <div class="compare-cell value-cell" data-col="quarterly">3,000</div>
-        <div class="compare-cell value-cell" data-col="annual">4,000</div>
+        <div class="compare-cell value-cell" data-col="starter">1 000</div>
+        <div class="compare-cell value-cell" data-col="growth">3 000</div>
+        <div class="compare-cell value-cell" data-col="scale">8 000</div>
       </div>
       <div class="compare-row">
         <div class="compare-cell row-label">Active mechanisms</div>
         <div class="compare-cell value-cell muted" data-col="free">2 max</div>
-        <div class="compare-cell value-cell" data-col="monthly">unlimited</div>
-        <div class="compare-cell value-cell" data-col="quarterly">unlimited</div>
-        <div class="compare-cell value-cell" data-col="annual">unlimited</div>
+        <div class="compare-cell value-cell" data-col="starter">unlimited</div>
+        <div class="compare-cell value-cell" data-col="growth">unlimited</div>
+        <div class="compare-cell value-cell" data-col="scale">unlimited</div>
       </div>
       <div class="compare-row">
         <div class="compare-cell row-label">Outreach (DMs, comments, connections)</div>
         <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
-        <div class="compare-cell" data-col="monthly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="quarterly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="annual"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="starter"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="growth"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="scale"><span class="check">✓</span></div>
       </div>
       <div class="compare-row">
         <div class="compare-cell row-label">Multi-account (2 free + add)</div>
         <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
-        <div class="compare-cell" data-col="monthly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="quarterly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="annual"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="starter"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="growth"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="scale"><span class="check">✓</span></div>
       </div>
       <div class="compare-row">
         <div class="compare-cell row-label">Premium signals (own engagement, mentions, inbound)</div>
         <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
-        <div class="compare-cell" data-col="monthly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="quarterly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="annual"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="starter"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="growth"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="scale"><span class="check">✓</span></div>
       </div>
       <div class="compare-row">
         <div class="compare-cell row-label">Scan speed</div>
         <div class="compare-cell value-cell muted" data-col="free">4h or slower</div>
-        <div class="compare-cell value-cell" data-col="monthly">any speed</div>
-        <div class="compare-cell value-cell" data-col="quarterly">any speed</div>
-        <div class="compare-cell value-cell" data-col="annual">any speed</div>
+        <div class="compare-cell value-cell" data-col="starter">any speed</div>
+        <div class="compare-cell value-cell" data-col="growth">any speed</div>
+        <div class="compare-cell value-cell" data-col="scale">any speed</div>
       </div>
       <div class="compare-row">
         <div class="compare-cell row-label">Top-up credit packs</div>
         <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
-        <div class="compare-cell" data-col="monthly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="quarterly"><span class="check">✓</span></div>
-        <div class="compare-cell" data-col="annual"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="starter"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="growth"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="scale"><span class="check">✓</span></div>
       </div>
       <div class="compare-row">
         <div class="compare-cell"></div>
         <div class="compare-cell" data-col="free"><button class="cta">Get started free</button></div>
-        <div class="compare-cell" data-col="monthly"><button class="cta cta-primary">Start monthly</button></div>
-        <div class="compare-cell" data-col="quarterly"><button class="cta cta-primary">Start quarterly</button></div>
-        <div class="compare-cell" data-col="annual"><button class="cta cta-accent">Start annual</button></div>
+        <div class="compare-cell" data-col="starter"><button class="cta">Start with Starter</button></div>
+        <div class="compare-cell" data-col="growth"><button class="cta cta-primary">Start with Growth</button></div>
+        <div class="compare-cell" data-col="scale"><button class="cta">Start with Scale</button></div>
+      </div>
+    </section>
+
+    <p class="faq-row">
+      Questions? <a href="#">See pricing FAQ</a> · Need more than 8 000 credits/mo? <a href="#">Talk to us</a>
+    </p>
+  </main>
+</div>
+
+<!-- ─── VARIANT B: Bold ─── -->
+<div id="variant-b" class="variant variant-b">
+  <main class="page">
+    <header class="hero">
+      <h1>Pick the plan that fits your week</h1>
+      <p>Move the slider — we'll point you at the tier with enough credits for the messages you want to send.</p>
+    </header>
+
+    <div class="billing-toggle">
+      <div class="billing-toggle-pill">
+        <button class="active" data-cycle="monthly">Monthly</button>
+        <button data-cycle="annual">Annual <span class="save-badge">Save 20%</span></button>
+      </div>
+    </div>
+
+    <section class="slider-section">
+      <div class="slider-label">
+        <h3>How many outbound messages per month?</h3>
+        <div class="value"><span data-output="dm-count">50</span><span class="unit">DMs/month</span></div>
+      </div>
+      <input type="range" min="0" max="200" value="50" data-slider step="1">
+      <div class="slider-ticks">
+        <span>0</span><span>50</span><span>100</span><span>150</span><span>200+</span>
+      </div>
+      <div class="recommendation">
+        <span class="label">Best fit:</span>
+        <span class="pick" data-output="plan-name">Growth</span>
+        <span class="why" data-output="plan-why">$59/mo · 3 000 credits / month — comfortable for ~80 DMs after monitoring</span>
+      </div>
+    </section>
+
+    <section class="compare" data-table>
+      <div class="compare-row">
+        <div class="compare-cell"></div>
+        <div class="compare-cell col-header" data-col="free">
+          <span class="badge badge-free">Free</span>
+          <div class="plan-name">Get started</div>
+          <div class="plan-price">$0</div>
+          <div class="plan-billing">forever</div>
+          <div class="plan-secondary">&nbsp;</div>
+        </div>
+        <div class="compare-cell col-header" data-col="starter">
+          <div class="plan-name">Starter</div>
+          <div class="plan-price" data-price-monthly="$25" data-price-annual="$20">$25</div>
+          <div class="plan-billing" data-billing-monthly="/ month" data-billing-annual="/ mo · billed annually">/ month</div>
+          <div class="plan-secondary" data-secondary-monthly="" data-secondary-annual="$240/yr">&nbsp;</div>
+        </div>
+        <div class="compare-cell col-header popular" data-col="growth">
+          <span class="badge badge-popular">Most popular</span>
+          <div class="plan-name">Growth</div>
+          <div class="plan-price" data-price-monthly="$59" data-price-annual="$47">$59</div>
+          <div class="plan-billing" data-billing-monthly="/ month" data-billing-annual="/ mo · billed annually">/ month</div>
+          <div class="plan-secondary" data-secondary-monthly="" data-secondary-annual="$566/yr">&nbsp;</div>
+        </div>
+        <div class="compare-cell col-header" data-col="scale">
+          <div class="plan-name">Scale</div>
+          <div class="plan-price" data-price-monthly="$129" data-price-annual="$103">$129</div>
+          <div class="plan-billing" data-billing-monthly="/ month" data-billing-annual="/ mo · billed annually">/ month</div>
+          <div class="plan-secondary" data-secondary-monthly="" data-secondary-annual="$1 238/yr">&nbsp;</div>
+        </div>
+      </div>
+
+      <div class="compare-row">
+        <div class="compare-cell row-label">Monthly credits</div>
+        <div class="compare-cell value-cell muted" data-col="free">250</div>
+        <div class="compare-cell value-cell" data-col="starter">1 000</div>
+        <div class="compare-cell value-cell" data-col="growth">3 000</div>
+        <div class="compare-cell value-cell" data-col="scale">8 000</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell row-label">Active mechanisms</div>
+        <div class="compare-cell value-cell muted" data-col="free">2 max</div>
+        <div class="compare-cell value-cell" data-col="starter">unlimited</div>
+        <div class="compare-cell value-cell" data-col="growth">unlimited</div>
+        <div class="compare-cell value-cell" data-col="scale">unlimited</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell row-label">Outreach (DMs, comments, connections)</div>
+        <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
+        <div class="compare-cell" data-col="starter"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="growth"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="scale"><span class="check">✓</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell row-label">Multi-account (2 free + add)</div>
+        <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
+        <div class="compare-cell" data-col="starter"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="growth"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="scale"><span class="check">✓</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell row-label">Premium signals (own engagement, mentions, inbound)</div>
+        <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
+        <div class="compare-cell" data-col="starter"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="growth"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="scale"><span class="check">✓</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell row-label">Scan speed</div>
+        <div class="compare-cell value-cell muted" data-col="free">4h or slower</div>
+        <div class="compare-cell value-cell" data-col="starter">any speed</div>
+        <div class="compare-cell value-cell" data-col="growth">any speed</div>
+        <div class="compare-cell value-cell" data-col="scale">any speed</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell row-label">Top-up credit packs</div>
+        <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
+        <div class="compare-cell" data-col="starter"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="growth"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="scale"><span class="check">✓</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell"></div>
+        <div class="compare-cell" data-col="free"><button class="cta">Get started free</button></div>
+        <div class="compare-cell" data-col="starter"><button class="cta">Start with Starter</button></div>
+        <div class="compare-cell" data-col="growth"><button class="cta cta-primary">Start with Growth</button></div>
+        <div class="compare-cell" data-col="scale"><button class="cta">Start with Scale</button></div>
+      </div>
+    </section>
+
+    <p class="faq-row">
+      Questions? <a href="#">See pricing FAQ</a> · Need more than 8 000 credits/mo? <a href="#">Talk to us</a>
+    </p>
+  </main>
+</div>
+
+<!-- ─── VARIANT C: Sticky interactive ─── -->
+<div id="variant-c" class="variant variant-c">
+  <main class="page">
+    <header class="hero">
+      <h1>Find your plan in two clicks</h1>
+      <p>Drag the slider to your monthly outreach volume. Toggle annual to see committed savings.</p>
+    </header>
+
+    <div class="billing-toggle">
+      <div class="billing-toggle-pill">
+        <button class="active" data-cycle="monthly">Monthly</button>
+        <button data-cycle="annual">Annual <span class="save-badge">Save 20%</span></button>
+      </div>
+    </div>
+
+    <section class="slider-section">
+      <div class="slider-label">
+        <h3>How many outbound messages per month?</h3>
+        <div class="value"><span data-output="dm-count">50</span><span class="unit">DMs/month</span></div>
+      </div>
+      <input type="range" min="0" max="200" value="50" data-slider step="1">
+      <div class="slider-ticks">
+        <span>0</span><span>50</span><span>100</span><span>150</span><span>200+</span>
+      </div>
+      <div class="recommendation">
+        <span class="label">Best fit:</span>
+        <span class="pick" data-output="plan-name">Growth</span>
+        <span class="why" data-output="plan-why">$59/mo · 3 000 credits / month — comfortable for ~80 DMs after monitoring</span>
+      </div>
+    </section>
+
+    <section class="compare" data-table>
+      <div class="compare-row">
+        <div class="compare-cell"></div>
+        <div class="compare-cell col-header free" data-col="free">
+          <span class="badge badge-free">Free</span>
+          <div class="plan-name">Get started</div>
+          <div class="plan-price">$0</div>
+          <div class="plan-billing">forever</div>
+          <div class="plan-secondary">&nbsp;</div>
+        </div>
+        <div class="compare-cell col-header starter" data-col="starter">
+          <div class="plan-name">Starter</div>
+          <div class="plan-price" data-price-monthly="$25" data-price-annual="$20">$25</div>
+          <div class="plan-billing" data-billing-monthly="/ month" data-billing-annual="/ mo · billed annually">/ month</div>
+          <div class="plan-secondary" data-secondary-monthly="" data-secondary-annual="$240/yr">&nbsp;</div>
+        </div>
+        <div class="compare-cell col-header growth" data-col="growth">
+          <span class="badge badge-popular">Most popular</span>
+          <div class="plan-name">Growth</div>
+          <div class="plan-price" data-price-monthly="$59" data-price-annual="$47">$59</div>
+          <div class="plan-billing" data-billing-monthly="/ month" data-billing-annual="/ mo · billed annually">/ month</div>
+          <div class="plan-secondary" data-secondary-monthly="" data-secondary-annual="$566/yr">&nbsp;</div>
+        </div>
+        <div class="compare-cell col-header scale" data-col="scale">
+          <div class="plan-name">Scale</div>
+          <div class="plan-price" data-price-monthly="$129" data-price-annual="$103">$129</div>
+          <div class="plan-billing" data-billing-monthly="/ month" data-billing-annual="/ mo · billed annually">/ month</div>
+          <div class="plan-secondary" data-secondary-monthly="" data-secondary-annual="$1 238/yr">&nbsp;</div>
+        </div>
+      </div>
+
+      <div class="compare-row">
+        <div class="compare-cell row-label">Monthly credits</div>
+        <div class="compare-cell value-cell muted" data-col="free">250</div>
+        <div class="compare-cell value-cell" data-col="starter">1 000</div>
+        <div class="compare-cell value-cell" data-col="growth">3 000</div>
+        <div class="compare-cell value-cell" data-col="scale">8 000</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell row-label">Active mechanisms</div>
+        <div class="compare-cell value-cell muted" data-col="free">2 max</div>
+        <div class="compare-cell value-cell" data-col="starter">unlimited</div>
+        <div class="compare-cell value-cell" data-col="growth">unlimited</div>
+        <div class="compare-cell value-cell" data-col="scale">unlimited</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell row-label">Outreach (DMs, comments, connections)</div>
+        <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
+        <div class="compare-cell" data-col="starter"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="growth"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="scale"><span class="check">✓</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell row-label">Multi-account (2 free + add)</div>
+        <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
+        <div class="compare-cell" data-col="starter"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="growth"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="scale"><span class="check">✓</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell row-label">Premium signals (own engagement, mentions, inbound)</div>
+        <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
+        <div class="compare-cell" data-col="starter"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="growth"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="scale"><span class="check">✓</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell row-label">Scan speed</div>
+        <div class="compare-cell value-cell muted" data-col="free">4h or slower</div>
+        <div class="compare-cell value-cell" data-col="starter">any speed</div>
+        <div class="compare-cell value-cell" data-col="growth">any speed</div>
+        <div class="compare-cell value-cell" data-col="scale">any speed</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell row-label">Top-up credit packs</div>
+        <div class="compare-cell" data-col="free"><span class="cross">—</span></div>
+        <div class="compare-cell" data-col="starter"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="growth"><span class="check">✓</span></div>
+        <div class="compare-cell" data-col="scale"><span class="check">✓</span></div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell"></div>
+        <div class="compare-cell" data-col="free"><button class="cta">Get started free</button></div>
+        <div class="compare-cell" data-col="starter"><button class="cta">Start with Starter</button></div>
+        <div class="compare-cell" data-col="growth"><button class="cta cta-primary">Start with Growth</button></div>
+        <div class="compare-cell" data-col="scale"><button class="cta">Start with Scale</button></div>
       </div>
     </section>
 
@@ -702,7 +784,7 @@ input[type="range"]::-moz-range-thumb {
       <h2 style="margin-top: 0; font-size: var(--text-2xl); font-weight: 600;">Frequently asked</h2>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-8); margin-top: var(--space-6);">
         <div>
-          <h4 style="margin: 0 0 var(--space-2); color: var(--color-text);">Can I switch plans later?</h4>
+          <h4 style="margin: 0 0 var(--space-2); color: var(--color-text);">Can I switch tiers later?</h4>
           <p style="margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); line-height: 1.6;">Yes — upgrade, downgrade, or cancel at any time. Annual gets prorated refund on downgrade.</p>
         </div>
         <div>
@@ -716,6 +798,14 @@ input[type="range"]::-moz-range-thumb {
         <div>
           <h4 style="margin: 0 0 var(--space-2); color: var(--color-text);">Why can't free users send messages?</h4>
           <p style="margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); line-height: 1.6;">Free is for monitoring only — see who's asking for what you sell. Outreach is a paid feature because it carries account-safety risk we manage carefully.</p>
+        </div>
+        <div>
+          <h4 style="margin: 0 0 var(--space-2); color: var(--color-text);">What's the difference between tiers?</h4>
+          <p style="margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); line-height: 1.6;">Same features across all paid tiers. The only difference is how many credits you get each month — pick based on your outreach volume.</p>
+        </div>
+        <div>
+          <h4 style="margin: 0 0 var(--space-2); color: var(--color-text);">Do unused credits roll over?</h4>
+          <p style="margin: 0; color: var(--color-text-muted); font-size: var(--text-sm); line-height: 1.6;">Yes — credits accumulate up to 2× your monthly grant, so a slow month earns you a buffer for the next one.</p>
         </div>
       </div>
     </section>
@@ -733,7 +823,7 @@ input[type="range"]::-moz-range-thumb {
 </div>
 
 <script>
-// Variant tab switching
+// ─── Variant tab switching ───
 document.querySelectorAll('.variant-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     const id = tab.dataset.variant;
@@ -744,44 +834,71 @@ document.querySelectorAll('.variant-tab').forEach(tab => {
   });
 });
 
-// Slider logic — applies to ALL variants (each variant has its own slider + table)
-function pickPlan(dms) {
-  // ≤5 → free (monitoring only — but this is a soft hint, free is shown disabled for outreach)
-  // 6-50 → monthly · ~60 DMs/m max
-  // 51-100 → quarterly · ~95 DMs/m max
-  // 101+ → annual · ~130 DMs/m max
-  if (dms <= 5)   return { col: 'free',      name: 'Free',      why: '$0 · monitoring only — upgrade to send messages' };
-  if (dms <= 50)  return { col: 'monthly',   name: 'Monthly',   why: '$49/mo · enough credits for ~60 DMs after monitoring' };
-  if (dms <= 100) return { col: 'quarterly', name: 'Quarterly', why: '$35/mo · enough credits for ~95 DMs after monitoring' };
-  return                  { col: 'annual',    name: 'Annual',    why: '$25/mo · enough credits for ~130 DMs after monitoring' };
+// ─── Slider math ───
+// ≤5    → Free (monitoring only — banner explains outreach is paid)
+// 6-30  → Starter  (1 000 cr/m → ~25 DMs after monitoring overhead)
+// 31-100 → Growth  (3 000 cr/m → ~80 DMs after monitoring overhead) ⭐
+// 101+  → Scale   (8 000 cr/m → ~200 DMs after monitoring overhead)
+function pickPlan(dms, cycle) {
+  const isAnnual = cycle === 'annual';
+  if (dms <= 5)   return { col: 'free',     name: 'Free',     why: '$0 · monitoring only — upgrade to send messages' };
+  if (dms <= 30)  return { col: 'starter',  name: 'Starter',  why: (isAnnual ? '$20/mo billed annually' : '$25/mo') + ' · 1 000 credits / month — fits ~25 DMs' };
+  if (dms <= 100) return { col: 'growth',   name: 'Growth',   why: (isAnnual ? '$47/mo billed annually' : '$59/mo') + ' · 3 000 credits / month — comfortable for ~80 DMs' };
+  return                  { col: 'scale',    name: 'Scale',    why: (isAnnual ? '$103/mo billed annually' : '$129/mo') + ' · 8 000 credits / month — agency volume' };
 }
 
-function fmtDms(v) {
-  return v >= 200 ? '200+' : String(v);
-}
+function fmtDms(v) { return v >= 200 ? '200+' : String(v); }
 
-document.querySelectorAll('[data-slider]').forEach(slider => {
-  const variant = slider.closest('.variant');
+// ─── Per-variant slider + toggle wiring ───
+document.querySelectorAll('.variant').forEach(variant => {
+  const slider = variant.querySelector('[data-slider]');
+  if (!slider) return;
+
+  let cycle = 'monthly';
+
+  function applyCycle() {
+    // Update prices in column headers
+    variant.querySelectorAll('[data-price-monthly]').forEach(el => {
+      el.textContent = el.dataset['price' + (cycle === 'annual' ? 'Annual' : 'Monthly')];
+    });
+    variant.querySelectorAll('[data-billing-monthly]').forEach(el => {
+      el.textContent = el.dataset['billing' + (cycle === 'annual' ? 'Annual' : 'Monthly')];
+    });
+    variant.querySelectorAll('[data-secondary-monthly]').forEach(el => {
+      const txt = el.dataset['secondary' + (cycle === 'annual' ? 'Annual' : 'Monthly')];
+      el.textContent = txt || ' ';
+    });
+    update();
+  }
 
   function update() {
     const v = parseInt(slider.value, 10);
     const pct = (v / parseInt(slider.max, 10)) * 100;
     slider.style.setProperty('--pct', pct + '%');
 
-    // Update DM count + recommendation
     variant.querySelector('[data-output="dm-count"]').textContent = fmtDms(v);
-    const pick = pickPlan(v);
+    const pick = pickPlan(v, cycle);
     variant.querySelector('[data-output="plan-name"]').textContent = pick.name;
     variant.querySelector('[data-output="plan-why"]').textContent = pick.why;
 
-    // Highlight matching column in this variant's table
     variant.querySelectorAll('[data-col]').forEach(cell => {
       cell.classList.toggle('recommended', cell.dataset.col === pick.col);
     });
   }
 
   slider.addEventListener('input', update);
-  update(); // initial paint
+
+  // Billing toggle
+  variant.querySelectorAll('.billing-toggle-pill button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      cycle = btn.dataset.cycle;
+      variant.querySelectorAll('.billing-toggle-pill button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyCycle();
+    });
+  });
+
+  applyCycle(); // initial paint
 });
 </script>
 
