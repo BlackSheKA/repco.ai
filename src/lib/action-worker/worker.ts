@@ -24,6 +24,8 @@ import {
 } from "@/lib/browserbase/client"
 import { runRedditPreflight } from "@/features/accounts/lib/reddit-preflight"
 import { getBrowserProfileForAccount } from "@/features/browser-profiles/lib/get-browser-profile"
+import { detectBanState } from "@/lib/computer-use/detect-ban-state"
+import { sendAccountWarning } from "@/features/notifications/lib/send-account-warning"
 import { executeCUAction } from "@/lib/computer-use/executor"
 import { sendLinkedInConnection } from "@/lib/action-worker/actions/linkedin-connect-executor"
 import { sendLinkedInDM } from "@/lib/action-worker/actions/linkedin-dm-executor"
@@ -789,6 +791,88 @@ export async function executeAction(
             .eq("id", action.prospect_id)
         }
       }
+    }
+
+    // Phase 18 (BPRX-09, D-14 + D-16): post-action ban-state detector pass.
+    // Runs against the final screenshot AFTER the CU loop returns (NOT a tool
+    // inside the executor). Per L-3 / D-23: detector failures return all-false
+    // and MUST NOT flip health_status.
+    if (result.screenshots.length > 0 && account) {
+      const finalScreenshot = result.screenshots[result.screenshots.length - 1]
+      const verdict = await detectBanState(finalScreenshot)
+      logger.info("detect_ban_state verdict", {
+        actionId,
+        correlationId,
+        accountId: account.id,
+        verdict,
+      })
+
+      const { data: userRow } = await supabase
+        .from("users")
+        .select("email")
+        .eq("id", account.user_id)
+        .single<{ email: string }>()
+      const userEmail = userRow?.email ?? null
+      const platform = (account.platform as "reddit" | "linkedin") ?? "reddit"
+
+      if (verdict.banned || verdict.suspended) {
+        await supabase
+          .from("social_accounts")
+          .update({ health_status: "banned" })
+          .eq("id", account.id)
+        if (userEmail) {
+          try {
+            await sendAccountWarning(
+              userEmail,
+              account.handle ?? account.id,
+              "banned",
+              {
+                platform,
+                supabase,
+                userId: account.user_id,
+                accountId: account.id,
+              },
+            )
+          } catch (emailErr) {
+            logger.warn("sendAccountWarning(banned) failed", {
+              actionId,
+              correlationId,
+              accountId: account.id,
+              error:
+                emailErr instanceof Error ? emailErr.message : String(emailErr),
+            })
+          }
+        }
+      } else if (verdict.captcha) {
+        await supabase
+          .from("social_accounts")
+          .update({ health_status: "captcha_required" })
+          .eq("id", account.id)
+        if (userEmail) {
+          try {
+            await sendAccountWarning(
+              userEmail,
+              account.handle ?? account.id,
+              "captcha_required",
+              {
+                platform,
+                supabase,
+                userId: account.user_id,
+                accountId: account.id,
+              },
+            )
+          } catch (emailErr) {
+            logger.warn("sendAccountWarning(captcha_required) failed", {
+              actionId,
+              correlationId,
+              accountId: account.id,
+              error:
+                emailErr instanceof Error ? emailErr.message : String(emailErr),
+            })
+          }
+        }
+      }
+      // all-false → no status change. Action result stands.
     }
 
     return { success: result.success, error: result.error }
