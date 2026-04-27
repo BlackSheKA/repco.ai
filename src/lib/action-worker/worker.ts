@@ -22,6 +22,7 @@ import {
   createSession,
   releaseSession,
 } from "@/lib/browserbase/client"
+import { runRedditPreflight } from "@/features/accounts/lib/reddit-preflight"
 import { getBrowserProfileForAccount } from "@/features/browser-profiles/lib/get-browser-profile"
 import { executeCUAction } from "@/lib/computer-use/executor"
 import { sendLinkedInConnection } from "@/lib/action-worker/actions/linkedin-connect-executor"
@@ -95,9 +96,14 @@ export async function executeAction(
 
   // Phase 14: account-quarantine guard (LNKD-02, LNKD-06).
   if (account) {
+    // Phase 18: extend Phase 14 quarantine guard with two new ENUM values
+    // (D-04 + D-18). L-5: BOTH 'needs_reconnect' AND 'captcha_required' must
+    // appear; forgetting one is a silent escape.
     const isQuarantined =
       account.health_status === "warning" ||
       account.health_status === "banned" ||
+      account.health_status === "needs_reconnect" ||
+      account.health_status === "captcha_required" ||
       (account.cooldown_until !== null &&
         account.cooldown_until !== undefined &&
         new Date(account.cooldown_until).getTime() > Date.now())
@@ -131,6 +137,91 @@ export async function executeAction(
       })
       await logger.flush()
       return { success: false, error: "account_quarantined" }
+    }
+
+    // Phase 18 (BPRX-08, D-13): Reddit-only preflight gate.
+    // Runs BEFORE Browserbase session creation. Definitive ban signals flip
+    // health_status='banned' without ever creating a Browserbase session
+    // (no credit burn, no concurrent-slot consumption). Cached 1h via
+    // social_accounts.last_preflight_at + last_preflight_status.
+    if (account.platform === "reddit" && account.handle) {
+      const preflight = await runRedditPreflight({
+        handle: account.handle,
+        supabase,
+        accountId: account.id,
+      })
+      if (preflight.kind === "banned") {
+        await supabase
+          .from("social_accounts")
+          .update({ health_status: "banned" })
+          .eq("id", account.id)
+
+        runStatus = "failed"
+        runError = `preflight_${preflight.reason}`
+        runPlatform = "reddit"
+        await updateActionStatus(
+          supabase,
+          actionId,
+          "failed",
+          `preflight_${preflight.reason}`,
+        )
+        await supabase.from("job_logs").insert({
+          job_type: "action" as const,
+          status: "failed",
+          user_id: runUserId,
+          action_id: runActionId,
+          started_at: new Date(startMs).toISOString(),
+          finished_at: new Date().toISOString(),
+          duration_ms: Date.now() - startMs,
+          error: runError,
+          metadata: {
+            correlation_id: correlationId,
+            platform: "reddit",
+            action_type: runActionType,
+            failure_mode: "preflight_banned",
+            preflight_reason: preflight.reason,
+          },
+        })
+        logger.warn("Action blocked: preflight banned", {
+          actionId,
+          correlationId,
+          accountId: account.id,
+          preflightReason: preflight.reason,
+        })
+        await logger.flush()
+        return { success: false, error: "account_quarantined" }
+      }
+      if (preflight.kind === "transient") {
+        runStatus = "failed"
+        runError = "preflight_transient"
+        runPlatform = "reddit"
+        await updateActionStatus(
+          supabase,
+          actionId,
+          "failed",
+          "preflight_transient",
+        )
+        await supabase.from("job_logs").insert({
+          job_type: "action" as const,
+          status: "failed",
+          user_id: runUserId,
+          action_id: runActionId,
+          started_at: new Date(startMs).toISOString(),
+          finished_at: new Date().toISOString(),
+          duration_ms: Date.now() - startMs,
+          error: runError,
+          metadata: {
+            correlation_id: correlationId,
+            platform: "reddit",
+            action_type: runActionType,
+            failure_mode: "preflight_transient",
+            preflight_error: preflight.error,
+          },
+        })
+        await logger.flush()
+        return { success: false, error: "preflight_transient" }
+      }
+      // preflight.kind === 'ok' → fall through.
     }
   }
 
@@ -551,6 +642,37 @@ export async function executeAction(
       runStatus = "completed"
       runError = null
       await updateActionStatus(supabase, actionId, "completed", null)
+
+      // Phase 18 (BPRX-07 adapted for Browserbase): best-effort cookie jar
+      // dump to browser_profiles.cookies_jar for backup/audit. Browserbase
+      // contexts auto-persist cookies via browserSettings.context.persist=true,
+      // so this is purely a backup snapshot — never throws out of the worker.
+      try {
+        const ctx = browser?.contexts()[0]
+        if (ctx && browserProfile?.id) {
+          const jar = await ctx.cookies()
+          const { error: cookieErr } = await supabase
+            .from("browser_profiles")
+            .update({ cookies_jar: jar })
+            .eq("id", browserProfile.id)
+          if (cookieErr) {
+            logger.warn("cookies_jar backup write failed (non-fatal)", {
+              actionId,
+              correlationId,
+              error: cookieErr.message,
+            })
+          }
+        }
+      } catch (cookieDumpErr) {
+        logger.warn("cookies_jar backup dump threw (non-fatal)", {
+          actionId,
+          correlationId,
+          error:
+            cookieDumpErr instanceof Error
+              ? cookieDumpErr.message
+              : String(cookieDumpErr),
+        })
+      }
 
       try {
         const creditCost = getActionCreditCost(
