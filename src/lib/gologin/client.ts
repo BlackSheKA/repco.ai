@@ -199,7 +199,7 @@ export interface CreateProfileV2Result {
 /**
  * Create a new GoLogin browser profile with a residential geolocation proxy.
  *
- * Uses proxy.mode="geolocation" + autoProxyRegion (NEVER mode:"gologin").
+ * Uses proxy.mode="geolocation" + autoProxyRegion (NEVER the shared "gologin" mode).
  * Per D-04/D-05: country-mismatch breaks the anti-ban premise — surface errors instead
  * of falling back to a different region.
  *
