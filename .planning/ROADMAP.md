@@ -43,7 +43,8 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 - [x] **Phase 15: Browser Profile Schema Foundation** — `browser_profiles` table + `social_accounts` rewrite (1 profile = N accounts max 1/platform)
  (completed 2026-04-27)
 - [ ] **Phase 16: Mechanism Cost Engine Schema** — `mechanism_costs` table seeded with 32 signal + 28 outbound rows; `monitoring_signals` schema rewrite; DB-driven burn engine
-- [ ] **Phase 17: Residential Proxy + GoLogin Profile Allocator** — country-matched residential GeoProxy, fingerprint patch, country↔TZ/locale mapping, auto-reuse algorithm
+- [~] **Phase 17: Residential Proxy + GoLogin Profile Allocator** — _ABANDONED 2026-04-27, pivoted to Browserbase (see Phase 17.5). GoLogin parallel-launch quota and per-slot pricing don't fit our SaaS scale. Lessons preserved in `.planning/research/browserbase-vs-gologin.md`._
+- [ ] **Phase 17.5: Browser Profile Allocator (Browserbase)** — Replaces Phase 17. Persistent context per account + per-session residential proxy with country geo-targeting via Browserbase. Drops BPRX-04 fingerprint patch (auto-handled by Browserbase). Iframe-embeddable live view replaces external viewer.
 - [ ] **Phase 18: Cookies Persistence + Preflight + Ban Detection** — cookies_jar save/restore, Reddit `about.json` preflight, Haiku CU post-action ban detector
 - [ ] **Phase 19: Free + Pro Plan ENUMs + Signup Flow** — drop old `subscription_tier`, create `subscription_plan` (`free`|`pro`) + `billing_cycle` (`monthly`|`annual`); `handle_new_user` rewrite (250 cr, no trial); email+IP anti-abuse
 - [ ] **Phase 20: Pre-Launch User Wipe** — destructive `auth.users` reset behind explicit confirmation gate; cascading FK cleanup
@@ -77,23 +78,36 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 **Plans**: TBD
 
 ### Phase 17: Residential Proxy + GoLogin Profile Allocator
-**Goal**: When a user adds an account, the system allocates a country-matched residential proxy + a fingerprint-patched GoLogin profile (or reuses a compatible existing profile). The shared `mode: "gologin"` proxy pool is never touched again.
-**Depends on**: Phase 15 (browser_profiles schema must exist)
-**Requirements**: BPRX-03, BPRX-04, BPRX-05, BPRX-06
+**Status**: ABANDONED 2026-04-27 — pivoted to Phase 17.5 (Browserbase).
+**Why**: GoLogin Professional plan caps `maxParallelCloudLaunches` at 1; counter got stuck after profile-delete-mid-session, blocking all UAT. Per-slot + per-cloud-hour pricing doesn't scale to SaaS-style provisioning (50 users → ~$300+/mo Enterprise plan + slot quota fights). Browserbase: 25 concurrent on $20/mo Developer plan, persistent contexts native, iframe-embeddable live view, official MCP server.
+**Lessons learned**: see `.planning/research/browserbase-vs-gologin.md`.
+**Disposition of artifacts**:
+  - `country-map.ts` (BPRX-05) — keep as-is (Browserbase uses identical ISO country codes)
+  - `client.ts` GoLogin wrappers — to be deleted in Phase 17.5
+  - `allocator.ts` GoLogin orchestrator — to be rewritten in Phase 17.5 (algorithm preserved, vendor calls swapped)
+  - `connectAccount` refactor + UI copy — preserved as-is (no GoLogin coupling at that layer)
+  - 17-01-SUMMARY.md, 17-02-SUMMARY.md — kept as historical record
+**Plans**:
+  - [x] 17-01-foundation-PLAN.md — completed; country-map preserved, REST wrappers superseded by Phase 17.5
+  - [~] 17-02-allocator-PLAN.md — paused at human-verify checkpoint; allocator code superseded by Phase 17.5
+
+### Phase 17.5: Browser Profile Allocator (Browserbase)
+**Goal**: When a user adds an account, the system creates a Browserbase persistent context for that account and starts sessions with a country-matched residential proxy on demand. Cross-platform reuse rule (D-02) preserved — same user + same country + no platform conflict reuses the existing context. Live view URL is iframe-embeddable so login happens inside our app.
+**Depends on**: Phase 15 (browser_profiles schema), Phase 17 (country-map.ts retained from 17-01)
+**Requirements**: BPRX-03, BPRX-05, BPRX-06 (BPRX-04 dropped — Browserbase auto-randomizes fingerprint per session, no manual patch needed)
 **Success Criteria** (what must be TRUE):
-  1. New profile creation allocates a residential GeoProxy via GoLogin REST matching the requested `country_code`; the existing 8 floppydata residential proxies are consumed before any new purchase
-  2. Every newly-created GoLogin profile has its fingerprints patched via `patch_profile_fingerprints` immediately after creation
-  3. A documented country→{timezone, locale, UA} mapping for at least US/GB/DE/PL/FR/CA/AU is enforced and stored on `browser_profiles` (no drift between fields)
-  4. `connectAccount(userId, platform)` reuses an existing same-country browser_profile of the same user when no platform conflict exists; only allocates a new proxy + profile when no compatible match is available
-  5. A user can connect a Reddit account and a LinkedIn account and observe both land on the same `browser_profile_id` row when geographies match
-**Plans**: 2 plans
-  - [x] 17-01-foundation-PLAN.md — Country map module + GoLogin REST wrappers (createProfileV2, patchProfileFingerprints) + API-shape probe (Wave 1, BPRX-04, BPRX-05)
-  - [ ] 17-02-allocator-PLAN.md — Allocator orchestrator + connectAccount refactor + UI copy + legacy createProfile removal (Wave 2, BPRX-03, BPRX-06)
-**UI hint**: yes
+  1. `browser_profiles` schema migrated: `gologin_profile_id` + `gologin_proxy_id` columns dropped, `browserbase_context_id` (UNIQUE NOT NULL) added; existing test rows wiped (`project_users_are_test_data`)
+  2. New account allocation: `POST /v1/contexts` creates a persistent context, INSERT `browser_profiles` row with `browserbase_context_id`, INSERT `social_accounts` row, return success — does NOT auto-start a cloud session (BPRX-03 proxy attaches at session-start, not at context-create)
+  3. `startAccountBrowser(accountId)` creates a Browserbase session with `proxies:[{type:"browserbase", geolocation:{country: <profile.country>}}]` and `browserSettings.context.{id, persist:true}`, returns `connectUrl` + iframe-embeddable `debuggerFullscreenUrl` from `GET /v1/sessions/{id}/debug`
+  4. Reuse rule (D-02 from Phase 17 CONTEXT) preserved: cross-platform same-user same-country accounts share a single `browser_profiles` row; same-platform second account creates a new context
+  5. Phase 13 LinkedIn executors (DM/Connect/Follow/Like/Comment/Prescreen) and Phase 4 P04 Reddit inbox CU connect to Browserbase via `chromium.connectOverCDP(connectUrl)` instead of GoLogin — selectors and action logic unchanged
+  6. All `mode: "gologin"` references and `gologin_*` env vars removed from `src/`; `.env.local` and Vercel env have `BROWSERBASE_API_KEY` + `BROWSERBASE_PROJECT_ID` set
+**Plans**: TBD (3-4 plans expected: schema migration / client.ts swap + allocator rewrite / Phase 13 executor refit / UAT)
+**UI hint**: yes (iframe live-view replaces external viewer)
 
 ### Phase 18: Cookies Persistence + Preflight + Ban Detection
 **Goal**: Sessions reuse cookies instead of re-logging-in every time, banned/suspended Reddit accounts are detected before any browser spin-up, and any rule/captcha/suspension modal that appears mid-action immediately quarantines the account.
-**Depends on**: Phase 15 (browser_profiles schema), Phase 17 (profiles must be allocated before cookies have a column to land in)
+**Depends on**: Phase 15 (browser_profiles schema), Phase 17.5 (Browserbase contexts allocated; persistent context auto-saves cookies, simplifying BPRX-07 substantially)
 **Requirements**: BPRX-07, BPRX-08, BPRX-09
 **Success Criteria** (what must be TRUE):
   1. After every session, the worker writes the GoLogin browser cookie jar to `browser_profiles.cookies_jar JSONB`; the next session restores them before navigating, and the browser idles 30–60s before shutdown
@@ -174,7 +188,8 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 | 14. LinkedIn Account Quarantine Enforcement (GAP) | v1.1 | 1/1 | Complete | 2026-04-25 |
 | 15. Browser Profile Schema Foundation | v1.2 | 3/3 | Complete    | 2026-04-27 |
 | 16. Mechanism Cost Engine Schema | v1.2 | 0/0 | Not started | - |
-| 17. Residential Proxy + GoLogin Profile Allocator | v1.2 | 1/2 | In Progress|  |
+| 17. Residential Proxy + GoLogin Profile Allocator | v1.2 | 1/2 | Abandoned | 2026-04-27 |
+| 17.5. Browser Profile Allocator (Browserbase) | v1.2 | 0/0 | Not started | - |
 | 18. Cookies Persistence + Preflight + Ban Detection | v1.2 | 0/0 | Not started | - |
 | 19. Free Tier ENUM + Signup Flow | v1.2 | 0/0 | Not started | - |
 | 20. Pre-Launch User Wipe | v1.2 | 0/0 | Not started | - |
