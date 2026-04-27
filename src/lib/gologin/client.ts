@@ -171,3 +171,97 @@ export async function getProfile(
 
   return (await response.json()) as GoLoginProfile
 }
+
+// ---------------------------------------------------------------------------
+// Phase 17: createProfileV2 + patchProfileFingerprints (BPRX-03, BPRX-04)
+// ---------------------------------------------------------------------------
+
+export interface CreateProfileV2Args {
+  accountHandle: string
+  countryCode: string
+  navigator: {
+    userAgent: string
+    resolution: string
+    language: string
+    platform: string
+  }
+  timezone: string
+  startUrl?: string
+}
+
+export interface CreateProfileV2Result {
+  id: string
+  proxy?: { id?: string | null } | null
+  // Capture extra fields loosely — probe in 17-API-PROBE.md documents the exact shape.
+  [key: string]: unknown
+}
+
+/**
+ * Create a new GoLogin browser profile with a residential geolocation proxy.
+ *
+ * Uses proxy.mode="geolocation" + autoProxyRegion (NEVER mode:"gologin").
+ * Per D-04/D-05: country-mismatch breaks the anti-ban premise — surface errors instead
+ * of falling back to a different region.
+ *
+ * NOTE (17-API-PROBE.md OQ#2): The create response proxy.mode will be "none" — this is
+ * expected. GoLogin activates the geolocation proxy when the browser session starts.
+ * autoProxyRegion is preserved in the stored profile and used at session start time.
+ * Store profile.id as gologin_proxy_id (no stable proxy.id is returned under geolocation mode).
+ *
+ * NOTE: autoProxyRegion must be lowercase (GoLogin validation enforces: us, uk, de, ca, in).
+ */
+export async function createProfileV2(
+  args: CreateProfileV2Args,
+): Promise<CreateProfileV2Result> {
+  const response = await fetch(`${GOLOGIN_API}/browser`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({
+      name: `repco-${args.accountHandle}`,
+      os: "win",
+      browserType: "chrome",
+      startUrl: args.startUrl ?? "",
+      navigator: args.navigator,
+      timezone: { enabled: true, fillBasedOnIp: false, timezone: args.timezone },
+      proxy: {
+        mode: "geolocation",
+        autoProxyRegion: args.countryCode.toLowerCase(),
+        autoProxyCity: "",
+      },
+    }),
+  })
+
+  if (!response.ok) {
+    const body = await response.text()
+    throw new Error(
+      `GoLogin createProfileV2 failed (${response.status}): ${body}`,
+    )
+  }
+
+  return (await response.json()) as CreateProfileV2Result
+}
+
+/**
+ * Patch the fingerprint of a GoLogin browser profile.
+ *
+ * DEVIATION (17-API-PROBE.md OQ#1): No REST endpoint for fingerprint patching exists.
+ * Both POST /browser/{id}/fingerprints and PATCH /browser/{id} return 404.
+ * The operation is MCP-only (mcp__gologin-mcp__patch_profile_fingerprints).
+ *
+ * Plan 02 (allocator.ts) must call the MCP tool directly from the server action layer.
+ * This stub is retained so the interface is stable and callers get a clear runtime error
+ * if they attempt the REST path.
+ */
+export async function patchProfileFingerprints(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  profileId: string,
+): Promise<void> {
+  // DEVIATION: POST /browser/{id}/fingerprints → 404 (confirmed by 17-API-PROBE.md).
+  // The GoLogin REST API v1 does not expose a fingerprint randomization endpoint.
+  // Use mcp__gologin-mcp__patch_profile_fingerprints from the server action layer instead.
+  throw new Error(
+    "patchProfileFingerprints: no REST endpoint available (MCP-only). " +
+      "Call mcp__gologin-mcp__patch_profile_fingerprints from the server action layer. " +
+      "See .planning/phases/17-residential-proxy-gologin-profile-allocator/17-API-PROBE.md OQ#1.",
+  )
+}
