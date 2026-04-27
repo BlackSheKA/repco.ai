@@ -1,8 +1,17 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+
+async function clientIp(): Promise<string | undefined> {
+  const xff = (await headers()).get("x-forwarded-for");
+  if (!xff) return undefined;
+  const first = xff.split(",")[0]?.trim();
+  if (!first) return undefined;
+  return /^[\da-fA-F:.]+$/.test(first) ? first : undefined;
+}
 
 export async function signInWithEmail(formData: FormData) {
   const email = formData.get("email") as string;
@@ -17,6 +26,7 @@ export async function signInWithEmail(formData: FormData) {
     email,
     options: {
       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      data: { ip: await clientIp() },
     },
   });
 
