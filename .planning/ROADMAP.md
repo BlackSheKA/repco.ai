@@ -100,7 +100,11 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
   2. Before a Reddit action runs, the system fetches `https://www.reddit.com/user/{username}/about.json` through the account's proxy and aborts with `health_status='banned'` on suspension / total_karma < 5 / 404 / shadowban heuristic — no GoLogin spin-up occurs in that case
   3. After every action, a Haiku CU `detect_ban_state` pass inspects the screenshot for "rule broken" / captcha / "account suspended" / rate-limit modals; any positive flips `health_status='banned'`, halts further actions for that account, and dispatches a user alert
   4. A user whose Reddit account was banned externally sees the system quarantine it on the next attempted action without ever opening the GoLogin browser
-**Plans**: TBD
+**Plans**: 4 plans
+  - [ ] 18-01-schema-migration-PLAN.md — Migration 00025 (cookies_jar + last_preflight_* + ENUM extensions) + dev-branch apply (Wave 1, BPRX-07, BPRX-08)
+  - [ ] 18-02-cookies-preflight-worker-PLAN.md — GoLogin cookies API + reddit-preflight + worker insertions (Wave 2, BPRX-07, BPRX-08)
+  - [ ] 18-03-detector-alerts-ui-PLAN.md — Haiku detect-ban-state + worker post-CU splice + email alert (Wave 3, BPRX-07, BPRX-09)
+  - [ ] 18-04-ui-banner-reconnect-PLAN.md — shadcn Alert + HealthBadge tints + dashboard banner + account-card Reconnect button + attemptReconnect server action (Wave 3, BPRX-09)
 
 ### Phase 19: Free Tier ENUM + Signup Flow
 **Goal**: New users land on a `free` subscription tier with 250 credits and no trial countdown. The signup path also blocks abusive duplicate-account creation by tracking email + IP combinations.

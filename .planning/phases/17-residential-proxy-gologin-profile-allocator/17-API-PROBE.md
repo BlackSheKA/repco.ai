@@ -4,6 +4,11 @@
 **Profile used:** repco-probe-throwaway (GoLogin ID: 69ef5ea95baf5435c881e165)
 **Outcome:** Profile created and deleted successfully. No orphan profiles remain.
 
+> **UPDATE 2026-04-27 (post-UAT):**
+>   - **OQ#1 was wrong.** The fingerprint endpoint exists — it's `PATCH /browser/fingerprints` (not `POST /browser/{id}/fingerprints` or `PATCH /browser/{id}`) with body `{ browsersIds: [id] }`. The probe tested wrong paths and concluded MCP-only. Verified against `https://api.gologin.com/docs-json` swagger spec.
+>   - **OQ#2 was wrong.** Sending `proxy: { mode: "geolocation", autoProxyRegion }` in `POST /browser` body is silently ignored — the profile lands with `proxyEnabled: false` and starts on the host's IP (instant Reddit ban). Real proxy attach goes through `POST /users-proxies/mobile-proxy` — see §"OQ#3 — Residential proxy attach (post-UAT correction)" below.
+>   - **OQ#4 (new):** `POST /browser/{id}/web` (start cloud browser) accepts no body params (empty schema). Use the profile's `startUrl` field at create time to land the cloud browser on a specific page. `PUT /browser/{id}/custom` does NOT accept startUrl, so reused profiles can't be redirected.
+
 ---
 
 ## OQ#1 — Fingerprint Endpoint
@@ -124,3 +129,46 @@ fail. Plan 02 should handle 400 responses gracefully per D-11.
 - POST /fingerprints: 404 (instant)
 - PATCH /browser: 404 (instant)
 - DELETE: 204 (instant)
+
+---
+
+## OQ#3 — Residential proxy attach (post-UAT correction, 2026-04-27)
+
+**Question:** How do you actually attach a residential GeoProxy to a GoLogin profile?
+
+**Empirical result (UAT failure → reprobe):**
+
+`POST /browser` with `proxy: { mode: "geolocation", autoProxyRegion: "us" }` is silently no-op'd. Confirmed via `GET /browser/{id}` showing `proxy.mode: "none"`, `proxyEnabled: false`, no `proxy.id`, no `proxy.host/port/username/password` — i.e. profile runs on whatever IP the cloud Orbita instance has, which on a test from PL workspace = host IP, instant Reddit network-security block.
+
+**The correct contract:**
+
+```bash
+curl -X POST https://api.gologin.com/users-proxies/mobile-proxy \
+  -H "Authorization: Bearer $GOLOGIN_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "countryCode": "us",
+    "isMobile": false,
+    "isDC": false,
+    "profileIdToLink": "<profile-id>",
+    "customName": "repco-<handle>"
+  }'
+# 201 Created
+# Response: { id, mode:"http", host:"geo.floppydata.com", port:10080,
+#             username, password, connectionType:"resident", customName }
+```
+
+After this call, the profile shows `proxy.id` (real, stable), `proxy.mode:"geolocation"`, `proxyType:"geolocation"`, `proxyEnabled:true`. **This is what `assignResidentialProxy` in `src/lib/gologin/client.ts` calls.**
+
+### Updated proxy-id storage rule
+
+**Old (wrong):** Store profile id as `gologin_proxy_id` because the API returns no proxy id.
+**New (correct):** Store the `id` from `assignResidentialProxy` response — it's the real proxy entity id.
+
+### Traffic accounting
+
+Each call to `assignResidentialProxy` allocates a NEW residential proxy entity drawing from the workspace's residential traffic pool (`residentTrafficData.trafficLimit`, currently 2 GB on dev). Reused profiles (D-02 path) do NOT call this function — they reuse the existing proxy. So billable traffic scales with the number of distinct browser_profiles, not social_accounts.
+
+### Region constraint (unchanged)
+
+Still 5 regions only: `us`, `uk`, `de`, `ca`, `in`. Country map's `pl`, `fr`, `au` will fail with HTTP 400 here just like they did under the wrong V1 contract.
