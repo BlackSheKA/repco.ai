@@ -9,13 +9,12 @@ import type { MonitoringConfig } from "@/features/monitoring/lib/types"
 export const runtime = "nodejs"
 export const maxDuration = 300
 
-// Preview + production deployments use the async webhook flow so cron returns
-// fast (<5s) and Apify drives ingestion via /api/webhooks/apify on completion.
-// Local dev keeps the synchronous .call() path because there's no public URL
-// for Apify to POST back to.
+// Production deployments use the async webhook flow so cron returns fast
+// (<5s) and Apify drives ingestion via /api/webhooks/apify on completion.
+// Local dev (`development` branch is excluded from Vercel deploys) keeps the
+// synchronous .call() path — there's no public URL for Apify to POST back to.
 function isAsyncEnv(): boolean {
-  const env = process.env.VERCEL_ENV
-  return env === "production" || env === "preview"
+  return process.env.VERCEL_ENV === "production"
 }
 
 function webhookUrl(): string {

@@ -14,8 +14,7 @@ export const maxDuration = 300
 const DEFAULT_APIFY_ACTOR = "apimaestro~linkedin-post-search-scraper"
 
 function isAsyncEnv(): boolean {
-  const env = process.env.VERCEL_ENV
-  return env === "production" || env === "preview"
+  return process.env.VERCEL_ENV === "production"
 }
 
 function webhookUrl(): string {

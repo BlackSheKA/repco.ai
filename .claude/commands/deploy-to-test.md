@@ -1,4 +1,6 @@
-Deploy current `development` branch: version bump, push (triggers Vercel preview), and merge into `main` locally — without pushing main. Code-only — no database changes.
+Deploy current `development` branch: version bump, push to remote, and merge into `main` locally — without pushing main. Code-only — no database changes.
+
+`development` is excluded from Vercel deploys (`vercel.json` → `git.deploymentEnabled.development = false`); it's a local-only branch. Test with `pnpm dev --port 3001`.
 
 ## Arguments
 
@@ -19,7 +21,7 @@ Examples:
    - Update `package.json` version field
    - Commit: `chore: bump version to vX.Y.Z`
    - Create git tag `vX.Y.Z`
-4. **Push development to remote** — triggers Vercel preview deploy:
+4. **Push development to remote** (does NOT trigger any Vercel deploy — branch is excluded):
    ```bash
    git push origin development --tags
    ```
@@ -31,13 +33,11 @@ Examples:
    ```
 6. **Report the result:**
    - Show new version number
-   - Show the preview URL pattern: `https://repco-ai-git-development-outsi.vercel.app`
-     (note: protected by Vercel SSO — open in browser logged into Vercel)
    - Confirm `main` is ready with the merge but NOT pushed
-   - Remind: "Main is ready locally. Test the preview, then run `/deploy-to-production` to push main and ship to repco.ai."
+   - Remind: "Main is ready locally. Test against `pnpm dev --port 3001`, then run `/deploy-to-production` to push main and ship to repco.ai."
 
 ## Important
 - **Do NOT push `main`** — that's what `/deploy-to-production` does
 - Never force-push to `main`
 - If merge has conflicts, stop and report them — do not auto-resolve
-- Vercel cron only runs on production deployments — preview deploys won't auto-trigger crons
+- `development` is excluded from Vercel deploys; only `main` produces the production deploy on `repco.ai`

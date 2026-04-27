@@ -129,23 +129,24 @@ Schema in `supabase/migrations/` — 11 tables with RLS, 12 ENUMs in `00001_enum
 
 Strict separation across Git, Vercel, Supabase and local disk. **Never mix them.**
 
-| Layer | Production | Preview / Dev |
+| Layer | Production | Dev (local only) |
 |---|---|---|
-| Git branch | `main` | `development` (+ PR branches) |
-| Vercel deployment | Production (auto on push to `main`) | Preview (auto on push to `development`) |
+| Git branch | `main` | `development` |
+| Vercel deployment | Production (auto on push to `main`) | _none — `development` excluded via `vercel.json` `git.deploymentEnabled.development = false`_ |
 | Supabase | prod `cmkifdwjunojgigrqwnr` | dev branch `effppfiphrykllkpkdbv` |
 | Stripe | LIVE keys (`sk_live_…`) | TEST keys (`sk_test_…`) |
-| Site URL | `https://repco.ai` | Vercel preview URL / `http://localhost:3001` |
+| Site URL | `https://repco.ai` | `http://localhost:3001` |
 | Local file | _none — do NOT keep prod env on disk_ | `.env.local` (dev Supabase + Stripe test) |
 
 ### Rules
-- **Default working branch is `development`.** `main` only receives merges via PR after verification on preview.
+- **Default working branch is `development`.** `main` only receives merges via the `/deploy-to-test` + `/deploy-to-production` flow.
+- **`development` does NOT deploy to Vercel.** Test only via `pnpm dev --port 3001` against the dev Supabase branch. Vercel cron also doesn't run for `development` (no deployment exists).
 - **Local `.env.local` must point at dev Supabase**, never prod. If it drifts, fix it immediately.
 - **Never create `.env.production.local`** on disk. Prod secrets live only in Vercel. If you need to inspect them, use `vercel env pull .env.prod.tmp --environment=production` and delete the file when done.
-- **Preview env vars in Vercel are scoped to the `development` branch** — when adding new vars to Vercel use `vercel env add NAME preview development --value '…'` (the `development` git-branch arg is required).
+- Preview env scope on Vercel still exists for env-var inheritance (`vercel env add NAME preview` works) even though no preview deploys are produced — keep secrets in production scope.
 - **Stripe CLI / webhooks** locally forward to test mode only; live webhooks are Stripe-hosted and point at `repco.ai`.
 - Use `pnpm dev --port 3001` locally → hits dev Supabase via `.env.local`.
-- Cron jobs in Vercel run with the env matching the deployment (prod cron hits prod DB, preview cron hits dev DB).
+- Cron jobs in Vercel run only on production deployments (since `development` doesn't deploy).
 
 See `.env.example` for the shape. `NEXT_PUBLIC_*` = browser-exposed; others server-only. Never commit `.env.local` or any `.env.*.local`.
 
