@@ -39,15 +39,15 @@ const HEALTH_STYLES: Record<
   },
   needs_reconnect: {
     label: "Needs reconnect",
-    bg: "rgba(245, 158, 11, 0.15)",
-    text: "#F59E0B",
-    border: "rgba(245, 158, 11, 0.3)",
+    bg: "rgba(59, 130, 246, 0.15)",
+    text: "#3B82F6",
+    border: "rgba(59, 130, 246, 0.3)",
   },
   captcha_required: {
-    label: "Captcha required",
-    bg: "rgba(245, 158, 11, 0.15)",
-    text: "#F59E0B",
-    border: "rgba(245, 158, 11, 0.3)",
+    label: "Captcha needed",
+    bg: "rgba(139, 92, 246, 0.15)",
+    text: "#8B5CF6",
+    border: "rgba(139, 92, 246, 0.3)",
   },
 }
 
