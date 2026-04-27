@@ -297,5 +297,51 @@ Which phases cover which requirements. Updated during roadmap creation.
 - Unmapped: 0
 
 ---
+
+## v1.2 Requirements — Survival + Foundation
+
+Source specs:
+- `.planning/ANTI-BAN-ARCHITECTURE.md` (Fazy 0–4)
+- `.planning/PRICING.md` (Fazy A–E)
+- `.planning/SIGNAL-DETECTION-MECHANISMS.md` (cost-row data only — implementations deferred to v1.3)
+- `.planning/OUTBOUND-COMMUNICATION-MECHANISMS.md` (cost-row data only — implementations deferred to v1.3)
+
+### Anti-Ban Infrastructure (BPRX)
+
+- [ ] **BPRX-01**: New `browser_profiles` table with `(user_id, gologin_profile_id, gologin_proxy_id, country_code, timezone, locale, display_name, created_at)` and unique `(browser_profile_id, platform)` constraint on `social_accounts` enforcing 1 profile = N accounts max 1 per platform
+- [ ] **BPRX-02**: `social_accounts` rewritten to reference `browser_profile_id` (FK to `browser_profiles`), dropping legacy `gologin_profile_id` + `proxy_id` columns; worker.ts and account-actions read profile via JOIN
+- [ ] **BPRX-03**: New browser_profiles allocate residential GeoProxy via GoLogin REST matched to `country_code` (no shared `mode: "gologin"` proxy ever again); existing 8 floppydata residential proxies reused before purchasing more
+- [ ] **BPRX-04**: Per-profile fingerprint uniqueness enforced by calling `patch_profile_fingerprints` after every profile creation
+- [ ] **BPRX-05**: Country → timezone + locale + UA mapping is consistent and stored on `browser_profiles` (US/GB/DE/PL/FR/CA/AU minimum; mapping table documented)
+- [ ] **BPRX-06**: Auto-reuse algorithm — `connectAccount(userId, platform)` first looks for an existing same-country profile of that user without an account on the requested platform; only allocates a new proxy + creates a new GoLogin profile when none exists
+- [ ] **BPRX-07**: Cookies persisted to `browser_profiles.cookies_jar JSONB` after every session via `GET /browser/{id}/cookies`, restored before next session via `POST /browser/{id}/cookies`; idle 30–60s before browser shutdown to avoid fast-in/out pattern
+- [ ] **BPRX-08**: Pre-action preflight checks Reddit `https://www.reddit.com/user/{username}/about.json` (through the account's proxy, no auth) — `is_suspended`, `total_karma < 5`, HTTP 404, or shadowban heuristic flips `health_status='banned'` and aborts execution before any GoLogin spin-up
+- [ ] **BPRX-09**: Post-action Haiku CU detector (`detect_ban_state` tool) inspects screenshot for "rule broken" / captcha / "account suspended" / rate-limit modals; any positive flips `health_status='banned'` and halts further actions; alert dispatched to user
+- [ ] **BPRX-10**: Pre-launch `auth.users` wipe behind explicit confirmation gate before the new schema goes live (test data, no preservation needed); cascading FK delete clears all dependent rows; audited in commit message
+
+### Pricing & Free Tier (PRIC)
+
+- [ ] **PRIC-01**: New `mechanism_costs` table seeded with all 27 signal + 28 outbound mechanism rows (`mechanism_id` PK, `cr_per_scan` or `cr_per_action`, `mechanism_kind` ENUM `'signal'|'outbound'`, `premium`, `requires_gologin`, `free_tier_allowed`); cost values match `PRICING.md` §5 + §6 tables
+- [ ] **PRIC-02**: `monitoring_signals` schema rewritten — `frequency` (interval, NOT NULL, default `6 hours`), `mechanism_id` (FK to `mechanism_costs`), `config jsonb` for per-mechanism parameters (window_days, soft_cap, last_n_posts, etc.); legacy `signal_type` ENUM dropped
+- [ ] **PRIC-03**: Server-side credit burn engine computes `daily_burn = cr_per_scan × scans_per_day(cadence) × num_sources` from DB lookup; `MONITORING_COSTS` constants in `src/features/billing/lib/credit-burn.ts` removed; `getMechanismCost()` cached lookup helper added
+- [ ] **PRIC-04**: `subscription_tier` ENUM extended with `free` value; existing `monthly` / `quarterly` / `annual` preserved
+- [ ] **PRIC-05**: `handle_new_user` trigger updated — new signups get `subscription_tier='free'` + 250 cr balance + audit row in `credit_transactions` (no `trial_ends_at`); `startFreeTrial` server action deleted
+- [ ] **PRIC-06**: Free tier hard caps enforced — max 1 social account total, max 2 mechanisms active, cadence ≥4h forced in UI (15min/30min/1h disabled), 0 outbound actions allowed; every DM/reply/connection/comment/post on free tier triggers a paywall modal "Upgrade to start outreach"
+- [ ] **PRIC-07**: Free tier mechanism whitelist enforced via `mechanism_costs.free_tier_allowed` — only R1, R3, R4, L1, L7, T1, T2 selectable; gologin mechanisms (R7, R8, L6, L10, L11, T3) and heavy mechanisms (L2-L5, T4) shown locked with "Upgrade" badge
+- [ ] **PRIC-08**: `monthly-credit-grant` cron (`0 0 1 * *` UTC) applies `balance = min(balance + monthly_grant, balance_cap)` per active subscription tier; cap = 2× grant (Free 500, Monthly 4k, Quarterly 6k, Annual 8k)
+- [ ] **PRIC-09**: Stripe products refreshed for new grant levels — Free $0/0/250cr, Monthly $49/2000cr, Quarterly $35/m ($105/3m)/3000cr, Annual $25/m ($300/yr)/4000cr; credit packs Starter 500/$29, Growth 1500/$59, Scale 5000/$149, Agency 15000/$399; old test prices archived; webhook handler updates `credits_included_monthly` per subscription event
+- [ ] **PRIC-10**: Top-up credit packs blocked for free-tier users in checkout server action and pricing page (forced upgrade to a paid sub before pack purchase)
+- [ ] **PRIC-11**: `/signals` UI redesigned to render 27 mechanism cards (not 5 signal types) with per-card toggle, per-mechanism configuration form, **static unit-cost label** ("1 credit per scan, per source"), upgrade badge for locked mechanisms, status footer (`last_scan_at`, `signals_24h`)
+- [ ] **PRIC-12**: UI never displays burn math — no `cr/day`, no `cr/month`, no live ticker on cadence/keyword change, no "wystarczy na X dni", no daily burn breakdown anywhere on dashboard / signals / billing pages (per `feedback_credit_ui_no_burn_math` memory)
+- [ ] **PRIC-13**: `/pricing` adds Free column (250 cr/m, 1 account, monitor only); landing/dashboard signup hook reflects 250-cr / 1-account / 0-outreach contract; existing "Start free trial" CTAs replaced with "Sign up free" routing into free tier
+- [ ] **PRIC-14**: Anti-abuse — `users.email + ip_address` combination uniquely tracked at signup in `handle_new_user` trigger with audit log row; `users.credits_balance_cap` and `users.credits_included_monthly` columns added and set per tier on signup + subscription change
+
+## v1.2 Coverage
+
+- v1.2 requirements: 24 total (10 BPRX + 14 PRIC)
+- Phases continue from 14 → start at 15
+- Source specs: 4 reference docs in `.planning/`
+
+---
 *Requirements defined: 2026-04-16*
-*Last updated: 2026-04-16 — traceability populated by roadmapper*
+*Last updated: 2026-04-27 — v1.2 Survival + Foundation requirements appended (BPRX-01..10 + PRIC-01..14); awaiting roadmapper traceability*

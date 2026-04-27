@@ -1,34 +1,33 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: LinkedIn Action Expansion
-status: Shipped
-shipped_at: "2026-04-27"
-stopped_at: v1.1 archived — awaiting next milestone definition (/gsd-new-milestone)
+milestone: v1.2
+milestone_name: Survival + Foundation
+status: Defining requirements
+stopped_at: v1.2 milestone started — REQUIREMENTS drafted from 4 spec docs; awaiting roadmapper output
 last_updated: "2026-04-27T00:00:00.000Z"
 last_activity: 2026-04-27
 progress:
   total_phases: 14
   completed_phases: 14
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-27 after v1.1 shipped)
+See: .planning/PROJECT.md (updated 2026-04-27 — v1.2 milestone started)
 
 **Core value:** People actively looking for your product get a personalized, relevant DM within hours
-**Current focus:** Planning next milestone — run `/gsd-new-milestone`
+**Current focus:** v1.2 — Survival + Foundation (anti-ban infrastructure + PLG free tier + 27-mechanism cost engine)
 
 ## Current Position
 
-Phase: — (between milestones)
+Phase: Not started (defining requirements → roadmapper next)
 Plan: —
-Milestone: v1.1 shipped 2026-04-27
+Milestone: v1.2 (continues phase numbering from 14 → starts at 15)
 
 ## Performance Metrics
 
@@ -189,5 +188,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-27
-Stopped at: v1.1 LinkedIn Action Expansion archived (Phases 13–14, 6/6 LNKD requirements). Next: `/gsd-new-milestone` to define v1.2.
+Stopped at: v1.2 milestone started — REQUIREMENTS drafted from 4 spec docs (BPRX-01..10 + PRIC-01..14). Next: spawn `gsd-roadmapper` to derive phases.
 Resume file: None
