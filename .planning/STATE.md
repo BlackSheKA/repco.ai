@@ -132,6 +132,7 @@ Recent decisions affecting current work:
 - [Phase 03]: Sidebar uses usePathname() for dynamic active state instead of hardcoded booleans
 - [Phase 03]: Account connection uses prompt() for username input (simplified MVP)
 - [Phase 03]: SupabaseClient type annotation on createServiceClient return to resolve generic param mismatch in supabase-js 2.103
+- [Phase 19][2026-04-27]: Migration 00027_free_tier_signup.sql applied to dev branch effppfiphrykllkpkdbv via Management API; Wave 0 harness `node scripts/test-trigger-19.mjs --quick` reports 7 OK lines (enums, columns, audit-table, normalize, signup, duplicate, plan-config); Plan 19-02 unblocked. Filename renumbered from 00025 to 00027 because 00025/00026 were taken by Phases 17.5/18.
 - [Phase 04]: [Phase 04 P01]: Sequence state on prospects table (not separate); getNextFollowUpStep pure for unit testability; missed-step skip to next due step; idempotent handleReplyDetected
 - [Phase 04]: [Phase 04 P02]: No reply body in reply alert email (locked CONTEXT decision); createElement for send functions to keep .ts files and preserve React props for Vitest introspection
 - [Phase 04]: [Phase 04 P03]: Follow-up angle injected via suggestedAngle override (reuse QC pipeline); skip empty digests to avoid training users to ignore; yesterday TZ boundary via formatInTimeZone round-trip (date-fns-tz v3 dropped zonedTimeToUtc)
