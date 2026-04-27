@@ -798,21 +798,27 @@ export async function executeAction(
     // inside the executor). Per L-3 / D-23: detector failures return all-false
     // and MUST NOT flip health_status.
     if (result.screenshots.length > 0 && account) {
-      const finalScreenshot = result.screenshots[result.screenshots.length - 1]
-      const verdict = await detectBanState(finalScreenshot)
-      logger.info("detect_ban_state verdict", {
-        actionId,
-        correlationId,
-        accountId: account.id,
-        verdict,
-      })
+      try {
+        const finalScreenshot = result.screenshots[result.screenshots.length - 1]
+        const verdict = await detectBanState(finalScreenshot)
+        logger.info("detect_ban_state verdict", {
+          actionId,
+          correlationId,
+          accountId: account.id,
+          verdict,
+        })
 
-      const { data: userRow } = await supabase
-        .from("users")
-        .select("email")
-        .eq("id", account.user_id)
-        .single<{ email: string }>()
-      const userEmail = userRow?.email ?? null
+      let userEmail: string | null = null
+      try {
+        const userResp = await supabase
+          .from("users")
+          .select("email")
+          .eq("id", account.user_id)
+          .single<{ email: string }>()
+        userEmail = userResp.data?.email ?? null
+      } catch {
+        // user lookup failure leaves userEmail null; email send is gated below
+      }
       const platform = (account.platform as "reddit" | "linkedin") ?? "reddit"
 
       if (verdict.banned || verdict.suspended) {
@@ -873,6 +879,18 @@ export async function executeAction(
         }
       }
       // all-false → no status change. Action result stands.
+      } catch (detectorErr) {
+        // Per L-3 / D-23: detector failures must NOT flip health_status or
+        // break the action. Just log and let the original action result stand.
+        logger.warn("detect_ban_state pipeline failed", {
+          actionId,
+          correlationId,
+          error:
+            detectorErr instanceof Error
+              ? detectorErr.message
+              : String(detectorErr),
+        })
+      }
     }
 
     return { success: result.success, error: result.error }
