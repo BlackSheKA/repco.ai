@@ -1,5 +1,9 @@
 import { redirect } from "next/navigation"
 
+import {
+  AccountDegradedBanner,
+  type DegradedAccount,
+} from "@/components/account-degraded-banner"
 import { AppShell } from "@/components/shell/app-shell"
 import { TerminalHeader } from "@/features/dashboard/components/terminal-header"
 import { createClient } from "@/lib/supabase/server"
@@ -19,7 +23,7 @@ export default async function AppLayout({
   }
 
   const [
-    { count: alertCount },
+    { data: degradedRows },
     { data: userRow },
     { count: productProfileCount },
     { count: redditAccountCount },
@@ -27,9 +31,15 @@ export default async function AppLayout({
   ] = await Promise.all([
     supabase
       .from("social_accounts")
-      .select("id", { count: "exact", head: true })
+      .select("id, handle, platform, health_status")
       .eq("user_id", user.id)
-      .in("health_status", ["warning", "cooldown", "banned"]),
+      .in("health_status", [
+        "warning",
+        "cooldown",
+        "banned",
+        "needs_reconnect",
+        "captcha_required",
+      ]),
     supabase
       .from("users")
       .select("credits_balance")
@@ -51,7 +61,18 @@ export default async function AppLayout({
       .eq("status", "completed"),
   ])
 
-  const hasAccountAlerts = (alertCount ?? 0) > 0
+  const degradedAccounts: DegradedAccount[] = (degradedRows ?? [])
+    .filter(
+      (r): r is { id: string; handle: string; platform: "reddit" | "linkedin"; health_status: DegradedAccount["health_status"] } =>
+        typeof r.handle === "string" && r.handle.length > 0,
+    )
+    .map((r) => ({
+      id: r.id,
+      handle: r.handle,
+      platform: r.platform,
+      health_status: r.health_status,
+    }))
+  const hasAccountAlerts = degradedAccounts.length > 0
   const creditBalance = (userRow?.credits_balance as number | null) ?? 0
 
   const productDescribed = (productProfileCount ?? 0) > 0
@@ -70,6 +91,7 @@ export default async function AppLayout({
       creditBalance={creditBalance}
       onboarding={onboarding}
     >
+      <AccountDegradedBanner accounts={degradedAccounts} />
       {children}
     </AppShell>
   )
