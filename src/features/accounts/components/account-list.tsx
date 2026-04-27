@@ -195,7 +195,7 @@ export function AccountList({
                   {submitting && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  {submitting ? "Creating profile..." : "Continue"}
+                  {submitting ? "Setting up your account..." : "Continue"}
                 </Button>
               </div>
             </form>
@@ -226,7 +226,7 @@ export function AccountList({
             <CardContent className="flex items-center gap-3 py-6">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               <p className="text-base">
-                Creating your LinkedIn browser profile...
+                Setting up your account...
               </p>
             </CardContent>
           </Card>
