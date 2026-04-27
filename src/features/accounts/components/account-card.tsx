@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { CheckCircle2, LogIn, MessageSquare, Trash2 } from "lucide-react"
+import { CheckCircle2, LogIn, MessageSquare, RefreshCw, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { deleteAccount } from "@/features/accounts/actions/account-actions"
+import { attemptReconnect } from "@/features/accounts/server/attempt-reconnect"
 import { HealthBadge } from "./health-badge"
 import { WarmupProgress } from "./warmup-progress"
 import type {
@@ -107,6 +108,27 @@ export function AccountCard({
     : null
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [isDeleting, startDelete] = useTransition()
+  const [isReconnecting, startReconnect] = useTransition()
+  const showReconnect =
+    account.health_status === "needs_reconnect" ||
+    account.health_status === "captcha_required"
+
+  function handleReconnect() {
+    startReconnect(async () => {
+      const result = await attemptReconnect(account.id)
+      if (result.success) {
+        toast.success("Account reconnected")
+      } else if (result.error === "still_banned") {
+        toast.error("Account still banned — connect a different account")
+      } else if (result.error === "try_again") {
+        toast.warning("Couldn't verify — try again in a minute")
+      } else if (result.error === "platform_unsupported") {
+        toast.info("Use Re-login to fix this account")
+      } else {
+        toast.error(result.error ?? "Reconnect failed")
+      }
+    })
+  }
 
   function handleDelete() {
     startDelete(async () => {
@@ -176,6 +198,20 @@ export function AccountCard({
               <LogIn className="mr-1 h-3.5 w-3.5" />
               {verified ? "Re-login" : "Log in"}
             </Button>
+            {showReconnect && (
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                className="h-7"
+                onClick={handleReconnect}
+                disabled={isReconnecting}
+                aria-label={`Reconnect ${username}`}
+              >
+                <RefreshCw className="mr-1 h-3.5 w-3.5" />
+                {isReconnecting ? "Reconnecting..." : "Reconnect"}
+              </Button>
+            )}
             <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
               <AlertDialogTrigger asChild>
                 <Button
