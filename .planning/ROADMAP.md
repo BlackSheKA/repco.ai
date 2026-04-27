@@ -45,7 +45,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 - [ ] **Phase 16: Mechanism Cost Engine Schema** — `mechanism_costs` table seeded with 32 signal + 28 outbound rows; `monitoring_signals` schema rewrite; DB-driven burn engine
 - [ ] **Phase 17: Residential Proxy + GoLogin Profile Allocator** — country-matched residential GeoProxy, fingerprint patch, country↔TZ/locale mapping, auto-reuse algorithm
 - [ ] **Phase 18: Cookies Persistence + Preflight + Ban Detection** — cookies_jar save/restore, Reddit `about.json` preflight, Haiku CU post-action ban detector
-- [ ] **Phase 19: Free Tier ENUM + Signup Flow** — `subscription_tier='free'`, `handle_new_user` rewrite (250 cr, no trial), email+IP anti-abuse
+- [ ] **Phase 19: Free + Pro Plan ENUMs + Signup Flow** — drop old `subscription_tier`, create `subscription_plan` (`free`|`pro`) + `billing_cycle` (`monthly`|`annual`); `handle_new_user` rewrite (250 cr, no trial); email+IP anti-abuse
 - [ ] **Phase 20: Pre-Launch User Wipe** — destructive `auth.users` reset behind explicit confirmation gate; cascading FK cleanup
 - [ ] **Phase 21: Free Tier Enforcement + Monthly Grant + Stripe Refresh** — hard caps (1 account / 2 mechanisms / ≥4h / 0 outbound), mechanism whitelist, monthly-credit-grant cron, Stripe products refreshed, top-up pack lockdown
 - [ ] **Phase 22: Signals UI Redesign + Free Tier Copy** — 27 mechanism cards with toggle/config/locked badges, no burn math anywhere, `/pricing` Free column + signup CTA refresh
@@ -107,10 +107,11 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 **Depends on**: Phase 16 (mechanism_costs must exist before tier semantics meaningfully apply, and `users.credits_balance_cap` / `credits_included_monthly` are defined here)
 **Requirements**: PRIC-04, PRIC-05, PRIC-14
 **Success Criteria** (what must be TRUE):
-  1. `subscription_tier` ENUM contains `free` alongside the existing `monthly` / `quarterly` / `annual` values
-  2. A new signup atomically receives `subscription_tier='free'` + 250 cr balance + a `credit_transactions` audit row, with no `trial_ends_at` set; the `startFreeTrial` server action no longer exists
-  3. `users.credits_balance_cap` and `users.credits_included_monthly` columns are populated correctly per tier on signup and on subscription change
-  4. A second signup from the same email + IP combination is rejected (or flagged in an audit log) by the `handle_new_user` trigger
+  1. New ENUMs created: `subscription_plan` (`free`|`pro`) and `billing_cycle` (`monthly`|`annual`); old `subscription_tier` ENUM dropped (hard switch — pre-launch wipe in Phase 20 means no users to migrate)
+  2. `users.subscription_plan` (default `free`), `users.billing_cycle` (nullable for free, NOT NULL for pro)
+  3. A new signup atomically receives `subscription_plan='free'` + 250 cr balance + a `credit_transactions` audit row, with no `trial_ends_at` set; the `startFreeTrial` server action no longer exists
+  4. `users.credits_balance_cap` and `users.credits_included_monthly` columns are populated correctly per plan on signup and on subscription change (Free: 500/250, Pro: 4 000/2 000)
+  5. A second signup from the same email + IP combination is rejected (or flagged in an audit log) by the `handle_new_user` trigger
 **Plans**: TBD
 
 ### Phase 20: Pre-Launch User Wipe
@@ -132,8 +133,8 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
   1. A free-tier user cannot exceed 1 social account, 2 active mechanisms, or cadence shorter than 4h; UI controls below 4h are disabled, and the limits are enforced server-side
   2. A free-tier user attempting any DM, public reply, LinkedIn connection, comment, or post sees a paywall modal "Upgrade to start outreach" and the action is not created
   3. The `/signals` configuration only allows free-tier users to select R1, R3, R4, L1, L7, T1, T2; gologin-required mechanisms (R7, R8, L6, L10, L11, T3) and heavy mechanisms (L2-L5, T4) display a locked-with-Upgrade badge
-  4. The `monthly-credit-grant` cron runs `0 0 1 * *` UTC and applies `balance = min(balance + monthly_grant, balance_cap)` per active subscription tier (Free 500, Monthly 4k, Quarterly 6k, Annual 8k caps)
-  5. Stripe products in the live account match: Free $0/0/250cr, Monthly $49/2000cr, Quarterly $35/m / 3000cr, Annual $25/m / 4000cr; credit packs Starter 500/$29, Growth 1500/$59, Scale 5000/$149, Agency 15000/$399; old test prices archived; webhook updates `credits_included_monthly` per subscription event
+  4. The `monthly-credit-grant` cron runs `0 0 1 * *` UTC and applies `balance = min(balance + monthly_grant, balance_cap)` per active plan (Free cap 500, Pro cap 4 000)
+  5. Stripe products in the live account match: 2 subscription prices (`STRIPE_PRICE_PRO_MONTHLY` = $49/m / 2 000 cr; `STRIPE_PRICE_PRO_ANNUAL` = $468/yr ≈ $39/m effective / 2 000 cr / save 20%); credit packs unchanged (Starter 500/$29, Growth 1500/$59, Scale 5000/$149, Agency 15000/$399); old test prices archived; webhook matches Stripe price ID → `(subscription_plan, billing_cycle)` and updates `credits_included_monthly` + `credits_balance_cap`
   6. A free-tier user attempting to buy a top-up credit pack is blocked in both checkout server action and the pricing page UI, with a forced-upgrade prompt
 **Plans**: TBD
 **UI hint**: yes
