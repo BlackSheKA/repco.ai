@@ -14,14 +14,23 @@ export type HealthStatus =
   | "cooldown"
   | "banned"
 
+export interface BrowserProfile {
+  id: string
+  gologin_profile_id: string
+  gologin_proxy_id: string
+  country_code: string
+  timezone: string
+  locale: string
+  display_name: string | null
+}
+
 export interface SocialAccount {
   id: string
   user_id: string
   platform: "reddit" | "linkedin"
   handle: string | null
   profile_url: string | null
-  gologin_profile_id: string | null
-  proxy_id: string | null
+  browser_profile_id: string | null
   health_status: HealthStatus
   warmup_day: number
   warmup_completed_at: string | null
@@ -35,6 +44,10 @@ export interface SocialAccount {
   active: boolean
   session_verified_at: string | null
   created_at: string
+}
+
+export type SocialAccountWithProfile = SocialAccount & {
+  browser_profiles: BrowserProfile | null
 }
 
 export interface AccountDailyUsage {
