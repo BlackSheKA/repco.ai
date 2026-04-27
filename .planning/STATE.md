@@ -3,15 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Survival + Foundation
 status: Roadmap created — ready for /gsd-plan-phase 15
-stopped_at: v1.2 roadmap created — 8 phases (15–22) mapping 24 requirements (10 BPRX + 14 PRIC)
-last_updated: "2026-04-27T00:00:00.000Z"
+stopped_at: Phase 15 context gathered
+last_updated: "2026-04-27T10:26:01.476Z"
 last_activity: 2026-04-27
 progress:
-  total_phases: 22
-  completed_phases: 14
+  total_phases: 8
+  completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 64
 ---
 
 # Project State
@@ -188,5 +187,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-27
-Stopped at: v1.2 roadmap created — 8 phases (15–22) mapping 24 requirements (10 BPRX + 14 PRIC). Next: `/gsd-plan-phase 15` for Browser Profile Schema Foundation.
-Resume file: None
+Stopped at: Phase 15 context gathered
+Resume file: .planning/phases/15-browser-profile-schema-foundation/15-CONTEXT.md
