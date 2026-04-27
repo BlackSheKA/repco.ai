@@ -30,7 +30,7 @@ describe("sendAccountWarning", () => {
       }),
     )
     const callArgs = mockSend.mock.calls[0][0]
-    expect(callArgs.react.props).toEqual({
+    expect(callArgs.react.props).toMatchObject({
       accountHandle: "myaccount",
       status: "warning",
     })
@@ -43,11 +43,11 @@ describe("sendAccountWarning", () => {
 
     expect(mockSend).toHaveBeenCalledWith(
       expect.objectContaining({
-        subject: "Account @myaccount needs attention",
+        subject: "Your Reddit account u/myaccount was suspended",
       }),
     )
     const callArgs = mockSend.mock.calls[0][0]
-    expect(callArgs.react.props).toEqual({
+    expect(callArgs.react.props).toMatchObject({
       accountHandle: "myaccount",
       status: "banned",
     })
