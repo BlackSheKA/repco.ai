@@ -107,8 +107,8 @@ People who are actively looking for your product get a personalized, relevant DM
 ### Active (v1.2 scope)
 
 **Anti-Ban (BPRX):**
-- [ ] BPRX-01: New `browser_profiles` table — 1 residential proxy = 1 GoLogin profile = N `social_accounts` (max 1 per platform); enforced by `(browser_profile_id, platform)` unique constraint
-- [ ] BPRX-02: New `social_accounts` rows are linked to a `browser_profile_id` (replaces `gologin_profile_id` + `proxy_id` columns)
+- [x] BPRX-01: New `browser_profiles` table — 1 residential proxy = 1 GoLogin profile = N `social_accounts` (max 1 per platform); enforced by `(browser_profile_id, platform)` unique constraint — Validated in Phase 15
+- [x] BPRX-02: New `social_accounts` rows are linked to a `browser_profile_id` (replaces `gologin_profile_id` + `proxy_id` columns) — Validated in Phase 15
 - [ ] BPRX-03: New browser_profiles allocate residential GeoProxy via GoLogin REST matched to `country_code` (no shared `mode: "gologin"` proxy ever again)
 - [ ] BPRX-04: Per-profile fingerprint uniqueness via `patch_profile_fingerprints` after profile creation
 - [ ] BPRX-05: Country → timezone + locale + UA mapping is consistent (US→`America/New_York`+`en-US`, GB→`Europe/London`+`en-GB`, DE→`Europe/Berlin`+`de-DE`, PL→`Europe/Warsaw`+`pl-PL`)
@@ -180,4 +180,4 @@ People who are actively looking for your product get a personalized, relevant DM
 | Event-driven actions (DB Webhook) over polling | Zero empty invocations, fires only on user approval | — Pending |
 
 ---
-*Last updated: 2026-04-27 — v1.2 milestone started (Survival + Foundation: anti-ban infrastructure + PLG free tier + 27-mechanism cost engine, derived from 4 spec docs in `.planning/`)*
+*Last updated: 2026-04-27 — Phase 15 complete: `browser_profiles` schema foundation + 9-site reader refactor (BPRX-01, BPRX-02 validated)*
