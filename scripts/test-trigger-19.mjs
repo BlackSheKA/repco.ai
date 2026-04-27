@@ -153,6 +153,14 @@ async function cleanupTestUser(userId) {
       console.warn(`cleanupTestUser warning: ${msg}`)
     }
   }
+  // public.users (and signup_audit via FK CASCADE) is NOT cleaned up by
+  // auth.admin.deleteUser — there is no FK CASCADE from auth.users → public.users.
+  // Delete explicitly so duplicate detection across test runs stays clean.
+  try {
+    await runSql(`DELETE FROM public.users WHERE id=${sqlLit(userId)}`)
+  } catch {
+    // ignore
+  }
 }
 
 async function cleanupAllTestUsersWithPrefix(prefix) {
@@ -454,7 +462,7 @@ async function cmdSignup() {
       return fail(name, `tx description = ${tx[0].description}`)
 
     const a = await runSql(
-      `SELECT email_normalized, ip::text AS ip, duplicate_flag FROM public.signup_audit WHERE user_id=${sqlLit(userId)}`,
+      `SELECT email_normalized, host(ip) AS ip, duplicate_flag FROM public.signup_audit WHERE user_id=${sqlLit(userId)}`,
     )
     if (!a || a.length !== 1)
       return fail(name, `signup_audit rows = ${a?.length}`)
@@ -491,9 +499,10 @@ async function cmdDuplicate() {
   }
 
   const suffix = randomUUID().slice(0, 8)
-  const emailA = `phase19-dup-${suffix}-a.test@gmail.com`
-  // dot-stripped + plus-stripped these collide on email_normalized:
-  // 'phase19dup<suffix>atest@gmail.com'
+  // Both emails normalize to 'phase19dup{suffix}atest@gmail.com':
+  //   A: dots stripped (gmail rule)
+  //   B: +alias stripped (gmail rule)
+  const emailA = `phase19dup${suffix}.atest@gmail.com`
   const emailB = `phase19dup${suffix}atest+x@gmail.com`
   const ip = "198.51.100.50"
   let idA, idB
