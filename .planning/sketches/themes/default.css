@@ -1,0 +1,89 @@
+/* repco.ai sketch theme — dark, warm-zinc + indigo primary */
+:root {
+  /* Colors */
+  --color-bg: #131110;
+  --color-surface: #1c1a18;
+  --color-surface-elevated: #232120;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+  --color-text: #fafaf8;
+  --color-text-muted: #8b8884;
+  --color-text-subtle: #5e5b56;
+
+  --color-primary: #6366f1;          /* indigo, ≈ radix-nova primary */
+  --color-primary-hover: #818cf8;
+  --color-primary-soft: rgba(99, 102, 241, 0.12);
+  --color-primary-glow: rgba(99, 102, 241, 0.35);
+
+  --color-accent: #22d3ee;            /* cyan, used sparingly for "best value" */
+  --color-accent-soft: rgba(34, 211, 238, 0.12);
+  --color-accent-glow: rgba(34, 211, 238, 0.30);
+
+  --color-success: #22c55e;
+  --color-danger: #f43f5e;
+
+  /* Typography */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+  --text-5xl: 3rem;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* Shapes */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.40);
+  --shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.50);
+  --shadow-glow-primary: 0 0 0 1px var(--color-primary-glow), 0 12px 40px var(--color-primary-glow);
+  --shadow-glow-accent: 0 0 0 1px var(--color-accent-glow), 0 12px 40px var(--color-accent-glow);
+}
+
+/* Base reset */
+* {
+  box-sizing: border-box;
+}
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+body {
+  padding-top: 48px; /* room for variant tab bar */
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
