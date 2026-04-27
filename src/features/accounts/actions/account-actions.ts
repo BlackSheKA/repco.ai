@@ -12,6 +12,7 @@ import {
   getBrowserProfileForAccount,
   getBrowserProfileById,
 } from "@/features/browser-profiles/lib/get-browser-profile"
+import { allocateBrowserProfile } from "@/features/browser-profiles/lib/allocator"
 
 // Login URLs shown to the user in the connection flow. GoLogin's Cloud
 // Browser web-viewer mode ignores profile startUrl, so the user navigates
@@ -31,38 +32,39 @@ export async function connectAccount(
   } = await supabase.auth.getUser()
   if (!user) return { error: "Not authenticated" }
 
-  // LinkedIn flow skips the upfront handle — we extract it from the
-  // logged-in session after the user finishes login (see verifyAccountSession).
-  // Use a placeholder so the row is valid before login completes.
+  // LinkedIn flow skips upfront handle (extracted post-login). Use placeholder.
   const effectiveHandle =
     platform === "linkedin" && !handle.trim()
       ? `linkedin-${user.id.slice(0, 8)}`
       : handle
 
-  // Phase 15 transition: account is created with browser_profile_id=null.
-  // Phase 17's allocator owns ALL GoLogin REST calls (createProfile, proxy
-  // assignment) and will rewrite this action end-to-end. Until then, the row
-  // is a placeholder; startAccountBrowser surfaces the "no browser profile
-  // yet" message to the user. See 15-CONTEXT.md §Out of scope and
-  // 15-UAT.md G-01 for the quota-leak fix that motivated this stripping.
-
-  // Insert social account record
-  const { data, error } = await supabase
-    .from("social_accounts")
-    .insert({
-      user_id: user.id,
+  try {
+    // D-01: country hardcoded 'US' in this phase. Future phases wire a real source here.
+    const result = await allocateBrowserProfile({
+      userId: user.id,
       platform,
       handle: effectiveHandle,
-      browser_profile_id: null,
-      health_status: "warmup",
-      warmup_day: 1,
+      country: "US",
+      supabase,
     })
-    .select("id")
-    .single()
-
-  if (error) return { error: error.message }
-  revalidatePath("/accounts")
-  return { success: true, accountId: data.id, profileId: null }
+    return {
+      success: true,
+      accountId: result.socialAccountId,
+      profileId: result.gologinProfileId,
+      cloudBrowserUrl: result.cloudBrowserUrl,
+    }
+  } catch (err) {
+    // D-11: exact user-facing copy. Full err logged server-side.
+    console.error("[connectAccount] allocation failed", {
+      userId: user.id,
+      platform,
+      err,
+    })
+    return {
+      error:
+        "Could not set up the account right now — please try again in a moment.",
+    }
+  }
 }
 
 export async function skipWarmup(accountId: string) {
