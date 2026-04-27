@@ -17,21 +17,6 @@ export const CREDIT_COSTS: CreditCostMap = {
   connection_request: 20,
 } as const
 
-export type MonitoringSignalType =
-  | "reddit_keyword"
-  | "linkedin_keyword"
-  | "subreddit"
-  | "competitor"
-  | "profile_visitor"
-
-export const MONITORING_COSTS: Record<MonitoringSignalType, number> = {
-  reddit_keyword: 3,
-  linkedin_keyword: 6,
-  subreddit: 3,
-  competitor: 3,
-  profile_visitor: 3,
-} as const
-
 export type AccountPlatform = "reddit" | "linkedin"
 
 export const ACCOUNT_COSTS: Record<AccountPlatform, number> = {
