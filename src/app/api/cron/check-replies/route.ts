@@ -1,42 +1,36 @@
-// AUDIT(13-04): no-change — this cron handles REPLY detection, not follow-up
-// creation. The actual followup_dm-creating cron is src/app/api/cron/schedule-
-// followups/route.ts (which is platform-agnostic — see its AUDIT note). This file
-// is unchanged for LNKD-05. Verified 2026-04-23.
+// AUDIT(13-04): no-change — this cron handles REPLY detection, not follow-up creation.
 /**
  * Reply detection cron (RPLY-01, RPLY-02, RPLY-04).
  *
- * Runs every 2 hours. For each active Reddit social account:
- *   1. Connects to the GoLogin Cloud profile via Playwright CDP.
- *   2. Navigates to the Reddit inbox and asks Haiku CU to read the message list.
- *   3. Parses the CU JSON response into a list of { sender, preview, unread } entries.
- *   4. For each unread sender that matches a prospect:
- *        - Calls handleReplyDetected (cancels follow-ups, flips pipeline_status to replied).
- *        - Sends a reply-alert email to the user via Resend.
- *   5. Bumps `last_inbox_check_at` and resets `consecutive_inbox_failures` on success.
+ * Phase 17.5 plan-03: Browserbase + raw `chromium.connectOverCDP` for the
+ * Reddit inbox CU loop. NO Stagehand here (D17.5-06 — Reddit CU stays raw
+ * Haiku). D17.5-07: per-account session timeout 180s.
  *
- * On failure for a given account, increments `consecutive_inbox_failures`.
- * If the counter reaches 3, emails an account-warning notification to the user.
- *
- * Each account is processed independently — one failure does not block the others.
+ * Each account opens its own short-lived Browserbase session, scrapes the
+ * inbox via Haiku vision, and releases the session unconditionally in
+ * finally (T-17.5-LIFECYCLE-01).
  */
 
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import Anthropic from "@anthropic-ai/sdk"
+import { chromium, type Browser } from "playwright-core"
 
 import { logger } from "@/lib/logger"
-import { connectToProfile, releaseProfile } from "@/lib/gologin/adapter"
+import {
+  createSession,
+  releaseSession,
+} from "@/lib/browserbase/client"
 import { getBrowserProfileForAccount } from "@/features/browser-profiles/lib/get-browser-profile"
 import { captureScreenshot } from "@/lib/computer-use/screenshot"
 import { matchReplyToProspect } from "@/features/sequences/lib/reply-matching"
 import { handleReplyDetected } from "@/features/sequences/lib/stop-on-reply"
 import { sendReplyAlert } from "@/features/notifications/lib/send-reply-alert"
 import { sendAccountWarning } from "@/features/notifications/lib/send-account-warning"
+import type { SupportedCountry } from "@/features/browser-profiles/lib/country-map"
 
 export const runtime = "nodejs"
-// Inbox checks involve GoLogin connect + Playwright navigation + Haiku CU vision,
-// each of which can take 10-30s per account. 5 min gives headroom for up to ~10 accounts.
 export const maxDuration = 300
 
 const INBOX_CHECK_PROMPT = `You are checking a Reddit DM inbox. Follow these steps:
@@ -62,11 +56,6 @@ interface InboxMessage {
   unread: boolean
 }
 
-/**
- * Parse the CU text response into a message array.
- * Tries JSON.parse first, then falls back to extracting a JSON block via regex.
- * Returns an empty array if nothing parses (safe default — no false-positive replies).
- */
 function parseInboxResponse(text: string): InboxMessage[] {
   if (!text) return []
   try {
@@ -80,10 +69,9 @@ function parseInboxResponse(text: string): InboxMessage[] {
       )
     }
   } catch {
-    // fall through to regex extraction
+    /* fall through */
   }
 
-  // Regex fallback: find the first {...} JSON block
   const match = text.match(/\{[\s\S]*"messages"[\s\S]*\}/)
   if (match) {
     try {
@@ -92,21 +80,15 @@ function parseInboxResponse(text: string): InboxMessage[] {
         return parsed.messages as InboxMessage[]
       }
     } catch {
-      // swallow
+      /* swallow */
     }
   }
   return []
 }
 
-/**
- * Read the Reddit inbox for a given account using Haiku vision.
- * Navigates the account's existing page to the inbox URL, takes a screenshot,
- * and asks Haiku to produce a JSON summary of visible messages.
- */
 async function readInboxWithHaiku(
   page: import("playwright-core").Page,
 ): Promise<InboxMessage[]> {
-  // Navigate to the inbox (idempotent — cheap if already there)
   await page.goto("https://www.reddit.com/message/inbox/", {
     waitUntil: "domcontentloaded",
     timeout: 30_000,
@@ -114,7 +96,6 @@ async function readInboxWithHaiku(
 
   const screenshot = await captureScreenshot(page)
 
-  // Per-call Anthropic instantiation (serverless-safety pattern)
   const client = new Anthropic()
   const response = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
@@ -137,7 +118,6 @@ async function readInboxWithHaiku(
     ],
   })
 
-  // Extract first text block from the response
   const textBlock = response.content.find((b) => b.type === "text") as
     | { type: "text"; text: string }
     | undefined
@@ -145,9 +125,6 @@ async function readInboxWithHaiku(
   return parseInboxResponse(textBlock?.text ?? "")
 }
 
-/**
- * Fetch the user's email for notifications. Returns null if unknown.
- */
 async function getUserEmail(
   supabase: SupabaseClient,
   userId: string,
@@ -181,7 +158,6 @@ export async function GET(request: Request) {
   )
 
   try {
-    // Fetch all active Reddit accounts eligible for reply checking
     const { data: accountsRaw, error: accountsError } = await supabase
       .from("social_accounts")
       .select(
@@ -220,15 +196,27 @@ export async function GET(request: Request) {
 
       accountsChecked++
       const accountStartedAt = new Date()
-      let connection: Awaited<ReturnType<typeof connectToProfile>> | null = null
+      let sessionId: string | undefined
+      let browser: Browser | undefined
 
       try {
-        // 1. Connect to the GoLogin profile
-        // Phase 17.5 transitional: plan 17.5-03 rewrites this to Browserbase.
-        connection = await connectToProfile(browserProfile.gologin_profile_id ?? "")
+        // 1. Open Browserbase session + Playwright CDP attach. NO Stagehand
+        //    — Reddit CU stays raw Haiku (D17.5-06).
+        const session = await createSession({
+          contextId: browserProfile.browserbase_context_id,
+          country: browserProfile.country_code as SupportedCountry,
+          // D17.5-07: Reddit CU 180s.
+          timeoutSeconds: 180,
+          keepAlive: false,
+        })
+        sessionId = session.id
+
+        browser = await chromium.connectOverCDP(session.connectUrl)
+        const context = browser.contexts()[0] ?? (await browser.newContext())
+        const page = context.pages()[0] ?? (await context.newPage())
 
         // 2. Read the inbox with Haiku vision
-        const messages = await readInboxWithHaiku(connection.page)
+        const messages = await readInboxWithHaiku(page)
 
         // 3. Match unread messages to prospects
         let repliesMatched = 0
@@ -253,7 +241,6 @@ export async function GET(request: Request) {
             repliesMatched++
             totalReplies++
 
-            // Notify the user via email
             const userEmail = await getUserEmail(supabase, account.user_id)
             if (userEmail) {
               try {
@@ -273,7 +260,6 @@ export async function GET(request: Request) {
           }
         }
 
-        // 4. On success: reset failure counter, bump last_inbox_check_at
         await supabase
           .from("social_accounts")
           .update({
@@ -282,7 +268,6 @@ export async function GET(request: Request) {
           })
           .eq("id", account.id)
 
-        // 5. Log success to job_logs
         const finishedAt = new Date()
         await supabase.from("job_logs").insert({
           job_type: "reply_check" as const,
@@ -317,14 +302,12 @@ export async function GET(request: Request) {
           errorMessage,
         })
 
-        // Increment consecutive failures counter
         const nextFailures = (account.consecutive_inbox_failures ?? 0) + 1
         await supabase
           .from("social_accounts")
           .update({ consecutive_inbox_failures: nextFailures })
           .eq("id", account.id)
 
-        // After 3 consecutive failures, email the user an account warning
         if (nextFailures >= 3) {
           const userEmail = await getUserEmail(supabase, account.user_id)
           if (userEmail) {
@@ -347,7 +330,6 @@ export async function GET(request: Request) {
           }
         }
 
-        // Log failure to job_logs
         const finishedAt = new Date()
         await supabase.from("job_logs").insert({
           job_type: "reply_check" as const,
@@ -364,11 +346,13 @@ export async function GET(request: Request) {
           },
         })
       } finally {
-        // releaseProfile closes CDP AND calls GoLogin's stopCloudBrowser
-        // to free the parallel-launch slot. Surfaced by Phase 13 UAT
-        // 2026-04-24 — disconnectProfile alone is a no-op and leaves
-        // the remote session burning quota until GoLogin timeout.
-        await releaseProfile(connection ?? undefined)
+        // T-17.5-LIFECYCLE-01: release Browserbase session unconditionally.
+        if (browser) {
+          await browser.close().catch(() => {})
+        }
+        if (sessionId) {
+          await releaseSession(sessionId).catch(() => {})
+        }
       }
     }
 
