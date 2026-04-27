@@ -1,11 +1,12 @@
 ---
-status: diagnosed
+status: resolved
 phase: 15-browser-profile-schema-foundation
 source:
   - 15-01-SUMMARY.md
   - 15-02-SUMMARY.md
+  - 15-03-SUMMARY.md
 started: 2026-04-27T11:52:11Z
-updated: 2026-04-27T11:58:43Z
+updated: 2026-04-27T12:19:42Z
 ---
 
 ## Current Test
@@ -87,7 +88,16 @@ blocked: 3
 
 ## Gaps
 
-### G-01 — connectAccount orphans GoLogin cloud profiles (severity: warning)
+### G-01 — connectAccount orphans GoLogin cloud profiles (severity: warning) — **RESOLVED in 15-03**
+
+**Resolution (2026-04-27):** Plan 15-03 stripped `createProfile()` from
+`connectAccount`. Add Account now inserts a placeholder `social_accounts`
+row with `browser_profile_id: null` and surfaces the existing "Allocator
+not yet shipped" message via `startAccountBrowser`. Phase 17 will rewrite
+this code path entirely. Post-fix: typecheck clean, 409/409 tests, build
+green.
+
+
 
 **Location:** `src/features/accounts/actions/account-actions.ts:46-74`
 

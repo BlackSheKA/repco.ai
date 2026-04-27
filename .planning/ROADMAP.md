@@ -167,7 +167,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 | 12. Trial Auto-Activation + Expiry (GAP) | v1.0 | 3/3 | Complete | 2026-04-21 |
 | 13. LinkedIn Action Expansion | v1.1 | 5/5 | Complete | 2026-04-23 |
 | 14. LinkedIn Account Quarantine Enforcement (GAP) | v1.1 | 1/1 | Complete | 2026-04-25 |
-| 15. Browser Profile Schema Foundation | v1.2 | 2/3 | In Progress|  |
+| 15. Browser Profile Schema Foundation | v1.2 | 3/3 | Complete    | 2026-04-27 |
 | 16. Mechanism Cost Engine Schema | v1.2 | 0/0 | Not started | - |
 | 17. Residential Proxy + GoLogin Profile Allocator | v1.2 | 0/0 | Not started | - |
 | 18. Cookies Persistence + Preflight + Ban Detection | v1.2 | 0/0 | Not started | - |
