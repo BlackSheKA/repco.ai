@@ -203,15 +203,22 @@ async function getUserConfig(
 
   const { data: signals } = await supabaseAdmin
     .from("monitoring_signals")
-    .select("signal_type, value")
+    .select("mechanism_id, value")
     .eq("user_id", userId)
     .eq("active", true)
 
+  // MAPPING: legacy `reddit_keyword` -> R3 "Competitor mention" (closest semantic
+  // successor; the legacy generic keyword search has no 1:1 replacement, R3
+  // covers the merged keyword/competitor overlap per Phase 16 RESEARCH.md §3).
   const keywords = (signals ?? [])
-    .filter((s) => s.signal_type === "reddit_keyword")
+    .filter((s) => s.mechanism_id === "R3")
     .map((s) => s.value)
+  // MAPPING: legacy `competitor` -> R3 "Competitor mention" (direct semantic
+  // match). Phase 16 collapsed both legacy filters onto R3; downstream
+  // `matchPost(title, body, keywords, competitors)` receives identical arrays
+  // for now, until Phase 22 redesign reintroduces a distinct mechanism.
   const competitors = (signals ?? [])
-    .filter((s) => s.signal_type === "competitor")
+    .filter((s) => s.mechanism_id === "R3")
     .map((s) => s.value)
 
   const { data: profiles } = await supabaseAdmin
