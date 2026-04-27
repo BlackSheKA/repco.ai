@@ -60,7 +60,9 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
   2. `social_accounts` references `browser_profile_id` (FK) and a unique `(browser_profile_id, platform)` constraint prevents two same-platform accounts on one profile
   3. Legacy `social_accounts.gologin_profile_id` and `social_accounts.proxy_id` columns are removed (or deprecated and unread by code)
   4. `worker.ts` and account server actions read GoLogin profile/proxy via JOIN through `browser_profiles` — no direct legacy column reads remain
-**Plans**: TBD
+**Plans**: 2 plans
+  - [ ] 15-01-PLAN.md — Schema migration + helper module + types (Wave 1, BPRX-01)
+  - [ ] 15-02-PLAN.md — Refactor 9 reader sites + tests (Wave 2, BPRX-02)
 
 ### Phase 16: Mechanism Cost Engine Schema
 **Goal**: A single source-of-truth cost table drives every monitoring/outbound credit calculation. The legacy `MONITORING_COSTS` constants are gone; `monitoring_signals` is restructured around mechanism IDs and per-mechanism config.
