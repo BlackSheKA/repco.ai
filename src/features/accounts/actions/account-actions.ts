@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache"
 
 import { createClient } from "@/lib/supabase/server"
 import {
-  createProfile,
   deleteProfile,
   startCloudBrowser,
   stopCloudBrowser,
@@ -41,18 +40,11 @@ export async function connectAccount(
       : handle
 
   // Phase 15 transition: account is created with browser_profile_id=null.
-  // Phase 17's allocator will populate it. createProfile() retained for now
-  // so its returned profileId can be surfaced to the caller, but the column
-  // is no longer written here (the allocator owns browser_profiles inserts).
-  let profileId: string
-  try {
-    profileId = await createProfile(
-      effectiveHandle,
-      ACCOUNT_LOGIN_URLS[platform],
-    )
-  } catch (err) {
-    return { error: `Failed to create browser profile: ${err}` }
-  }
+  // Phase 17's allocator owns ALL GoLogin REST calls (createProfile, proxy
+  // assignment) and will rewrite this action end-to-end. Until then, the row
+  // is a placeholder; startAccountBrowser surfaces the "no browser profile
+  // yet" message to the user. See 15-CONTEXT.md §Out of scope and
+  // 15-UAT.md G-01 for the quota-leak fix that motivated this stripping.
 
   // Insert social account record
   const { data, error } = await supabase
@@ -70,7 +62,7 @@ export async function connectAccount(
 
   if (error) return { error: error.message }
   revalidatePath("/accounts")
-  return { success: true, accountId: data.id, profileId }
+  return { success: true, accountId: data.id, profileId: null }
 }
 
 export async function skipWarmup(accountId: string) {
