@@ -40,7 +40,8 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 
 ### 🚧 v1.2 — Survival + Foundation (In Progress)
 
-- [x] **Phase 15: Browser Profile Schema Foundation** — `browser_profiles` table + `social_accounts` rewrite (1 profile = N accounts max 1/platform) (completed 2026-04-27)
+- [x] **Phase 15: Browser Profile Schema Foundation** — `browser_profiles` table + `social_accounts` rewrite (1 profile = N accounts max 1/platform)
+ (completed 2026-04-27)
 - [ ] **Phase 16: Mechanism Cost Engine Schema** — `mechanism_costs` table seeded with 27 signal + 28 outbound rows; `monitoring_signals` schema rewrite; DB-driven burn engine
 - [ ] **Phase 17: Residential Proxy + GoLogin Profile Allocator** — country-matched residential GeoProxy, fingerprint patch, country↔TZ/locale mapping, auto-reuse algorithm
 - [ ] **Phase 18: Cookies Persistence + Preflight + Ban Detection** — cookies_jar save/restore, Reddit `about.json` preflight, Haiku CU post-action ban detector
@@ -85,7 +86,9 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
   3. A documented country→{timezone, locale, UA} mapping for at least US/GB/DE/PL/FR/CA/AU is enforced and stored on `browser_profiles` (no drift between fields)
   4. `connectAccount(userId, platform)` reuses an existing same-country browser_profile of the same user when no platform conflict exists; only allocates a new proxy + profile when no compatible match is available
   5. A user can connect a Reddit account and a LinkedIn account and observe both land on the same `browser_profile_id` row when geographies match
-**Plans**: TBD
+**Plans**: 2 plans
+  - [ ] 17-01-foundation-PLAN.md — Country map module + GoLogin REST wrappers (createProfileV2, patchProfileFingerprints) + API-shape probe (Wave 1, BPRX-04, BPRX-05)
+  - [ ] 17-02-allocator-PLAN.md — Allocator orchestrator + connectAccount refactor + UI copy + legacy createProfile removal (Wave 2, BPRX-03, BPRX-06)
 **UI hint**: yes
 
 ### Phase 18: Cookies Persistence + Preflight + Ban Detection
