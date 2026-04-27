@@ -16,8 +16,17 @@ export type HealthStatus =
 
 export interface BrowserProfile {
   id: string
-  gologin_profile_id: string
-  gologin_proxy_id: string
+  /**
+   * Phase 17.5: Browserbase context id (replaces gologin_profile_id at the DB layer).
+   * Old fields are kept on the type as `string | null` for transitional compatibility
+   * with callers in worker.ts / cron routes / executor tests that plan 17.5-03 refits.
+   * Once plan 03 ships, the old fields are removed.
+   */
+  browserbase_context_id: string
+  /** @deprecated Phase 17.5 — column dropped in 00025; remove with plan 03. */
+  gologin_profile_id?: string | null
+  /** @deprecated Phase 17.5 — column dropped in 00025; remove with plan 03. */
+  gologin_proxy_id?: string | null
   country_code: string
   timezone: string
   locale: string

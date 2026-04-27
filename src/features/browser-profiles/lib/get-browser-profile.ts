@@ -40,7 +40,7 @@ export async function getBrowserProfileById(
 ): Promise<BrowserProfile | null> {
   const { data } = await supabase
     .from("browser_profiles")
-    .select("id, gologin_profile_id, gologin_proxy_id, country_code, timezone, locale, display_name")
+    .select("id, browserbase_context_id, country_code, timezone, locale, display_name")
     .eq("id", browserProfileId)
     .single()
 
