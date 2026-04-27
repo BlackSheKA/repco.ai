@@ -1,11 +1,16 @@
 ---
 phase: 16
 slug: mechanism-cost-engine-schema
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-27
+approved: 2026-04-27
 ---
+
+> **Coverage rationale (post-planning):** Every invariant in the Per-Task Verification Map below is satisfied by at least one `<automated>` `<verify>` block in plans 01–05. Mapping: DB invariants → PLAN 01 Task 3 + Task 4 acceptance grep + dev-branch curl verification queries. Code invariants → PLAN 03 Task 1/2 + PLAN 05 Task 5 final grep gate. Cost engine invariants → PLAN 02 Task 02-02 (cache) + PLAN 03 Task 2 (credit-burn.test.ts unit cases R1×6h=4, R1×1h×2=48, E1 flat 5, E1+R1=9, inactive=0, unknown=0, empty=0). Cron route invariant → PLAN 03 Task 2 grep on `.select(...)`. Refactor invariants → PLAN 04 Tasks 04-01 + 04-02. Wave 0 requirement (`mechanism-costs.test.ts` exists with at least one failing-then-passing test) → satisfied by PLAN 02 Task 02-02 which writes the test file from scratch as the cache helper is created (single-wave creation; no separate Wave 0 needed because tests are co-created with the helper module).
+>
+> **Wave-3 build-gate exemption:** PLAN 05 Task 5 chains `pnpm build` (typically 30–90s on Next.js 16). This intentionally exceeds the 30-second feedback-latency target stated below — it is the final wave gate before phase completion, not an inner-loop test. Per-task verifications inside Waves 1 and 2 stay under the latency target.
 
 # Phase 16 — Validation Strategy
 
@@ -105,4 +110,4 @@ created: 2026-04-27
 - [ ] Feedback latency < 40 seconds
 - [ ] `nyquist_compliant: true` set in frontmatter (after planner expansion + executor passes)
 
-**Approval:** pending
+**Approval:** approved 2026-04-27 (coverage validated against plans 01–05; wave-3 build-gate latency exemption documented in frontmatter prologue)

@@ -416,12 +416,16 @@ Same commit as the seed migration (D-09 / D-25 commit 1).
 
 ---
 
-## Open Questions for Planner
+## Open Questions (RESOLVED)
 
-1. **Onboarding `reddit_keyword` mapping** — does it map to `R3` (Competitor mention) or `R4` (Question pattern (custom))? §3 picks `R3` based on semantics; planner should confirm by reading what the cron route actually does with these signals (or accept `R3` as the working default — Phase 22 redesigns this anyway).
-2. **`classification-pipeline.ts` filter mapping** — same question for `'reddit_keyword'` and `'competitor'` filters at lines 211/214. Confirm mapping with the actual data flow.
-3. **Whether `mechanism-costs.ts` uses SSR client or service-role client** — recommend SSR (regular `createClient()` from `@/lib/supabase/server`) since the table is RLS-readable to all authenticated users. Service-role would still work but adds unnecessary privilege.
-4. **Commit split (D-25)** — two commits suggested: (a) migration + seed + types removal + roadmap edit, (b) refactor of credit-burn + cron route + classification-pipeline + onboarding + deletions. Planner picks final boundary; the line is "what's needed to get the schema deployed" vs "what's needed to make build green again."
+1. **Onboarding `reddit_keyword` mapping** — does it map to `R3` (Competitor mention) or `R4` (Question pattern (custom))?
+   **RESOLVED:** `R3` (Competitor mention). Locked by PLAN 04 Task 04-02. Phase 22 redesigns onboarding wizard signal seeding anyway; R3 is the working default.
+2. **`classification-pipeline.ts` filter mapping** — `'reddit_keyword'` and `'competitor'` filters at lines 211/214.
+   **RESOLVED:** Both map to `R3`. Locked by PLAN 04 Task 04-01. Both legacy filters were doing competitor/keyword overlap; R3 covers the merged semantics.
+3. **`mechanism-costs.ts` Supabase client choice** — SSR vs service-role.
+   **RESOLVED:** SSR (regular `createClient()` from `@/lib/supabase/server`). Locked by PLAN 02 Task 02-01. RLS allows authenticated SELECT; service-role is overkill for a public-readable lookup table.
+4. **Commit split (D-25)**.
+   **RESOLVED:** Two commits per D-25 implemented across plan structure: PLAN 01 commits the migration + seed + ROADMAP edit (deployable schema); PLAN 02 + PLAN 03 + PLAN 04 + PLAN 05 collectively land the second commit (refactor credit-burn + cron route + classification + onboarding + deletions). Boundary is "what's needed to get the schema deployed" vs "what's needed to make build green again."
 
 ---
 
