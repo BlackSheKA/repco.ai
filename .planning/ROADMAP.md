@@ -42,7 +42,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 
 - [x] **Phase 15: Browser Profile Schema Foundation** — `browser_profiles` table + `social_accounts` rewrite (1 profile = N accounts max 1/platform)
  (completed 2026-04-27)
-- [ ] **Phase 16: Mechanism Cost Engine Schema** — `mechanism_costs` table seeded with 27 signal + 28 outbound rows; `monitoring_signals` schema rewrite; DB-driven burn engine
+- [ ] **Phase 16: Mechanism Cost Engine Schema** — `mechanism_costs` table seeded with 32 signal + 28 outbound rows; `monitoring_signals` schema rewrite; DB-driven burn engine
 - [ ] **Phase 17: Residential Proxy + GoLogin Profile Allocator** — country-matched residential GeoProxy, fingerprint patch, country↔TZ/locale mapping, auto-reuse algorithm
 - [ ] **Phase 18: Cookies Persistence + Preflight + Ban Detection** — cookies_jar save/restore, Reddit `about.json` preflight, Haiku CU post-action ban detector
 - [ ] **Phase 19: Free Tier ENUM + Signup Flow** — `subscription_tier='free'`, `handle_new_user` rewrite (250 cr, no trial), email+IP anti-abuse
@@ -70,7 +70,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 **Depends on**: Nothing (parallelizable with Phase 15 — independent schema track)
 **Requirements**: PRIC-01, PRIC-02, PRIC-03
 **Success Criteria** (what must be TRUE):
-  1. `mechanism_costs` table exists and is seeded with all 27 signal + 28 outbound rows matching `PRICING.md` §5/§6 (`mechanism_id` PK, `cr_per_scan`/`cr_per_action`, `mechanism_kind`, `premium`, `requires_gologin`, `free_tier_allowed`)
+  1. `mechanism_costs` table exists and is seeded with all 32 signal + 28 outbound rows matching `PRICING.md` §5/§6 (`mechanism_id` PK, `cr_per_scan`/`cr_per_action`, `mechanism_kind`, `premium`, `requires_gologin`, `free_tier_allowed`)
   2. `monitoring_signals` has `frequency` (interval, default 6h), `mechanism_id` (FK), and `config jsonb`; legacy `signal_type` ENUM column dropped
   3. Server-side credit-burn engine computes `daily_burn = cr_per_scan × scans_per_day(cadence) × num_sources` from DB lookup via cached `getMechanismCost()` helper
   4. `MONITORING_COSTS` constants in `src/features/billing/lib/credit-burn.ts` are removed; no other module references them
