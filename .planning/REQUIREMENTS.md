@@ -206,12 +206,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OBSV-02 | Phase 1 | Complete |
 | OBSV-03 | Phase 1 | Complete |
 | OBSV-04 | Phase 1 | Complete |
-| MNTR-01 | Phase 2 | Pending |
+| MNTR-01 | Phase 2 | Complete |
 | MNTR-03 | Phase 2 | Complete |
 | MNTR-04 | Phase 2 | Complete |
-| MNTR-05 | Phase 2 | Pending |
+| MNTR-05 | Phase 2 | Complete |
 | MNTR-06 | Phase 2 | Complete |
-| MNTR-07 | Phase 2 | Pending |
+| MNTR-07 | Phase 2 | Complete |
 | FEED-01 | Phase 2 | Complete |
 | FEED-02 | Phase 2 | Complete |
 | FEED-03 | Phase 2 | Complete |
@@ -290,6 +290,36 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PRSP-06 | Phase 5 | Complete |
 | DASH-04 | Phase 5 | Complete |
 | MNTR-02 | Phase 6 | Complete |
+| LNKD-01 | Phase 13 | Complete |
+| LNKD-02 | Phase 13 | Complete |
+| LNKD-03 | Phase 13 | Complete |
+| LNKD-04 | Phase 13 | Complete |
+| LNKD-05 | Phase 13 | Complete |
+| LNKD-06 | Phase 13 | Complete |
+| BPRX-01 | Phase 15 | Pending |
+| BPRX-02 | Phase 15 | Pending |
+| BPRX-03 | Phase 17 | Pending |
+| BPRX-04 | Phase 17 | Pending |
+| BPRX-05 | Phase 17 | Pending |
+| BPRX-06 | Phase 17 | Pending |
+| BPRX-07 | Phase 18 | Pending |
+| BPRX-08 | Phase 18 | Pending |
+| BPRX-09 | Phase 18 | Pending |
+| BPRX-10 | Phase 20 | Pending |
+| PRIC-01 | Phase 16 | Pending |
+| PRIC-02 | Phase 16 | Pending |
+| PRIC-03 | Phase 16 | Pending |
+| PRIC-04 | Phase 19 | Pending |
+| PRIC-05 | Phase 19 | Pending |
+| PRIC-06 | Phase 21 | Pending |
+| PRIC-07 | Phase 21 | Pending |
+| PRIC-08 | Phase 21 | Pending |
+| PRIC-09 | Phase 21 | Pending |
+| PRIC-10 | Phase 21 | Pending |
+| PRIC-11 | Phase 22 | Pending |
+| PRIC-12 | Phase 22 | Pending |
+| PRIC-13 | Phase 22 | Pending |
+| PRIC-14 | Phase 19 | Pending |
 
 **Coverage:**
 - v1 requirements: 98 total
@@ -339,9 +369,21 @@ Source specs:
 ## v1.2 Coverage
 
 - v1.2 requirements: 24 total (10 BPRX + 14 PRIC)
-- Phases continue from 14 → start at 15
-- Source specs: 4 reference docs in `.planning/`
+- Phases: 15–22 (8 phases continuing from v1.1's Phase 14)
+- Mapped to phases: 24
+- Unmapped: 0
+
+| Phase | Requirements | Goal |
+|-------|--------------|------|
+| 15 | BPRX-01, BPRX-02 | Browser Profile Schema Foundation |
+| 16 | PRIC-01, PRIC-02, PRIC-03 | Mechanism Cost Engine Schema |
+| 17 | BPRX-03, BPRX-04, BPRX-05, BPRX-06 | Residential Proxy + GoLogin Profile Allocator |
+| 18 | BPRX-07, BPRX-08, BPRX-09 | Cookies Persistence + Preflight + Ban Detection |
+| 19 | PRIC-04, PRIC-05, PRIC-14 | Free Tier ENUM + Signup Flow |
+| 20 | BPRX-10 | Pre-Launch User Wipe |
+| 21 | PRIC-06, PRIC-07, PRIC-08, PRIC-09, PRIC-10 | Free Tier Enforcement + Monthly Grant + Stripe Refresh |
+| 22 | PRIC-11, PRIC-12, PRIC-13 | Signals UI Redesign + Free Tier Copy |
 
 ---
 *Requirements defined: 2026-04-16*
-*Last updated: 2026-04-27 — v1.2 Survival + Foundation requirements appended (BPRX-01..10 + PRIC-01..14); awaiting roadmapper traceability*
+*Last updated: 2026-04-27 — v1.2 traceability mapped (BPRX-01..10 + PRIC-01..14 → Phases 15–22); 24/24 requirements covered, no orphans*

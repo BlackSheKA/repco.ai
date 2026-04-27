@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Survival + Foundation
-status: Defining requirements
-stopped_at: v1.2 milestone started — REQUIREMENTS drafted from 4 spec docs; awaiting roadmapper output
+status: Roadmap created — ready for /gsd-plan-phase 15
+stopped_at: v1.2 roadmap created — 8 phases (15–22) mapping 24 requirements (10 BPRX + 14 PRIC)
 last_updated: "2026-04-27T00:00:00.000Z"
 last_activity: 2026-04-27
 progress:
-  total_phases: 14
+  total_phases: 22
   completed_phases: 14
   total_plans: 0
   completed_plans: 0
-  percent: 0
+  percent: 64
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-04-27 — v1.2 milestone started)
 
 ## Current Position
 
-Phase: Not started (defining requirements → roadmapper next)
+Phase: 15 — Browser Profile Schema Foundation (not started)
 Plan: —
-Milestone: v1.2 (continues phase numbering from 14 → starts at 15)
+Milestone: v1.2 (Phases 15–22, continues from 14)
 
 ## Performance Metrics
 
@@ -188,5 +188,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-27
-Stopped at: v1.2 milestone started — REQUIREMENTS drafted from 4 spec docs (BPRX-01..10 + PRIC-01..14). Next: spawn `gsd-roadmapper` to derive phases.
+Stopped at: v1.2 roadmap created — 8 phases (15–22) mapping 24 requirements (10 BPRX + 14 PRIC). Next: `/gsd-plan-phase 15` for Browser Profile Schema Foundation.
 Resume file: None
