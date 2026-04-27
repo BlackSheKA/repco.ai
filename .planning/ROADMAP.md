@@ -102,7 +102,11 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
   4. Reuse rule (D-02 from Phase 17 CONTEXT) preserved: cross-platform same-user same-country accounts share a single `browser_profiles` row; same-platform second account creates a new context
   5. Phase 13 LinkedIn executors (DM/Connect/Follow/Like/Comment/Prescreen) and Phase 4 P04 Reddit inbox CU connect to Browserbase via `chromium.connectOverCDP(connectUrl)` instead of GoLogin — selectors and action logic unchanged
   6. All `mode: "gologin"` references and `gologin_*` env vars removed from `src/`; `.env.local` and Vercel env have `BROWSERBASE_API_KEY` + `BROWSERBASE_PROJECT_ID` set
-**Plans**: TBD (3-4 plans expected: schema migration / client.ts swap + allocator rewrite / Phase 13 executor refit / UAT)
+**Plans**: 4 plans
+  - [ ] 17.5-01-schema-migration-PLAN.md — migration 00025_browserbase_columns.sql (TRUNCATE CASCADE + drop gologin_*, add browserbase_context_id), apply to dev branch
+  - [ ] 17.5-02-client-allocator-connectflow-PLAN.md — Browserbase client.ts + allocator rewrite (D-02 + D-10 preserved) + account-actions refit + ConnectionFlow iframe per UI-SPEC
+  - [ ] 17.5-03-executor-refit-stagehand-PLAN.md — worker.ts session swap + 5 LinkedIn executors via Stagehand + Reddit CU CDP swap + delete src/lib/gologin/
+  - [ ] 17.5-04-uat-and-cleanup-PLAN.md — 6 UAT scenarios + Stagehand smoke run + Vercel env cleanup + Phase 17 SUMMARY supersede annotations
 **UI hint**: yes (iframe live-view replaces external viewer)
 
 ### Phase 18: Cookies Persistence + Preflight + Ban Detection
@@ -189,7 +193,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 | 15. Browser Profile Schema Foundation | v1.2 | 3/3 | Complete    | 2026-04-27 |
 | 16. Mechanism Cost Engine Schema | v1.2 | 0/0 | Not started | - |
 | 17. Residential Proxy + GoLogin Profile Allocator | v1.2 | 1/2 | Abandoned | 2026-04-27 |
-| 17.5. Browser Profile Allocator (Browserbase) | v1.2 | 0/0 | Not started | - |
+| 17.5. Browser Profile Allocator (Browserbase) | v1.2 | 0/4 | Planned     | |
 | 18. Cookies Persistence + Preflight + Ban Detection | v1.2 | 0/0 | Not started | - |
 | 19. Free Tier ENUM + Signup Flow | v1.2 | 0/0 | Not started | - |
 | 20. Pre-Launch User Wipe | v1.2 | 0/0 | Not started | - |
