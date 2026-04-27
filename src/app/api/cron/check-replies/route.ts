@@ -27,6 +27,7 @@ import Anthropic from "@anthropic-ai/sdk"
 
 import { logger } from "@/lib/logger"
 import { connectToProfile, releaseProfile } from "@/lib/gologin/adapter"
+import { getBrowserProfileForAccount } from "@/features/browser-profiles/lib/get-browser-profile"
 import { captureScreenshot } from "@/lib/computer-use/screenshot"
 import { matchReplyToProspect } from "@/features/sequences/lib/reply-matching"
 import { handleReplyDetected } from "@/features/sequences/lib/stop-on-reply"
@@ -184,7 +185,7 @@ export async function GET(request: Request) {
     const { data: accountsRaw, error: accountsError } = await supabase
       .from("social_accounts")
       .select(
-        "id, user_id, handle, gologin_profile_id, consecutive_inbox_failures",
+        "id, user_id, handle, browser_profile_id, consecutive_inbox_failures",
       )
       .eq("platform", "reddit")
       .eq("active", true)
@@ -196,7 +197,7 @@ export async function GET(request: Request) {
       id: string
       user_id: string
       handle: string | null
-      gologin_profile_id: string | null
+      browser_profile_id: string | null
       consecutive_inbox_failures: number | null
     }>
 
@@ -205,8 +206,12 @@ export async function GET(request: Request) {
     let totalFailures = 0
 
     for (const account of accounts) {
-      if (!account.gologin_profile_id) {
-        logger.warn("Skipping account — no gologin_profile_id", {
+      const browserProfile = await getBrowserProfileForAccount(
+        account.id,
+        supabase,
+      )
+      if (!browserProfile) {
+        logger.warn("Skipping account — no browser profile", {
           correlationId,
           accountId: account.id,
         })
@@ -219,7 +224,7 @@ export async function GET(request: Request) {
 
       try {
         // 1. Connect to the GoLogin profile
-        connection = await connectToProfile(account.gologin_profile_id)
+        connection = await connectToProfile(browserProfile.gologin_profile_id)
 
         // 2. Read the inbox with Haiku vision
         const messages = await readInboxWithHaiku(connection.page)
