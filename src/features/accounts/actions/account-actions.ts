@@ -4,28 +4,35 @@ import { revalidatePath } from "next/cache"
 
 import { createClient } from "@/lib/supabase/server"
 import {
-  deleteProfile,
-  startCloudBrowser,
-  stopCloudBrowser,
-} from "@/lib/gologin/client"
+  createSession,
+  deleteContext,
+  getSessionDebugUrl,
+} from "@/lib/browserbase/client"
 import {
   getBrowserProfileForAccount,
   getBrowserProfileById,
 } from "@/features/browser-profiles/lib/get-browser-profile"
 import { allocateBrowserProfile } from "@/features/browser-profiles/lib/allocator"
+import type { SupportedCountry } from "@/features/browser-profiles/lib/country-map"
 
-// Login URLs shown to the user in the connection flow. GoLogin's Cloud
-// Browser web-viewer mode ignores profile startUrl, so the user navigates
-// here manually — we surface the URL in the UI via startAccountBrowser return.
+// Login URLs surfaced to the UI; Browserbase navigates server-side, but we
+// expose the URL as a copy/paste fallback if needed.
 const ACCOUNT_LOGIN_URLS: Record<string, string> = {
   reddit: "https://www.reddit.com/login/",
   linkedin: "https://www.linkedin.com/login",
 }
 
+// D-11 user-facing copy. Never expose vendor names or HTTP codes.
+const D11_COPY =
+  "Could not set up the account right now — please try again in a moment."
+
 export async function connectAccount(
   platform: "reddit" | "linkedin",
   handle: string,
-) {
+): Promise<
+  | { success: true; accountId: string; contextId: string }
+  | { success?: false; error: string }
+> {
   const supabase = await createClient()
   const {
     data: { user },
@@ -39,7 +46,7 @@ export async function connectAccount(
       : handle
 
   try {
-    // D-01: country hardcoded 'US' in this phase. Future phases wire a real source here.
+    // D-01: country hardcoded "US" in this phase.
     const result = await allocateBrowserProfile({
       userId: user.id,
       platform,
@@ -50,19 +57,16 @@ export async function connectAccount(
     return {
       success: true,
       accountId: result.socialAccountId,
-      profileId: result.gologinProfileId,
+      contextId: result.browserbaseContextId,
     }
   } catch (err) {
-    // D-11: exact user-facing copy. Full err logged server-side.
+    // Full err logged server-side; vendor names never leak to the user.
     console.error("[connectAccount] allocation failed", {
       userId: user.id,
       platform,
       err,
     })
-    return {
-      error:
-        "Could not set up the account right now — please try again in a moment.",
-    }
+    return { error: D11_COPY }
   }
 }
 
@@ -90,7 +94,7 @@ export async function skipWarmup(accountId: string) {
 
 export async function startAccountBrowser(accountId: string): Promise<{
   success: boolean
-  url?: string
+  debuggerFullscreenUrl?: string
   loginUrl?: string
   error?: string
 }> {
@@ -108,73 +112,56 @@ export async function startAccountBrowser(accountId: string): Promise<{
     .single()
 
   if (!account) {
-    return { success: false, error: "Account not found" }
+    return { success: false, error: D11_COPY }
   }
 
   const browserProfile = await getBrowserProfileForAccount(accountId, supabase)
   if (!browserProfile) {
-    return {
-      success: false,
-      error: "Account has no browser profile yet. Reconnect after the allocator ships.",
-    }
+    return { success: false, error: D11_COPY }
   }
 
   try {
-    const session = await startCloudBrowser(browserProfile.gologin_profile_id)
+    // D17.5-07: connect/login flow uses 1800s timeout.
+    const session = await createSession({
+      contextId: browserProfile.browserbase_context_id,
+      country: browserProfile.country_code as SupportedCountry,
+      timeoutSeconds: 1800,
+      keepAlive: false,
+    })
+    const debuggerFullscreenUrl = await getSessionDebugUrl(session.id)
+    // T-17.5-03: never log debuggerFullscreenUrl or session.id.
     return {
       success: true,
-      url: session.remoteOrbitaUrl,
+      debuggerFullscreenUrl,
       loginUrl: ACCOUNT_LOGIN_URLS[account.platform],
     }
   } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : String(err),
-    }
-  }
-}
-
-export async function stopAccountBrowser(
-  accountId: string
-): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: "Not authenticated" }
-
-  const browserProfile = await getBrowserProfileForAccount(accountId, supabase)
-  if (!browserProfile) {
-    return { success: true }
-  }
-
-  try {
-    await stopCloudBrowser(browserProfile.gologin_profile_id)
-    return { success: true }
-  } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : String(err),
-    }
+    console.error("[startAccountBrowser] failed", {
+      userId: user.id,
+      accountId,
+      // err.message only — no debuggerFullscreenUrl or context id leakage.
+      message: err instanceof Error ? err.message : String(err),
+    })
+    return { success: false, error: D11_COPY }
   }
 }
 
 /**
- * Marks the account's session as verified (user asserts they logged in via
- * the remote browser). We trust the user here because GoLogin's /browser/{id}/web
- * viewer mode does not expose a CDP endpoint we can use to inspect the page
- * server-side. The first real action (warmup scan, DM, like/follow) will
- * naturally fail via Haiku CU if the login wasn't actually completed, and
- * the health state machine will downgrade the account to "warning".
- *
- * Stores the assertion on the account record so the worker pipeline can
- * later gate outreach on session_verified_at presence.
+ * Phase 17.5: Browserbase sessions auto-release on timeout; persistent context
+ * flushes cookies on session end. No explicit stop needed. Function kept exported
+ * for UI symmetry (Cancel button) but the body is now a no-op.
  */
+export async function stopAccountBrowser(
+  _accountId: string,
+): Promise<{ success: boolean; error?: string }> {
+  return { success: true }
+}
+
 /**
- * Delete a social account. Also best-effort stops any running cloud browser
- * and deletes the underlying GoLogin profile so the user's GoLogin dashboard
- * stays clean. The DB row is deleted first — GoLogin calls are fire-and-forget
- * (failures are logged but don't block the UI).
+ * Delete a social account. Refcount-based cleanup: if this was the last
+ * social_account using the underlying browser_profile, also delete the
+ * browser_profiles row and the Browserbase context. Otherwise leave the
+ * profile + context alone (D-02 reuse — still in use by other accounts).
  */
 export async function deleteAccount(accountId: string): Promise<{
   success: boolean
@@ -186,7 +173,7 @@ export async function deleteAccount(accountId: string): Promise<{
   } = await supabase.auth.getUser()
   if (!user) return { success: false, error: "Not authenticated" }
 
-  // Look up profile ID before deleting the row so we can clean up GoLogin.
+  // Look up the browser_profile + context id BEFORE deleting the account row.
   const { data: account } = await supabase
     .from("social_accounts")
     .select("browser_profile_id")
@@ -194,13 +181,11 @@ export async function deleteAccount(accountId: string): Promise<{
     .eq("user_id", user.id)
     .single()
 
-  let gologinProfileId: string | null = null
-  if (account?.browser_profile_id) {
-    const browserProfile = await getBrowserProfileById(
-      account.browser_profile_id,
-      supabase,
-    )
-    gologinProfileId = browserProfile?.gologin_profile_id ?? null
+  let browserProfileId: string | null = account?.browser_profile_id ?? null
+  let browserbaseContextId: string | null = null
+  if (browserProfileId) {
+    const profile = await getBrowserProfileById(browserProfileId, supabase)
+    browserbaseContextId = profile?.browserbase_context_id ?? null
   }
 
   const { error } = await supabase
@@ -209,20 +194,25 @@ export async function deleteAccount(accountId: string): Promise<{
     .eq("id", accountId)
     .eq("user_id", user.id)
 
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: D11_COPY }
 
-  // Best-effort GoLogin cleanup — don't fail the whole op if these 500.
-  // Accounts with no browser_profile_id (Phase 16 transitional, D-04) skip cleanup.
-  if (gologinProfileId) {
-    try {
-      await stopCloudBrowser(gologinProfileId)
-    } catch {
-      // ignore
-    }
-    try {
-      await deleteProfile(gologinProfileId)
-    } catch {
-      // ignore
+  // Refcount: if any other social_accounts still reference this browser_profile,
+  // leave it alone. Otherwise delete the row + Browserbase context (D-10 best-effort).
+  if (browserProfileId) {
+    const { count } = await supabase
+      .from("social_accounts")
+      .select("id", { count: "exact", head: true })
+      .eq("browser_profile_id", browserProfileId)
+
+    if ((count ?? 0) === 0) {
+      await supabase
+        .from("browser_profiles")
+        .delete()
+        .eq("id", browserProfileId)
+        .then(() => undefined, () => undefined)
+      if (browserbaseContextId) {
+        await deleteContext(browserbaseContextId).catch(() => {})
+      }
     }
   }
 
@@ -249,8 +239,6 @@ export async function verifyAccountSession(accountId: string): Promise<{
     .eq("user_id", user.id)
 
   if (error) {
-    // If the column doesn't exist yet, still succeed — worker pipeline will
-    // handle the absence of the timestamp gracefully.
     if (!/column .*session_verified_at.* does not exist/i.test(error.message)) {
       return { success: false, verified: false, error: error.message }
     }
