@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 
+import znak from "@/app/images/znak-light-tr.png"
 import { Card, CardContent } from "@/components/ui/card"
 import {
   deriveAgentState,
@@ -189,10 +190,24 @@ export function AgentCard({ userId, initialStats }: AgentCardProps) {
         {/* Left section: avatar + info */}
         <div className="flex items-start gap-4">
           {/* Avatar */}
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-stone-800">
-            <span className="font-sans text-2xl font-semibold text-[#4338CA]">
-              r
-            </span>
+          <div
+            className="flex size-12 shrink-0 items-center justify-center rounded-full bg-stone-800"
+            role="img"
+            aria-label="repco"
+          >
+            <div
+              className="size-7 bg-emerald-500"
+              style={{
+                WebkitMaskImage: `url(${znak.src})`,
+                maskImage: `url(${znak.src})`,
+                WebkitMaskRepeat: "no-repeat",
+                maskRepeat: "no-repeat",
+                WebkitMaskPosition: "center",
+                maskPosition: "center",
+                WebkitMaskSize: "contain",
+                maskSize: "contain",
+              }}
+            />
           </div>
 
           {/* Name, state, message */}

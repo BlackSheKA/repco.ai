@@ -1,17 +1,19 @@
-"use client"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-import { Card, CardContent } from "@/components/ui/card"
-
-import { ShareButtons, type ResultsCardStats } from "./share-buttons"
-
-interface ResultsCardProps {
-  stats: ResultsCardStats
-  imageUrl: string
+export interface WeeklyStats {
+  signals: number
+  dms: number
+  replies: number
+  replyRate: number
+  conversions: number
 }
 
-export function ResultsCard({ stats, imageUrl }: ResultsCardProps) {
+interface WeeklyStatsCardProps {
+  stats: WeeklyStats
+}
+
+export function WeeklyStatsCard({ stats }: WeeklyStatsCardProps) {
   const items: Array<{ label: string; value: string }> = [
-    { label: "Posts scanned", value: String(stats.scanned) },
     { label: "Signals", value: String(stats.signals) },
     { label: "DMs sent", value: String(stats.dms) },
     { label: "Replies", value: String(stats.replies) },
@@ -21,50 +23,24 @@ export function ResultsCard({ stats, imageUrl }: ResultsCardProps) {
 
   return (
     <Card>
-      <CardContent className="flex flex-col gap-4 p-6">
-        <div
-          aria-label="Weekly results preview"
-          className="relative overflow-hidden rounded-lg"
-          style={{
-            background: "linear-gradient(135deg, #1c1917 0%, #292524 100%)",
-            color: "#ffffff",
-            padding: "32px",
-          }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: "4px",
-              background: "#4338CA",
-            }}
-          />
-          <div className="mb-6 text-2xl font-semibold tracking-tight">
-            repco weekly
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            {items.map((item) => (
-              <div
-                key={item.label}
-                className="flex flex-col rounded-md border border-white/10 bg-white/5 p-4"
-              >
-                <div className="text-3xl font-bold leading-tight">
-                  {item.value}
-                </div>
-                <div className="mt-1 text-xs text-stone-400">
-                  {item.label}
-                </div>
+      <CardHeader className="flex flex-row items-baseline justify-between gap-2 pb-3">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
+          Last 7 days
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-5">
+          {items.map((item) => (
+            <div key={item.label} className="flex flex-col">
+              <div className="font-mono text-lg leading-tight">
+                {item.value}
               </div>
-            ))}
-          </div>
-          <div className="mt-6 text-right text-xs text-stone-500">
-            repco.ai
-          </div>
+              <div className="mt-0.5 text-xs text-muted-foreground">
+                {item.label}
+              </div>
+            </div>
+          ))}
         </div>
-
-        <ShareButtons imageUrl={imageUrl} stats={stats} />
       </CardContent>
     </Card>
   )

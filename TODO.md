@@ -2,25 +2,32 @@
 
 ## north-star: "wykryj intent i IDŹJEDŹ do klienta tam gdzie ON jest"
 
+Cel:
+- konto reddit 
+- wykrywa słowa kluczowe
+- robi akcej typu:
+    - like
+    - comment
+    - follow / unfollow
+    -
+- konto linkedin
+- wykrywa s
 
 hack00SE!!!
 
 
-1 [d] [u] [p] [e] [v]
-2 [d] [u] [p] [e] [v]
-3 [d] [u] [p] [e] [v]
-4 [d] [u] [p] [e] [v    zakończone ale skipped 4
-5 [d] [u] [p] [e] [v]
-6 [d] [u] [p] [e] [v
-7 d u [p] [e] v
-
-13 [d] [u] [p e v
-
-[logo]
+15 [d] [u] [p] [e] v
+16 [d] [u] [p] e v
+17 [d] [u] [p] e v
+18 [d u p e v
+19 d u p e v
+20 d u p e v
+21 d u p e v
+22 d u p e v
 
 
 Electrical_Teach4075
-
+https://ui.shadcn.com/create?preset=b3QwALGmg&rtl=true&item=demo
 
 
 After all gap phases complete:
@@ -29,4 +36,8 @@ After all gap phases complete:
 /gsd:complete-milestone v1.0 — archive when audit passes
 
 
-/gsd:autonomous
+[ ] jak wygląda procedura warmup
+[ ] muszę widzieć logi działania apki (poziom gologin)
+
+[ ] panel admina (zapytaj claude co tu najlepiej pokazac; akcje computer use; apify; logowanie jako user readonly;)
+[ ] ikonka favicon apki
