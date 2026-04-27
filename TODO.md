@@ -17,10 +17,11 @@ hack00SE!!!
 
 
 15 [d] [u] [p] [e] v
-16 [d] [u] [p] e v
-17 [d] [u] [p] e v
-18 [d u p e v
-19 d u p e v
+16 [d] [u] [p] [e] v
+17 [d] [u] [p] [e] v
+17.5 [d] [u] [p e v 
+18 [d] [u] [p] e v
+19 [d] [u] [p] e v
 20 d u p e v
 21 d u p e v
 22 d u p e v
@@ -40,4 +41,4 @@ After all gap phases complete:
 [ ] muszę widzieć logi działania apki (poziom gologin)
 
 [ ] panel admina (zapytaj claude co tu najlepiej pokazac; akcje computer use; apify; logowanie jako user readonly;)
-[ ] ikonka favicon apki
+[x] ikonka favicon apki

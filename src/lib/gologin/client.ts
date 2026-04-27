@@ -157,18 +157,19 @@ export interface CreateProfileV2Result {
 }
 
 /**
- * Create a new GoLogin browser profile with a residential geolocation proxy.
+ * Create a new GoLogin browser profile WITHOUT a proxy attached.
  *
- * Uses proxy.mode="geolocation" + autoProxyRegion (NEVER the shared "gologin" mode).
+ * IMPORTANT (17-API-PROBE.md UPDATE): Sending `proxy: { mode: "geolocation", autoProxyRegion }`
+ * in the POST /browser body is silently ignored — GoLogin stores the profile with
+ * `proxy.mode = "none"` and `proxyEnabled = false`. The geolocation proxy must be created
+ * and linked separately via `assignResidentialProxy` (POST /users-proxies/mobile-proxy).
+ *
+ * Callers should follow this with `assignResidentialProxy({ profileId: result.id, countryCode })`
+ * before starting the cloud browser. Skipping that step results in the profile running
+ * on the host machine's IP — instant ban risk on Reddit/LinkedIn.
+ *
  * Per D-04/D-05: country-mismatch breaks the anti-ban premise — surface errors instead
  * of falling back to a different region.
- *
- * NOTE (17-API-PROBE.md OQ#2): The create response proxy.mode will be "none" — this is
- * expected. GoLogin activates the geolocation proxy when the browser session starts.
- * autoProxyRegion is preserved in the stored profile and used at session start time.
- * Store profile.id as gologin_proxy_id (no stable proxy.id is returned under geolocation mode).
- *
- * NOTE: autoProxyRegion must be lowercase (GoLogin validation enforces: us, uk, de, ca, in).
  */
 export async function createProfileV2(
   args: CreateProfileV2Args,
@@ -183,11 +184,8 @@ export async function createProfileV2(
       startUrl: args.startUrl ?? "",
       navigator: args.navigator,
       timezone: { enabled: true, fillBasedOnIp: false, timezone: args.timezone },
-      proxy: {
-        mode: "geolocation",
-        autoProxyRegion: args.countryCode.toLowerCase(),
-        autoProxyCity: "",
-      },
+      // Proxy attached separately via assignResidentialProxy — see function docstring.
+      proxy: { mode: "none" },
     }),
   })
 
@@ -201,27 +199,92 @@ export async function createProfileV2(
   return (await response.json()) as CreateProfileV2Result
 }
 
+// ---------------------------------------------------------------------------
+// assignResidentialProxy — attach a residential GeoProxy to a profile.
+// ---------------------------------------------------------------------------
+
+export interface AssignResidentialProxyArgs {
+  profileId: string
+  /** ISO country code (uppercase or lowercase — lowercased for the API). */
+  countryCode: string
+  /** Optional human-readable label visible in GoLogin proxy list. */
+  customName?: string
+}
+
+export interface AssignResidentialProxyResult {
+  id: string
+  host: string
+  port: number
+  username: string
+  password: string
+  /** "resident" for residential, "mobile", "datacenter". */
+  connectionType: string
+  customName?: string
+}
+
 /**
- * Patch the fingerprint of a GoLogin browser profile.
+ * Create a GoLogin residential proxy and link it to an existing browser profile.
  *
- * DEVIATION (17-API-PROBE.md OQ#1): No REST endpoint for fingerprint patching exists.
- * Both POST /browser/{id}/fingerprints and PATCH /browser/{id} return 404.
- * The operation is MCP-only (mcp__gologin-mcp__patch_profile_fingerprints).
+ * Uses POST /users-proxies/mobile-proxy with `isMobile: false, isDC: false` — this is
+ * GoLogin's "high quality" proxy endpoint that returns a residential proxy entity
+ * (host:geo.floppydata.com, port:10080, generated credentials) and atomically links
+ * it to the profile passed via `profileIdToLink`.
  *
- * Plan 02 (allocator.ts) must call the MCP tool directly from the server action layer.
- * This stub is retained so the interface is stable and callers get a clear runtime error
- * if they attempt the REST path.
+ * After this returns, GoLogin shows the profile with `proxyType: "geolocation"`,
+ * `proxyEnabled: true`, and the proxy.id stable for storage in `browser_profiles.gologin_proxy_id`.
+ *
+ * NOTE: Each call consumes from the workspace's residential traffic pool.
+ *
+ * NOTE: countryCode must be one of GoLogin's supported regions: us, uk, de, ca, in
+ * (verified via probe — uppercase rejected with HTTP 400).
  */
-export async function patchProfileFingerprints(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  profileId: string,
-): Promise<void> {
-  // DEVIATION: POST /browser/{id}/fingerprints → 404 (confirmed by 17-API-PROBE.md).
-  // The GoLogin REST API v1 does not expose a fingerprint randomization endpoint.
-  // Use mcp__gologin-mcp__patch_profile_fingerprints from the server action layer instead.
-  throw new Error(
-    "patchProfileFingerprints: no REST endpoint available (MCP-only). " +
-      "Call mcp__gologin-mcp__patch_profile_fingerprints from the server action layer. " +
-      "See .planning/phases/17-residential-proxy-gologin-profile-allocator/17-API-PROBE.md OQ#1.",
-  )
+export async function assignResidentialProxy(
+  args: AssignResidentialProxyArgs,
+): Promise<AssignResidentialProxyResult> {
+  const response = await fetch(`${GOLOGIN_API}/users-proxies/mobile-proxy`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({
+      countryCode: args.countryCode.toLowerCase(),
+      isMobile: false,
+      isDC: false,
+      profileIdToLink: args.profileId,
+      ...(args.customName ? { customName: args.customName } : {}),
+    }),
+  })
+
+  if (!response.ok) {
+    const body = await response.text()
+    throw new Error(
+      `GoLogin assignResidentialProxy failed (${response.status}): ${body}`,
+    )
+  }
+
+  return (await response.json()) as AssignResidentialProxyResult
+}
+
+/**
+ * Patch (refresh) the fingerprint of one or more GoLogin browser profiles.
+ *
+ * Endpoint: PATCH /browser/fingerprints with body `{ browsersIds: [profileId] }`.
+ * Verified against swagger spec (api.gologin.com/docs-json) — the original plan-01
+ * probe tested wrong paths (POST /browser/{id}/fingerprints, PATCH /browser/{id})
+ * and concluded MCP-only. This was incorrect.
+ *
+ * Per D-07: empty body — GoLogin re-randomizes canvas/webGL/audio/fonts using its
+ * own defaults. The profile id list is the only required field.
+ */
+export async function patchProfileFingerprints(profileId: string): Promise<void> {
+  const response = await fetch(`${GOLOGIN_API}/browser/fingerprints`, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify({ browsersIds: [profileId] }),
+  })
+
+  if (!response.ok) {
+    const body = await response.text()
+    throw new Error(
+      `GoLogin patchProfileFingerprints failed (${response.status}): ${body}`,
+    )
+  }
 }

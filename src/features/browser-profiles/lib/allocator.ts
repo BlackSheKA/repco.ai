@@ -19,18 +19,22 @@
  * the skip is visible in Vercel/dev logs. A future phase that wires the MCP tool will
  * restore BPRX-04 compliance.
  *
- * DEVIATION (17-API-PROBE.md OQ#2): No proxy.id is returned under mode:"geolocation".
- * gologin_proxy_id column stores the GoLogin profile id (satisfies UNIQUE NOT NULL per
- * migration 00023).
+ * UPDATE (post-UAT 2026-04-27): The original probe was wrong about geolocation proxies.
+ * `POST /browser` with `proxy: { mode: "geolocation", autoProxyRegion }` is silently
+ * ignored — the profile lands with `proxyEnabled: false` and runs on the host's IP
+ * (instant ban). The fix: create+link the residential proxy in a separate call via
+ * `assignResidentialProxy`. After that call, `proxy.id` is a real id we store as
+ * `gologin_proxy_id` (UNIQUE NOT NULL satisfied with a real value, not the profile-id fallback).
  */
 
 import { revalidatePath } from "next/cache"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import {
+  assignResidentialProxy,
   createProfileV2,
   deleteProfile,
-  startCloudBrowser,
+  patchProfileFingerprints,
 } from "@/lib/gologin/client"
 import { mapForCountry, type SupportedCountry } from "./country-map"
 
@@ -43,10 +47,19 @@ export interface AllocateBrowserProfileArgs {
   supabase: SupabaseClient
 }
 
+/**
+ * Login URLs the cloud browser opens on first session start. Set as the profile's
+ * `startUrl` field at creation time. Cannot be overridden later for reused profiles —
+ * GoLogin's PUT /browser/{id}/custom does not accept startUrl (verified via swagger).
+ */
+const PLATFORM_LOGIN_URLS: Record<"reddit" | "linkedin", string> = {
+  reddit: "https://www.reddit.com/login/",
+  linkedin: "https://www.linkedin.com/login/",
+}
+
 export interface AllocateBrowserProfileResult {
   browserProfileId: string
   gologinProfileId: string
-  cloudBrowserUrl: string
   /** socialAccountId — surfaced so connectAccount can return accountId to the UI. */
   socialAccountId: string
   /** true when an existing browser_profile was reused (D-02). */
@@ -107,6 +120,11 @@ export async function allocateBrowserProfile(
   // ── Step 3: Allocate new GoLogin profile (D-09 — no lock) ────────────────
   const { timezone, locale, userAgent, language } = mapForCountry(country)
 
+  // Land the cloud browser directly on the platform's login page (POST /browser
+  // accepts startUrl on profile create). Reuse path can't override this — see
+  // 17-API-PROBE.md OQ#3 (PUT /browser/{id}/custom has no startUrl field).
+  const startUrl = PLATFORM_LOGIN_URLS[platform]
+
   const created = await createProfileV2({
     accountHandle: handle,
     countryCode: country,
@@ -117,23 +135,48 @@ export async function allocateBrowserProfile(
       platform: "Win32",
     },
     timezone,
+    startUrl,
   })
 
   const gologinProfileId = created.id
 
-  // OQ#2 (17-API-PROBE.md): no proxy.id under mode:geolocation — store profile id.
-  // gologin_proxy_id satisfies UNIQUE NOT NULL in migration 00023 via this fallback.
-  const gologinProxyId = gologinProfileId
+  // ── Step 3b: Attach residential proxy (BPRX-03) ─────────────────────────
+  // CRITICAL: GoLogin silently drops `proxy.mode:"geolocation"` from POST /browser body.
+  // Without this explicit attach call the profile runs on the host IP — instant Reddit/LinkedIn
+  // ban. See 17-API-PROBE.md UPDATE.
+  // D-10: rollback newly-created profile if proxy creation fails.
+  let gologinProxyId: string
+  try {
+    const proxy = await assignResidentialProxy({
+      profileId: gologinProfileId,
+      countryCode: country,
+      customName: `repco-${handle}`,
+    })
+    gologinProxyId = proxy.id
+  } catch (err) {
+    try {
+      await deleteProfile(gologinProfileId)
+    } catch (delErr) {
+      console.error(
+        "[allocator] Failed to delete orphan GoLogin profile after proxy assign failure",
+        { gologinProfileId, delErr },
+      )
+    }
+    throw err
+  }
 
   // ── Step 4: Patch fingerprint (BPRX-04, D-07) ────────────────────────────
-  // DEVIATION: patchProfileFingerprints throws (REST 404 — MCP-only per 17-API-PROBE.md OQ#1).
-  // We skip the call rather than failing the whole allocation. The profile is still
-  // functional; BPRX-04 is partially deferred until the MCP tool is accessible in
-  // the server action runtime (Phase 18+).
-  console.warn(
-    "[allocator] Skipping patchProfileFingerprints — no REST endpoint (MCP-only). " +
-      "See .planning/phases/17-residential-proxy-gologin-profile-allocator/17-API-PROBE.md OQ#1",
-  )
+  // Refresh canvas/webGL/audio/fonts via PATCH /browser/fingerprints. Best-effort —
+  // failure is non-fatal because the profile + proxy are already wired and a
+  // session-default fingerprint is still better than no profile at all.
+  try {
+    await patchProfileFingerprints(gologinProfileId)
+  } catch (err) {
+    console.warn("[allocator] patchProfileFingerprints failed (non-fatal)", {
+      gologinProfileId,
+      err,
+    })
+  }
 
   // ── Step 5: INSERT browser_profiles row ───────────────────────────────────
   // Compute display_name: {country}-{seq} where seq = existing profiles for this
@@ -153,7 +196,7 @@ export async function allocateBrowserProfile(
     .insert({
       user_id: userId,
       gologin_profile_id: gologinProfileId,
-      gologin_proxy_id: gologinProxyId, // OQ#2 fallback: profile id as proxy id
+      gologin_proxy_id: gologinProxyId, // real proxy id from assignResidentialProxy
       country_code: country,
       timezone,
       locale,
@@ -255,14 +298,16 @@ async function insertSocialAccountAndFinish(
 
   const socialAccountId = (saRow as { id: string }).id
 
-  // ── Step 8: revalidatePath + start cloud browser ──────────────────────────
+  // ── Step 8: revalidatePath only ───────────────────────────────────────────
+  // Cloud browser is started lazily via `startAccountBrowser` when the user clicks
+  // "Log in" in /accounts — NOT here. This avoids GoLogin's parallel-session quota
+  // (HTTP 403 "max parallel cloud launches limit") blocking account creation, and
+  // matches the existing UI flow which only consumes accountId + profileId.
   revalidatePath("/accounts")
-  const session = await startCloudBrowser(gologinProfileId)
 
   return {
     browserProfileId,
     gologinProfileId,
-    cloudBrowserUrl: session.remoteOrbitaUrl,
     socialAccountId,
     reused: !newlyCreated,
   }

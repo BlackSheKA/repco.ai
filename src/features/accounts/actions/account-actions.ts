@@ -51,7 +51,6 @@ export async function connectAccount(
       success: true,
       accountId: result.socialAccountId,
       profileId: result.gologinProfileId,
-      cloudBrowserUrl: result.cloudBrowserUrl,
     }
   } catch (err) {
     // D-11: exact user-facing copy. Full err logged server-side.
