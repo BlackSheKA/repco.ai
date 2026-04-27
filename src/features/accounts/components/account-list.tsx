@@ -111,13 +111,9 @@ export function AccountList({
     profileId: string | null,
     platform: "reddit" | "linkedin",
   ) {
-    if (!profileId) {
-      toast.error("This account has no browser profile")
-      return
-    }
     setConnecting(true)
     setNewAccountId(accountId)
-    setNewProfileId(profileId)
+    setNewProfileId(profileId) // may be null during Phase 15-17 transition
     setNewAccountPlatform(platform)
   }
 
@@ -207,7 +203,7 @@ export function AccountList({
         </Card>
       )}
 
-      {connecting && newAccountId && newProfileId && (
+      {connecting && newAccountId && (
         <ConnectionFlow
           accountId={newAccountId}
           profileId={newProfileId}
