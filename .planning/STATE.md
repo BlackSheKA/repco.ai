@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Survival + Foundation
-status: Ready to execute
+status: Executing Phase 16
 stopped_at: Phase 17 UI-SPEC approved
-last_updated: "2026-04-27T11:52:20.872Z"
+last_updated: "2026-04-27T12:16:51.535Z"
 last_activity: 2026-04-27
 progress:
   total_phases: 8
-  completed_phases: 1
-  total_plans: 9
+  completed_phases: 0
+  total_plans: 10
   completed_plans: 2
-  percent: 22
+  percent: 20
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-27 — v1.2 milestone started)
 
 **Core value:** People actively looking for your product get a personalized, relevant DM within hours
-**Current focus:** Phase 15 — browser-profile-schema-foundation
+**Current focus:** Phase 16 — mechanism-cost-engine-schema
 
 ## Current Position
 
-Phase: 16
-Plan: Not started
+Phase: 16 (mechanism-cost-engine-schema) — EXECUTING
+Plan: 1 of 5
 Milestone: v1.2 (Phases 15–22, continues from 14)
 
 ## Performance Metrics
