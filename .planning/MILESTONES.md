@@ -1,16 +1,37 @@
 # Milestones
 
-## v1.1 LinkedIn Action Expansion (In Progress, started 2026-04-23)
+## v1.1 LinkedIn Action Expansion (Shipped: 2026-04-27)
 
-**Scope:** 1 phase, 5 plans (TBD during plan-phase)
-**Status:** Roadmap defined, awaiting `/gsd:plan-phase 13`
+**Phases completed:** 2 phases, 6 plans
+**Timeline:** 2026-04-23 → 2026-04-27 (~4 days, 68 commits)
+**Audit status:** tech_debt (main integration gap closed by Phase 14; 11 deferred nits + 8 live UAT tests + Nyquist validation remain)
 
-**Goal:** Reach outreach parity with Reddit on LinkedIn by porting the deterministic DOM flow (proven in v1.0 Phase 10 + commit 042e842) to every remaining LinkedIn action type.
+**Goal:** Reach outreach parity with Reddit on LinkedIn by porting the deterministic DOM flow (proven in v1.0 Phase 10 + commit 042e842) to every remaining LinkedIn action type, plus pre-screen prospects whose Connect path LinkedIn structurally blocks.
 
-**Requirements:** LNKD-01 through LNKD-06 (LinkedIn DM, Follow, Like, Comment, followup_dm sequences, pre-screening)
+**Key accomplishments:**
 
-**Phase:**
-- [ ] **Phase 13: LinkedIn Action Expansion** — 5 plans (DM, Follow, Like+Comment, followup_dm, pre-screening)
+1. **LinkedIn DM executor** (P13-01) — deterministic Playwright flow for 1st-degree connections, 8-mode failure taxonomy, no Claude CU
+2. **LinkedIn Follow executor** (P13-02) — dual-path CTA (primary aria-label + overflow More-actions fallback), Premium-gate detection via aria-pressed
+3. **LinkedIn React (Like) + Comment executors** (P13-03) — main-post scoping via `data-id urn:li:activity`, Quill composer via `page.keyboard.type`, inline QC with single-retry, 1250-char Comment cap
+4. **LinkedIn followup_dm routing** (P13-04) — day 3/7/14 cron is platform-agnostic; routes to LinkedIn DM executor without breaking Reddit sequences
+5. **Pre-screening cron** (P13-05) — `pipeline_status='unreachable'` keeps creator-mode / weekly-limit-hit / 404 prospects out of approval queue
+6. **Account quarantine enforcement** (P14-01, gap closure) — worker guard + `claim_action` RPC join read `health_status` / `cooldown_until`, fail fast with `failure_mode='account_quarantined'`; atomic `FOR UPDATE SKIP LOCKED` on social_accounts join
+
+**Migrations shipped:** 00017 (Phase 13 platform-aware limits) + 00018 (Phase 14 quarantine join)
+**Test suite:** 355+ tests, full suite green
+**Requirements:** 6/6 LNKD-XX satisfied
+
+**Known tech debt (tracked for v1.2):**
+- Phase 13 Nyquist `wave_0_complete: false` — `/gsd-validate-phase 13` recommended
+- 8 human-verification UAT tests (require warmed GoLogin profile + real prospects across normal, Premium-gated, 404, comment-disabled scenarios)
+- 11 deferred Phase 13 code-quality nits / improvement items (W-05/06/07, I-01..I-05 per `13-REVIEW-FIX.md`)
+- LinkedIn executors heavily DOM-coupled — selector-drift risk if LinkedIn ships UI revamp; mitigated by per-action `failure_mode` taxonomy in `job_logs.metadata`
+
+**Bugs fixed in-flight:**
+- 3 authwall/GoLogin live-UAT findings (commits 0095a08, 0b57aa6, 3788f30)
+- Prescreen cron ordering: `last_used_at` never existed → reorder by `session_verified_at` (commit 0df91b1)
+- H-05: followup_dm mapped to dm in worker warmup gate
+- H-03: platform-aware `WarmupState.maxDay`
 
 ---
 

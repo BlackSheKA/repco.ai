@@ -8,22 +8,21 @@ repco.ai is an AI sales rep that monitors Reddit and LinkedIn 24/7, detects peop
 
 People who are actively looking for your product get a personalized, relevant DM within hours — not days, not never.
 
-## Current Milestone: v1.1 — LinkedIn Action Expansion
+## Current State
 
-**Started:** 2026-04-23
-**Goal:** Reach outreach parity with Reddit on LinkedIn by porting the deterministic DOM flow pattern (proven in v1.0 Phase 10 + commit 042e842) to every remaining LinkedIn action type — DM, Follow, Like/Comment, followup_dm — plus pre-screening prospects whose Connect path LinkedIn structurally blocks.
+**Last shipped:** v1.1 LinkedIn Action Expansion (2026-04-27)
+**Current focus:** Planning next milestone — run `/gsd-new-milestone` to define v1.2 scope
 
-**Target features:**
-- LinkedIn DM executor (1st-degree connections)
-- LinkedIn Follow executor (creator/influencer engage)
-- LinkedIn Like + Comment executor (post interactions)
-- LinkedIn followup_dm sequences (reuse day 3/7/14 cron)
-- Prospect pre-screening queue (keep structurally-unreachable prospects out of approval queue)
+**v1.1 delivered:**
+- LinkedIn DM, Follow, Like, Comment executors via deterministic Playwright (no Claude CU)
+- Day 3/7/14 followup_dm now routes to LinkedIn DM executor (Reddit regression-safe)
+- Prospect pre-screening cron filters structurally-unreachable LinkedIn prospects
+- Account quarantine enforcement: `health_status` + `cooldown_until` now gate execution at both worker and `claim_action` RPC layers
 
-**Key context:**
-- Builds directly on connection_request executor from v1.0 — same anti-bot bypass (navigate to underlying URL) is expected to work for Message, Follow, React, Comment
-- Claude Computer Use is NOT used for LinkedIn actions in v1.1 — deterministic Playwright locators only (cheaper, faster, reliable against isTrusted gating)
-- Pre-screening is the higher-leverage part: saves user credits + approval-queue time on infeasible targets
+**Open after v1.1 close:**
+- Phase 13 Nyquist `wave_0_complete: false` — `/gsd-validate-phase 13` recommended
+- 8 human-verification UAT tests on Phase 13 (warmed GoLogin profile + real prospects required)
+- 11 deferred code-quality nits / improvement items per `13-REVIEW-FIX.md`
 
 ## Requirements
 
@@ -52,17 +51,24 @@ People who are actively looking for your product get a personalized, relevant DM
 - [x] Weekly results card: 1200x630 OG image + X/LinkedIn share intents — Validated in Phase 5
 - [x] Stripe billing: 3 subscription tiers + 4 credit packs, hosted Checkout + webhook — Validated in Phase 5
 - [x] Credit economy: daily burn cron (monitoring + account) + action-level deduction — Validated in Phase 5
+- [x] LNKD-01: LinkedIn DM 1st-degree (deterministic DOM, no CU) — Validated in v1.1 Phase 13
+- [x] LNKD-02: LinkedIn Follow + Premium-gate detection — Validated in v1.1 Phase 13 (read-gate added in Phase 14)
+- [x] LNKD-03: LinkedIn React (Like) + post failure modes — Validated in v1.1 Phase 13
+- [x] LNKD-04: LinkedIn Comment ≤1250 chars — Validated in v1.1 Phase 13
+- [x] LNKD-05: Day 3/7/14 followup_dm → LinkedIn DM executor — Validated in v1.1 Phase 13
+- [x] LNKD-06: Pre-screen marks unreachable LinkedIn prospects — Validated in v1.1 Phase 13 (read-gate added in Phase 14)
+- [x] Action engine: event-driven (Supabase DB Webhook → Vercel Function → GoLogin → Playwright CDP → Claude Haiku CU) — Validated in v1.0 Phase 3
+- [x] Human-in-the-loop: DM + public reply require approval; like + follow auto-approved — Validated in v1.0 Phase 3
+- [x] DM generation: Claude Sonnet 4.6, max 3 sentences, references specific post, quality control pass — Validated in v1.0 Phase 3
+- [x] Anti-ban system: GoLogin Cloud profiles, behavioral noise, warmup protocol (7 days), rate limiting — Validated in v1.0 Phase 3
+- [x] Dashboard: multi-column layout with persistent terminal header, agent card, intent feed, approval queue, results — Validated in v1.0 Phases 2 + 5
+- [x] Account health monitoring: warmup progress, health status, daily limits — Validated in v1.0 Phase 3 + v1.1 Phase 14 (runtime quarantine read-gate)
+- [x] Warmup scheduler: 7-day progressive warmup protocol per account — Validated in v1.0 Phase 3
+- [x] LinkedIn integration: monitoring (v1.0 Phase 6) + outreach (v1.0 Phase 10 + v1.1 Phases 13–14)
 
 ### Active
 
-- [ ] Action engine: event-driven (Supabase DB Webhook -> Vercel Function -> GoLogin -> Playwright CDP -> Claude Haiku CU)
-- [ ] Human-in-the-loop: DM + public reply require approval; like + follow auto-approved
-- [ ] DM generation: Claude Sonnet 4.6, max 3 sentences, references specific post, quality control pass
-- [ ] Anti-ban system: GoLogin Cloud profiles, behavioral noise, warmup protocol (7 days), rate limiting
-- [ ] Dashboard: multi-column layout with persistent terminal header, agent card, intent feed, approval queue, results
-- [ ] Account health monitoring: warmup progress, health status, daily limits
-- [ ] Warmup scheduler: 7-day progressive warmup protocol per account
-- [ ] LinkedIn integration (Phase 6)
+(None — next milestone scope to be defined via `/gsd-new-milestone`)
 
 ### Out of Scope
 
@@ -110,4 +116,4 @@ People who are actively looking for your product get a personalized, relevant DM
 | Event-driven actions (DB Webhook) over polling | Zero empty invocations, fires only on user approval | — Pending |
 
 ---
-*Last updated: 2026-04-21 — Phase 5 Billing + Onboarding + Growth complete (7/7 plans, 8/10 UAT tests pass + 2 partial; Stripe + Resend wired, products created in test + live mode, webhook endpoints live; trial-start UI button deferred to follow-up)*
+*Last updated: 2026-04-27 — v1.1 LinkedIn Action Expansion shipped (Phases 13–14, 6/6 LNKD requirements satisfied; deterministic LinkedIn DM/Follow/Like/Comment + followup_dm + prescreen + runtime quarantine enforcement)*
