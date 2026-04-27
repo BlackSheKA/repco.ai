@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Survival + Foundation
 status: Roadmap created — ready for /gsd-plan-phase 15
-stopped_at: Phase 16 UI-SPEC approved
-last_updated: "2026-04-27T10:48:20.194Z"
+stopped_at: Phase 17 context gathered
+last_updated: "2026-04-27T10:55:06.418Z"
 last_activity: 2026-04-27
 progress:
   total_phases: 8
@@ -187,5 +187,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-27
-Stopped at: Phase 16 UI-SPEC approved
-Resume file: .planning/phases/16-mechanism-cost-engine-schema/16-UI-SPEC.md
+Stopped at: Phase 17 context gathered
+Resume file: .planning/phases/17-residential-proxy-gologin-profile-allocator/17-CONTEXT.md
