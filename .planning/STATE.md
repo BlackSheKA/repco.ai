@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Survival + Foundation
 status: Roadmap created — ready for /gsd-plan-phase 15
-stopped_at: Phase 15 context gathered
-last_updated: "2026-04-27T10:26:01.476Z"
+stopped_at: Phase 15 UI-SPEC approved
+last_updated: "2026-04-27T10:30:52.523Z"
 last_activity: 2026-04-27
 progress:
   total_phases: 8
@@ -187,5 +187,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-27
-Stopped at: Phase 15 context gathered
-Resume file: .planning/phases/15-browser-profile-schema-foundation/15-CONTEXT.md
+Stopped at: Phase 15 UI-SPEC approved
+Resume file: .planning/phases/15-browser-profile-schema-foundation/15-UI-SPEC.md

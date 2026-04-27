@@ -1,9 +1,11 @@
 # Pricing Spec — repco.ai
 
-**Wersja:** 1.0 · **Data:** 2026-04-27 · **Owner:** Kamil
+**Wersja:** 1.1 · **Data:** 2026-04-27 · **Owner:** Kamil
 **Cel dokumentu:** kompletna specyfikacja cennika — plany, free tier (PLG), wycena per-mechanism, model burn'u kredytów. Source-of-truth dla migracji DB, Stripe products i UI billing/`/signals`.
 
 > **Status:** SPEC do implementacji. Aktualne ceny w kodzie (3-6 cr/day flat) są niedoszacowane i nie pokrywają wszystkich 27 mechanizmów z [SIGNAL-DETECTION-MECHANISMS.md](SIGNAL-DETECTION-MECHANISMS.md).
+
+> **v1.1 zmiana:** porzucono model 3 cyklów rozliczeniowych (Monthly/Quarterly/Annual) na rzecz **3 volume tierów** (Starter/Growth/Scale) z ortogonalnym annual billing toggle. Powód: stary model dawał Annual user'owi $0.006/credit = równe kosztowi infra (0% margin), a Annual credits były 4× tańsze niż najtańszy credit pack. Volume tiers są spójne z pack pricing i każdy tier ma zdrową marżę.
 
 ---
 
@@ -33,18 +35,65 @@ To jest **server-side burn engine** — niewidoczny dla użytkownika.
 
 ---
 
-## 2. Plany subskrypcyjne
+## 2. Plany subskrypcyjne — volume tiers
 
-| Plan | Cena efektywna | Bilingowe | Monthly grant | Cap balansu | Stripe env |
+**Filozofia:** plany różnią się **objętością kredytów**, nie cyklem rozliczeniowym. Ten sam tier ma identyczne features (gates są tylko między Free a paid). Annual billing = orthogonal **20% off** toggle (osobny Stripe price per tier × cycle).
+
+### Tiers (monthly billing)
+
+| Tier | Monthly credits | Cena/m | $/cr | Margin | Cap balansu | Stripe env |
+|---|---|---|---|---|---|---|
+| **Free** | 250 | $0 | — | — | 500 | — |
+| **Starter** | 1 000 | **$25** | $0.025 | 76% | 2 000 | `STRIPE_PRICE_STARTER_MONTHLY` |
+| **Growth** ⭐ | 3 000 | **$59** | $0.0197 | 70% | 6 000 | `STRIPE_PRICE_GROWTH_MONTHLY` |
+| **Scale** | 8 000 | **$129** | $0.0161 | 63% | 16 000 | `STRIPE_PRICE_SCALE_MONTHLY` |
+
+⭐ Growth = recommended default, Stripe `marketing_features` flag.
+
+### Annual billing toggle (-20%)
+
+Pay yearly upfront → 20% off effective monthly price:
+
+| Tier | Annual price | Effective $/m | $/cr (annual) | Margin (annual) | Stripe env |
 |---|---|---|---|---|---|
-| **Free** | $0 | — | **250 cr** | 500 cr | — |
-| Monthly | $49/mies | $49/mies | **2 000 cr** | 4 000 cr | `STRIPE_PRICE_MONTHLY` |
-| Quarterly | $35/mies | $105 / 3 mies | **3 000 cr** | 6 000 cr | `STRIPE_PRICE_QUARTERLY` |
-| Annual ⭐ | $25/mies | $300 / rok | **4 000 cr** | 8 000 cr | `STRIPE_PRICE_ANNUAL` |
+| Starter | **$240/yr** | $20/m | $0.020 | 70% | `STRIPE_PRICE_STARTER_ANNUAL` |
+| Growth ⭐ | **$566/yr** | $47/m | $0.0157 | 62% | `STRIPE_PRICE_GROWTH_ANNUAL` |
+| Scale | **$1 238/yr** | $103/m | $0.0129 | 54% | `STRIPE_PRICE_SCALE_ANNUAL` |
 
-**Grant rollover:** ADDITIVE z cap kumulacji = **2× monthly grant**. Nagradza ciągłość bez "use it or lose it" frustration; blokuje stockpiling roczny. Cron `monthly-credit-grant` 1 dnia miesiąca o 00:00 UTC: `balance = min(balance + monthly_grant, cap)`.
+Najgorszy case (Scale annual) wciąż **54% margin** — zdrowo nad infra cost ($0.006/cr).
 
-**Brak 3-day trialu.** Free tier zastępuje go całkowicie. Signup → automatycznie `subscription_tier='free'` + 250 cr balance.
+### Sanity vs credit packs
+
+Subscription per-credit pricing musi być **lekko korzystniejsze niż packs** (lock-in benefit) ale nie totalnie deklasować packs (które są emergency top-up).
+
+| Tier | $/cr (annual) | vs najbliższy pack |
+|---|---|---|
+| Starter | $0.020 | ≈ Growth pack ($0.039) — sub 50% taniej, OK lock-in benefit |
+| Growth | $0.0157 | ≈ Scale pack ($0.030) — sub 47% taniej |
+| Scale | $0.0129 | ≈ Agency pack ($0.027) — sub 52% taniej |
+
+Packs pozostają jako emergency top-up (one-time, no commitment); sub jest naturalnie tańszy bo bring recurring revenue.
+
+### Grant rollover
+
+ADDITIVE z cap kumulacji = **2× monthly grant** per tier. Nagradza ciągłość bez "use it or lose it" frustration; blokuje stockpiling roczny.
+
+Cron `monthly-credit-grant` 1 dnia miesiąca o 00:00 UTC: `balance = min(balance + monthly_grant, tier_cap)`.
+
+### Brak trialu
+
+Free tier zastępuje 3-day trial całkowicie. Signup → automatycznie `subscription_tier='free'` + 250 cr balance.
+
+### Anchor messaging (vs broken old model)
+
+Stary model "Annual $25/mies" jako anchor message był mocny ale ekonomicznie broken. Nowy anchor:
+
+> **Growth annual = $47/mes effective.** Tyle co kawa dziennie, vs $4k/mes SDR agency.
+
+Albo per-tier:
+- Starter ($25/m): "for solo founders sending ~25 DMs/m"
+- Growth ($59/m): "for steady operators sending ~80 DMs/m"
+- Scale ($129/m): "for agencies running multi-platform funnels"
 
 ---
 
@@ -102,7 +151,9 @@ Top-up dostępny **tylko dla paid** subscribers.
 | Scale | 5 000 | $149 | 0.030 | `STRIPE_PRICE_PACK_SCALE` |
 | Agency | 15 000 | $399 | 0.027 | `STRIPE_PRICE_PACK_AGENCY` |
 
-Pack credits: additive, NIE wliczają się do cap balansu (cap dotyczy tylko grantów subskrypcji). Power user może mieć 8 000 cr (annual cap) + 5 000 cr (Scale pack) = 13 000 cr balance.
+Pack credits: additive, NIE wliczają się do cap balansu (cap dotyczy tylko grantów subskrypcji). Power user na Scale tier może mieć 16 000 cr (Scale cap) + 5 000 cr (Scale pack) = 21 000 cr balance.
+
+**Relacja pack ↔ subscription:** packs są naturalnie droższe per-credit niż sub tiers (zob. §2 sanity vs packs). To celowe — packs to emergency top-up (one-time, no commitment); sub bring recurring revenue więc ma rabat. User który regularnie kupuje packs powinien upgrade'ować na wyższy sub tier.
 
 ---
 
@@ -282,7 +333,23 @@ Koszt = utrzymanie sesji gologin per profile.
 
 ## 8. Sanity check — przykładowe profile użytkownika
 
-### "Indie hacker" (typowy paid user, ~$25/mies annual)
+### "Solo founder · light outreach" (Starter tier)
+
+Lekki user — testuje model, niewielki volume.
+
+| Aktywne | Konfiguracja | Cadence | Daily |
+|---|---|---|---|
+| R1 | 1 subreddit | 6h | 4 cr |
+| R3 | 1 konkurent | 6h | 4 cr |
+| L1 | 1 keyword | 6h | 4 cr |
+| **TOTAL monitoring** | | | **12 cr/day = ~360 cr/m** |
+| OL1 connection requests | 1/dzień × 20 cr | | 600 cr/m |
+| OL5 LinkedIn comments | 0.5/dzień × 15 cr | | 225 cr/m |
+| **TOTAL** | | | **~1 185 cr/m** ✅ mieści się w Starter 1 000 + ewentualny mały overflow |
+
+→ **Starter annual $20/m effective** ($240/yr) — wystarczy dla większości miesięcy; w heavy month dokupi Starter pack ($29).
+
+### "Indie hacker · steady operator" (Growth tier — typowy paid user)
 
 | Aktywne | Konfiguracja | Cadence | Daily |
 |---|---|---|---|
@@ -300,9 +367,9 @@ Koszt = utrzymanie sesji gologin per profile.
 | **TOTAL outbound** | | | **~5 400 cr/m** |
 | **TOTAL** | | | **~7 100 cr/m** |
 
-→ Annual user (4 000 cr/m grant) dokupuje 1× Growth pack ($59) co ~1.5 mies. Effective cost ~$60/mies.
+→ **Growth annual $47/m effective** + 1× Growth pack ($59) = **~$106/m total**. Dostaje 4 500 cr/m. Average across heavy/light months: **~$60-80/m effective**. (Albo Scale annual $103/m solo, 8 000 cr/m → comfortable bez packs.)
 
-### "Agency / power user" (multi-platform full funnel)
+### "Agency · multi-platform full funnel" (Scale tier + packs)
 
 | Aktywne | Konfiguracja | Cadence | Daily |
 |---|---|---|---|
@@ -325,7 +392,7 @@ Koszt = utrzymanie sesji gologin per profile.
 | **TOTAL outbound** | | | **~24 750 cr/m** |
 | **TOTAL** | | | **~35 350 cr/m** |
 
-→ Power user kupuje 2× Scale pack ($298) miesięcznie + Annual ($25/mies) = ~$323/mies. Wciąż znacznie taniej niż SDR agency $4k/mies.
+→ **Scale annual $103/m** + 4× Scale pack ($149 × 4 = $596) = **~$699/m total**. Dostaje 8 000 + 20 000 = 28 000 cr/m + zaoszczędzone z poprzednich miesięcy (cap 16 000 + packs poza cap). Wciąż znacznie taniej niż SDR agency $4k/mes.
 
 ### "Free tier user" (PLG)
 
@@ -392,23 +459,27 @@ Po wipe: clean slate, nowi userzy idą od razu na nowy cennik.
 - Refaktor [src/features/billing/lib/credit-burn.ts](../src/features/billing/lib/credit-burn.ts) — formuła per-scan × cadence z DB lookup
 - Update [src/features/billing/lib/types.ts](../src/features/billing/lib/types.ts) — usunąć `MONITORING_COSTS`, dodać `getMechanismCost()` z cache
 
-### Faza B: Free tier infrastructure (~1 tydzień)
+### Faza B: Free tier + volume tiers infrastructure (~1 tydzień)
 
-- ENUM `subscription_tier`: `free`, `monthly`, `quarterly`, `annual`
+- ENUM `subscription_tier`: `free`, `starter`, `growth`, `scale`
+- ENUM `billing_cycle`: `monthly`, `annual` (orthogonal — applies tylko do paid tiers)
 - `users.subscription_tier` (default `free`)
-- `users.credits_included_monthly` per tier (250 / 2 000 / 3 000 / 4 000)
-- `users.credits_balance_cap` per tier (500 / 4 000 / 6 000 / 8 000)
+- `users.billing_cycle` (nullable dla free, NOT NULL dla paid)
+- `users.credits_included_monthly` per tier (250 / 1 000 / 3 000 / 8 000)
+- `users.credits_balance_cap` per tier (500 / 2 000 / 6 000 / 16 000)
 - Nowy cron `/api/cron/monthly-credit-grant` (`0 0 1 * *`) — additive z cap
 - Usuń trial: `handle_new_user` ustawia `subscription_tier='free'` + initial 250 cr (NIE `trial_ends_at`)
 - Akcja gates w [src/features/dashboard/](../src/features/dashboard/) — guard `subscription_tier === 'free'` blokuje DM/reply/connection
 - Mechanism gates w `/signals` UI — premium mechanizmy z lockiem dla free
+- Stripe products: 6 nowych prices (Starter/Growth/Scale × monthly/annual). Annual = 80% wartości monthly × 12 (tj. 20% off built-in).
 
 ### Faza C: UI redesign (~1.5 tygodnia)
 
 - `/signals` redesign — 27 mechanizmów (nie 5 typów)
 - Per mechanism card: toggle, konfiguracja, **unit cost label** (statyczny "1 credit per scan"), upgrade badge dla locked, status (last_scan_at, signals_24h)
 - **NIE pokazujemy** daily/monthly burn ticker
-- Pricing page redesign: dodać kolumnę "Free" do existing 3 tierów
+- Pricing page (publiczna `/pricing`): comparison table 4 kolumny (Free / Starter / Growth ⭐ / Scale) + **monthly/annual toggle** above the table (-20% on annual). Reference sketch: [.planning/sketches/001-pricing-page/](sketches/001-pricing-page/) (potrzebuje update na nowe tiery).
+- Optional slider "How many DMs/month?" → highlight rekomendowany tier (≤5 → Free, 6-30 → Starter, 31-100 → Growth, 101+ → Scale)
 - Free tier landing copy w `src/app/(app)/page.tsx` lub `/pricing`
 
 ### Faza D: Hard switch / wipe (~1 dzień)
@@ -420,8 +491,11 @@ Po wipe: clean slate, nowi userzy idą od razu na nowy cennik.
 
 ### Faza E: Stripe products refresh
 
-- Update `STRIPE_PRICE_*` env vars jeśli nowe price IDs
-- Webhook handler [src/app/api/stripe/webhook/route.ts](../src/app/api/stripe/webhook/route.ts) — update `credits_included_monthly` per subscription event
+- Stworzyć **6 subscription prices** w Stripe (Starter/Growth/Scale × monthly/annual) + 4 pack prices (bez zmian)
+- Env vars: `STRIPE_PRICE_STARTER_MONTHLY`, `STRIPE_PRICE_STARTER_ANNUAL`, `STRIPE_PRICE_GROWTH_MONTHLY`, `STRIPE_PRICE_GROWTH_ANNUAL`, `STRIPE_PRICE_SCALE_MONTHLY`, `STRIPE_PRICE_SCALE_ANNUAL`
+- Wywalić stare price IDs (`STRIPE_PRICE_MONTHLY/QUARTERLY/ANNUAL`) — w hard switch i tak nie ma userów na nich
+- Webhook handler [src/app/api/stripe/webhook/route.ts](../src/app/api/stripe/webhook/route.ts) — match price ID → `(subscription_tier, billing_cycle)` lookup → update `credits_included_monthly` + `credits_balance_cap` per subscription event
+- Stripe `marketing_features` flag na Growth tier (recommended badge)
 
 ### Faza F: Outbound mechanism cost engine (~3-5 dni)
 
@@ -457,10 +531,10 @@ Powiązane z OP4 (sequencing) + OP7 (variants).
 
 ### Pricing experiments
 - "Pay per DM" pricing model jako alternatywa flat sub — flagged w [MARKETING.md:386](MARKETING.md#L386), niezdecydowane
-- A/B testy cenowe (price sensitivity per ICP segment)
-- Pricing experiments framework (ab-test dla different grant levels)
-- Annual upgrade discount campaigns (Q1 promo etc.)
-- Custom enterprise tier (>$200/mies, dedicated support, custom credit limits) — out of scope v1
+- A/B testy cenowe (price sensitivity per ICP segment) — szczególnie czy Growth $59 jest sweet spot vs $49 vs $69
+- Annual discount calibration (20% może być za skromnie vs Linear 25-30%, lub za hojnie — A/B test po 6 mies)
+- Custom enterprise tier (>$200/mies, dedicated support, custom credit limits, team seats) — out of scope v1, naturalna ewolucja gdy pierwszy agency request
+- Tier upgrade prompts: trigger gdy user przekracza grant 2 mies pod rząd → "Upgrade to Growth saves you $X/m"
 
 ### Outbound calibration
 - **Per-user credit cost defaults:** wartości w cost matrix są szacunkowe; revize przed OP1 launch na podstawie realnych Haiku CU compute time + LLM token usage ([OUTBOUND-COMMUNICATION-MECHANISMS.md:1258](OUTBOUND-COMMUNICATION-MECHANISMS.md#L1258))
