@@ -40,7 +40,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 
 ### 🚧 v1.2 — Survival + Foundation (In Progress)
 
-- [ ] **Phase 15: Browser Profile Schema Foundation** — `browser_profiles` table + `social_accounts` rewrite (1 profile = N accounts max 1/platform)
+- [x] **Phase 15: Browser Profile Schema Foundation** — `browser_profiles` table + `social_accounts` rewrite (1 profile = N accounts max 1/platform) (completed 2026-04-27)
 - [ ] **Phase 16: Mechanism Cost Engine Schema** — `mechanism_costs` table seeded with 27 signal + 28 outbound rows; `monitoring_signals` schema rewrite; DB-driven burn engine
 - [ ] **Phase 17: Residential Proxy + GoLogin Profile Allocator** — country-matched residential GeoProxy, fingerprint patch, country↔TZ/locale mapping, auto-reuse algorithm
 - [ ] **Phase 18: Cookies Persistence + Preflight + Ban Detection** — cookies_jar save/restore, Reddit `about.json` preflight, Haiku CU post-action ban detector
@@ -61,8 +61,8 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
   3. Legacy `social_accounts.gologin_profile_id` and `social_accounts.proxy_id` columns are removed (or deprecated and unread by code)
   4. `worker.ts` and account server actions read GoLogin profile/proxy via JOIN through `browser_profiles` — no direct legacy column reads remain
 **Plans**: 2 plans
-  - [ ] 15-01-PLAN.md — Schema migration + helper module + types (Wave 1, BPRX-01)
-  - [ ] 15-02-PLAN.md — Refactor 9 reader sites + tests (Wave 2, BPRX-02)
+  - [x] 15-01-PLAN.md — Schema migration + helper module + types (Wave 1, BPRX-01)
+  - [x] 15-02-PLAN.md — Refactor 9 reader sites + tests (Wave 2, BPRX-02)
 
 ### Phase 16: Mechanism Cost Engine Schema
 **Goal**: A single source-of-truth cost table drives every monitoring/outbound credit calculation. The legacy `MONITORING_COSTS` constants are gone; `monitoring_signals` is restructured around mechanism IDs and per-mechanism config.
@@ -164,7 +164,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 | 12. Trial Auto-Activation + Expiry (GAP) | v1.0 | 3/3 | Complete | 2026-04-21 |
 | 13. LinkedIn Action Expansion | v1.1 | 5/5 | Complete | 2026-04-23 |
 | 14. LinkedIn Account Quarantine Enforcement (GAP) | v1.1 | 1/1 | Complete | 2026-04-25 |
-| 15. Browser Profile Schema Foundation | v1.2 | 0/0 | Not started | - |
+| 15. Browser Profile Schema Foundation | v1.2 | 2/2 | Complete    | 2026-04-27 |
 | 16. Mechanism Cost Engine Schema | v1.2 | 0/0 | Not started | - |
 | 17. Residential Proxy + GoLogin Profile Allocator | v1.2 | 0/0 | Not started | - |
 | 18. Cookies Persistence + Preflight + Ban Detection | v1.2 | 0/0 | Not started | - |
