@@ -59,16 +59,29 @@ export async function addSource(value: string, signalType: SourceType) {
       return { error: "Not authenticated" }
     }
 
-    // Case-insensitive dedup check — Postgres .eq() on lowercased value is
-    // already correct since validate() lowercases keywords/companies/authors,
-    // and subreddits are normalized to canonical r/<name> casing.
-    const { data: existing } = await supabase
+    // Dedup matches a normalized value: validate() lowercases keywords/
+    // companies/authors and normalizeSubreddit produces canonical lowercase
+    // r/<name>, so both insert and lookup compare bytes against the same
+    // canonical form. Migration 00022 also adds a partial UNIQUE index
+    // (user_id, signal_type, value) WHERE active=true as a backstop in case
+    // this SELECT ever fails silently.
+    const { data: existing, error: dedupErr } = await supabase
       .from("monitoring_signals")
       .select("id")
       .eq("user_id", user.id)
       .eq("signal_type", signalType)
       .eq("value", result.value)
       .limit(1)
+
+    if (dedupErr) {
+      logger.error("addSource dedup query failed", {
+        signalType,
+        userId: user.id,
+        error: dedupErr,
+        errorMessage: dedupErr.message,
+      })
+      return { error: "Could not check duplicates. Try again." }
+    }
 
     if (existing && existing.length > 0) {
       return { error: "Already added" }
@@ -81,6 +94,12 @@ export async function addSource(value: string, signalType: SourceType) {
     })
 
     if (error) {
+      // 23505 = unique_violation: the UNIQUE index caught a duplicate that
+      // slipped past the dedup SELECT (race or stale cache). Treat as the
+      // same user-facing message as the explicit dedup hit above.
+      if (error.code === "23505") {
+        return { error: "Already added" }
+      }
       return { error: error.message }
     }
 

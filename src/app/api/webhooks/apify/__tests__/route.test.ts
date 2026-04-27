@@ -56,6 +56,10 @@ vi.mock("@/lib/logger", () => ({
 // pulls the next preset.
 type SupabaseResult = { data?: unknown; error?: unknown }
 const supabaseQueue: SupabaseResult[] = []
+// Records every .eq() arg pair across all chains in one test, so specs can
+// assert the atomic-claim invariant: status='pending' must appear among the
+// filters on the claim UPDATE chain.
+const eqArgs: unknown[][] = []
 
 function nextResult(): SupabaseResult {
   return supabaseQueue.shift() ?? { data: null, error: null }
@@ -81,7 +85,10 @@ function makeBuilder() {
     insert: () => b,
     update: () => b,
     delete: () => b,
-    eq: () => b,
+    eq: (...args: unknown[]) => {
+      eqArgs.push(args)
+      return b
+    },
     lt: () => b,
     in: () => b,
     is: () => b,
@@ -117,6 +124,7 @@ beforeEach(() => {
   loggerWarn.mockReset()
   loggerFlush.mockClear()
   supabaseQueue.length = 0
+  eqArgs.length = 0
   process.env.APIFY_WEBHOOK_SECRET = VALID_SECRET
   process.env.NEXT_PUBLIC_SUPABASE_URL = "https://x.supabase.co"
   process.env.SUPABASE_SERVICE_ROLE_KEY = "service-key"
@@ -233,6 +241,23 @@ describe("/api/webhooks/apify POST", () => {
         errorMessage: "supabase 42703",
       }),
     )
+  })
+
+  it("atomic claim filters by run_id AND status='pending' (race protection)", async () => {
+    supabaseQueue.push({
+      data: { user_id: "u1", platform: "reddit" },
+    })
+    supabaseQueue.push({}) // final update
+    fetchRedditRunPostsMock.mockResolvedValue([])
+    ingestRedditPostsMock.mockResolvedValue({ signalCount: 0, skippedCount: 0 })
+    const { POST } = await import("../route")
+    await POST(makeRequest(okPayload))
+    // The atomic claim's invariant is that the conditional UPDATE filters
+    // on BOTH run_id AND status='pending'. If a future refactor drops the
+    // status filter, idempotency silently breaks (two parallel deliveries
+    // can both succeed). Assert both filters were applied.
+    expect(eqArgs).toContainEqual(["run_id", "run-123"])
+    expect(eqArgs).toContainEqual(["status", "pending"])
   })
 
   it("ingests successfully for SUCCEEDED Reddit run and runs classify", async () => {

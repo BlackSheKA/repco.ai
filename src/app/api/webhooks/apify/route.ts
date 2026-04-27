@@ -16,11 +16,6 @@ import { classifyPendingSignals } from "@/features/monitoring/lib/classification
 export const runtime = "nodejs"
 export const maxDuration = 300
 
-// How recently the cron must have INSERTed a runId before we consider an
-// "unknown runId" webhook to be a real cross-deployment leftover (200 OK)
-// vs a possible read-after-write race (503 with retry-after so Apify retries).
-const RECENT_INSERT_GRACE_MS = 60_000
-
 // Apify status values we know how to handle. Anything outside this set is
 // rejected at the parse boundary so future Apify-introduced statuses don't
 // silently fall through to the success branch.
@@ -90,11 +85,10 @@ export async function POST(request: Request) {
 
   // ---- 2. Atomically claim the row ---------------------------------------
   // Conditional UPDATE on status='pending' returns the row only if we won
-  // the race. Solves: (a) duplicate webhook deliveries, (b) idempotency on
-  // any terminal state — completed/failed/expired all short-circuit here
-  // instead of just 'completed' (so a late delivery on an already-zombied
-  // run doesn't resurrect it), (c) two parallel deliveries can't both
-  // double-classify because only one row gets claimed.
+  // the race. Short-circuits on any non-pending state — `processing` (a peer
+  // delivery currently mid-ingest), `completed`/`failed`/`expired`
+  // (terminal). The conditional filter is what prevents two parallel
+  // deliveries from both running ingest + classification.
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -105,7 +99,7 @@ export async function POST(request: Request) {
     .update({ status: "processing" })
     .eq("run_id", runId)
     .eq("status", "pending")
-    .select("user_id, platform, started_at")
+    .select("user_id, platform")
     .maybeSingle()
 
   if (claimErr) {
@@ -124,7 +118,7 @@ export async function POST(request: Request) {
     // Look up the row to differentiate so we react correctly.
     const { data: existing } = await supabase
       .from("apify_runs")
-      .select("status, started_at")
+      .select("status")
       .eq("run_id", runId)
       .maybeSingle()
 

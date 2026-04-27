@@ -160,7 +160,12 @@ export async function GET(request: Request) {
           }
 
           runsStarted += fulfilled.length
-          usersProcessed++
+          // Only count the user as processed if at least one run was actually
+          // started + recorded. Otherwise OBSV-04's success-rate alert
+          // (success <80%) can't fire when every subreddit start fails.
+          if (fulfilled.length > 0) {
+            usersProcessed++
+          }
           logger.info("Reddit async runs started", {
             correlationId,
             userId,

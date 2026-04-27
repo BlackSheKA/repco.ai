@@ -87,19 +87,32 @@ async function searchSubredditViaApify(
 }
 
 // listItems() defaults to a 1000-item page; large TIMED-OUT batches need
-// pagination to avoid silent truncation. Iterates until offset >= total.
+// pagination to avoid silent truncation. Hard caps (MAX_PAGES, MAX_ITEMS)
+// guard against an Apify SDK shape change where `total` is missing/undefined,
+// which without a cap would loop until the function's maxDuration kicks in.
+const PAGE = 1000
+const MAX_PAGES = 50
+const MAX_ITEMS = MAX_PAGES * PAGE
 async function listAllDatasetItems(
   c: ApifyClient,
   datasetId: string,
 ): Promise<Record<string, unknown>[]> {
-  const PAGE = 1000
   const all: Record<string, unknown>[] = []
-  for (let offset = 0; ; offset += PAGE) {
+  for (let page = 0; page < MAX_PAGES; page++) {
     const { items, total } = await c
       .dataset(datasetId)
-      .listItems({ offset, limit: PAGE })
+      .listItems({ offset: page * PAGE, limit: PAGE })
     all.push(...(items as Record<string, unknown>[]))
-    if (items.length < PAGE || all.length >= total) break
+    if (items.length < PAGE) break
+    if (typeof total === "number" && all.length >= total) break
+    if (all.length >= MAX_ITEMS) {
+      logger.warn("listAllDatasetItems hit hard cap", {
+        datasetId,
+        items: all.length,
+        cap: MAX_ITEMS,
+      })
+      break
+    }
   }
   return all
 }

@@ -5,7 +5,7 @@ import type { LinkedInPost, LinkedInSearchResult } from "./types"
 
 // Boundary schema for harvestapi/linkedin-post-search output. Same intent
 // as the Reddit normalizer schema: detect drift early instead of silently
-// producing posts with empty author/subreddit/text fields.
+// producing posts with empty author/url/content fields.
 const HarvestApiAuthorSchema = z
   .object({
     name: z.string().optional(),
@@ -218,14 +218,27 @@ export async function fetchLinkedInRunPosts(
       `Apify run has no dataset: runId=${runId} status=${run.status}`,
     )
   }
+  // Hard caps prevent an unbounded loop if the Apify SDK ever returns
+  // `total: undefined` for a dataset (would otherwise spin until maxDuration).
   const PAGE = 1000
+  const MAX_PAGES = 50
+  const MAX_ITEMS = MAX_PAGES * PAGE
   const items: Record<string, unknown>[] = []
-  for (let offset = 0; ; offset += PAGE) {
-    const page = await c
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const result = await c
       .dataset(run.defaultDatasetId)
-      .listItems({ offset, limit: PAGE })
-    items.push(...(page.items as Record<string, unknown>[]))
-    if (page.items.length < PAGE || items.length >= page.total) break
+      .listItems({ offset: page * PAGE, limit: PAGE })
+    items.push(...(result.items as Record<string, unknown>[]))
+    if (result.items.length < PAGE) break
+    if (typeof result.total === "number" && items.length >= result.total) break
+    if (items.length >= MAX_ITEMS) {
+      logger.warn("fetchLinkedInRunPosts hit hard cap", {
+        runId,
+        items: items.length,
+        cap: MAX_ITEMS,
+      })
+      break
+    }
   }
   return items
     .map((raw) => normalizeHarvestApiPost(raw as Record<string, unknown>))

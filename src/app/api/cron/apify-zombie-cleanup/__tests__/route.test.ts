@@ -1,8 +1,10 @@
 /**
- * Zombie cleanup test — pin the filter chain. The whole point of this cron
- * is to flip status='pending' AND started_at < cutoff. If a future refactor
- * drops the status filter, the cleanup nukes recently-started healthy runs;
- * if it drops the time filter, no zombies ever get cleared.
+ * Zombie cleanup test — pin the filter chains for both pending + processing
+ * buckets. The cron runs two parallel-ish queries with distinct cutoffs:
+ *   pending    → cutoff -30 min
+ *   processing → cutoff -10 min (mid-ingest crashes recover faster)
+ * If a future refactor drops either status filter, the cleanup either nukes
+ * healthy in-flight runs OR misses the very class of zombie it exists for.
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest"
@@ -24,9 +26,12 @@ vi.mock("@/lib/logger", () => ({
   },
 }))
 
-// Capture the chain so the test can assert what was actually called.
-const calls: { method: string; args: unknown[] }[] = []
-const updateResult = { data: [] as unknown[], error: null as unknown }
+// Capture every chain call across both buckets.
+type Call = { method: string; args: unknown[] }
+const calls: Call[] = []
+// Per-test queue: each invocation of `from("apify_runs").update(...).select(...)`
+// pulls one entry. Two are pulled per test (pending then processing).
+const updateResults: { data?: unknown[]; error?: unknown }[] = []
 
 function makeBuilder() {
   const b: Record<string, (...args: unknown[]) => unknown> = {
@@ -44,7 +49,11 @@ function makeBuilder() {
     },
     select: (...args) => {
       calls.push({ method: "select", args })
-      return Promise.resolve(updateResult)
+      const result = updateResults.shift() ?? { data: [], error: null }
+      return Promise.resolve({
+        data: result.data ?? [],
+        error: result.error ?? null,
+      })
     },
   }
   return b
@@ -62,8 +71,7 @@ beforeEach(() => {
   loggerInfo.mockReset()
   loggerFlush.mockClear()
   calls.length = 0
-  updateResult.data = []
-  updateResult.error = null
+  updateResults.length = 0
   process.env.CRON_SECRET = "cron-secret"
   process.env.NEXT_PUBLIC_SUPABASE_URL = "https://x.supabase.co"
   process.env.SUPABASE_SERVICE_ROLE_KEY = "service-key"
@@ -85,76 +93,121 @@ describe("/api/cron/apify-zombie-cleanup GET", () => {
     expect(calls).toHaveLength(0)
   })
 
-  it("filters by status='pending' AND started_at < cutoff (~30 min ago)", async () => {
+  it("filters BOTH 'pending' (30min cutoff) AND 'processing' (10min cutoff)", async () => {
+    updateResults.push({ data: [] }, { data: [] })
     const { GET } = await import("../route")
     const before = Date.now()
     const res = await GET(makeRequest())
     const after = Date.now()
     expect(res.status).toBe(200)
 
-    const eqCalls = calls.filter((c) => c.method === "eq")
+    const eqStatusCalls = calls.filter(
+      (c) => c.method === "eq" && c.args[0] === "status",
+    )
     const ltCalls = calls.filter((c) => c.method === "lt")
 
-    expect(eqCalls).toContainEqual({ method: "eq", args: ["status", "pending"] })
-    expect(ltCalls).toHaveLength(1)
-    expect(ltCalls[0].args[0]).toBe("started_at")
+    // First UPDATE filter on status='pending', then status='processing'.
+    expect(eqStatusCalls).toHaveLength(2)
+    expect(eqStatusCalls[0].args).toEqual(["status", "pending"])
+    expect(eqStatusCalls[1].args).toEqual(["status", "processing"])
 
-    // Cutoff should be ~30 minutes before "now". Allow 1 second of clock skew.
-    const cutoffIso = ltCalls[0].args[1] as string
-    const cutoffMs = Date.parse(cutoffIso)
-    expect(cutoffMs).toBeGreaterThanOrEqual(before - 30 * 60 * 1000 - 1000)
-    expect(cutoffMs).toBeLessThanOrEqual(after - 30 * 60 * 1000 + 1000)
+    expect(ltCalls).toHaveLength(2)
+    expect(ltCalls[0].args[0]).toBe("started_at")
+    expect(ltCalls[1].args[0]).toBe("started_at")
+
+    // Pending cutoff ~30 min, processing cutoff ~10 min. 1s skew tolerance.
+    const pendingCutoff = Date.parse(ltCalls[0].args[1] as string)
+    const processingCutoff = Date.parse(ltCalls[1].args[1] as string)
+    expect(pendingCutoff).toBeGreaterThanOrEqual(before - 30 * 60_000 - 1000)
+    expect(pendingCutoff).toBeLessThanOrEqual(after - 30 * 60_000 + 1000)
+    expect(processingCutoff).toBeGreaterThanOrEqual(before - 10 * 60_000 - 1000)
+    expect(processingCutoff).toBeLessThanOrEqual(after - 10 * 60_000 + 1000)
   })
 
   it("reports expiredCount=0 and skips Sentry when no zombies match", async () => {
-    updateResult.data = []
+    updateResults.push({ data: [] }, { data: [] })
     const { GET } = await import("../route")
     const res = await GET(makeRequest())
     const body = await res.json()
     expect(body.expiredCount).toBe(0)
+    expect(body.pendingExpired).toBe(0)
+    expect(body.processingExpired).toBe(0)
     expect(sentryCaptureMessage).not.toHaveBeenCalled()
   })
 
-  it("fires Sentry warning with byPlatform breakdown when zombies are found", async () => {
-    updateResult.data = [
-      {
-        run_id: "r1",
-        user_id: "u1",
-        platform: "reddit",
-        started_at: "2026-01-01",
-      },
-      {
-        run_id: "r2",
-        user_id: "u1",
-        platform: "reddit",
-        started_at: "2026-01-01",
-      },
-      {
-        run_id: "r3",
-        user_id: "u2",
-        platform: "linkedin",
-        started_at: "2026-01-01",
-      },
-    ]
+  it("fires Sentry warning with byPlatform breakdown when only pending zombies", async () => {
+    updateResults.push({
+      data: [
+        {
+          run_id: "r1",
+          user_id: "u1",
+          platform: "reddit",
+          started_at: "2026-01-01",
+        },
+        {
+          run_id: "r2",
+          user_id: "u1",
+          platform: "reddit",
+          started_at: "2026-01-01",
+        },
+        {
+          run_id: "r3",
+          user_id: "u2",
+          platform: "linkedin",
+          started_at: "2026-01-01",
+        },
+      ],
+    })
+    updateResults.push({ data: [] })
     const { GET } = await import("../route")
     const res = await GET(makeRequest())
     const body = await res.json()
     expect(body.expiredCount).toBe(3)
+    expect(body.pendingExpired).toBe(3)
+    expect(body.processingExpired).toBe(0)
     expect(sentryCaptureMessage).toHaveBeenCalledWith(
-      expect.stringContaining("3"),
+      expect.stringContaining("pending=3"),
       expect.objectContaining({
         level: "warning",
         fingerprint: ["apify_zombie_runs"],
         extra: expect.objectContaining({
           expiredCount: 3,
-          byPlatform: { reddit: 2, linkedin: 1 },
+          byPlatform: {
+            reddit: { pending: 2, processing: 0 },
+            linkedin: { pending: 1, processing: 0 },
+          },
         }),
       }),
     )
   })
 
-  it("returns 500 when the supabase update errors", async () => {
-    updateResult.error = { message: "permission denied" }
+  it("escalates to error severity when processing zombies are present", async () => {
+    updateResults.push({ data: [] }) // no pending zombies
+    updateResults.push({
+      data: [
+        {
+          run_id: "r4",
+          user_id: "u1",
+          platform: "reddit",
+          started_at: "2026-01-01",
+        },
+      ],
+    })
+    const { GET } = await import("../route")
+    const res = await GET(makeRequest())
+    const body = await res.json()
+    expect(body.processingExpired).toBe(1)
+    expect(sentryCaptureMessage).toHaveBeenCalledWith(
+      expect.stringContaining("processing=1"),
+      expect.objectContaining({
+        level: "error",
+        fingerprint: ["apify_zombie_runs_processing"],
+      }),
+    )
+  })
+
+  it("returns 500 when the pending update errors", async () => {
+    updateResults.push({ data: [], error: { message: "permission denied" } })
     const { GET } = await import("../route")
     const res = await GET(makeRequest())
     expect(res.status).toBe(500)

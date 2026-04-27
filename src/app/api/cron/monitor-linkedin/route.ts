@@ -177,7 +177,8 @@ export async function GET(request: Request) {
             })
           if (insertErr) {
             // Apify started but we couldn't record — webhook will reject as
-            // unknown runId. Surface at error severity for Sentry.
+            // unknown runId. Surface at error severity for Sentry. Don't
+            // count as a processed user since the data is effectively lost.
             logger.error("Failed to insert LinkedIn apify_runs row", {
               correlationId,
               userId,
@@ -185,14 +186,15 @@ export async function GET(request: Request) {
               error: insertErr,
               errorMessage: insertErr.message,
             })
+          } else {
+            runsStarted++
+            usersProcessed++
+            logger.info("LinkedIn async run started", {
+              correlationId,
+              userId,
+              runId,
+            })
           }
-          runsStarted++
-          usersProcessed++
-          logger.info("LinkedIn async run started", {
-            correlationId,
-            userId,
-            runId,
-          })
           continue
         }
 
