@@ -25,7 +25,7 @@ People who are actively looking for your product get a personalized, relevant DM
 **Track 2 — Pricing & Free Tier (Fazy A–E from `PRICING.md`):**
 - `mechanism_costs` table seeded with all 27 signal + 28 outbound mechanism costs (single source of truth, used by both signal/outbound expansion in v1.3)
 - `monitoring_signals` schema rewrite: `frequency`, `mechanism_id`, `config jsonb`
-- New `subscription_tier='free'` (replaces 3-day trial); 250 cr/month, 1 account, 2 mechanisms, ≥4h cadence, 0 outbound
+- New `subscription_plan` ENUM (`free` | `pro`) with `billing_cycle` (`monthly` | `annual`) replaces 3-day trial and old monthly/quarterly/annual tier ENUM; Free: 250 cr/m, 1 account, 2 mechanisms, ≥4h cadence, 0 outbound. Pro: 2 000 cr/m, full features, $49/m monthly or $39/m annual.
 - Outbound paywall modals + locked-mechanism badges in `/signals` UI redesign
 - `monthly-credit-grant` cron (1st of month, additive cap = 2× grant)
 - Hard wipe of `auth.users` (pre-launch test data) with confirmation gate; Stripe products refreshed for new grant levels
@@ -122,12 +122,12 @@ People who are actively looking for your product get a personalized, relevant DM
 - [ ] PRIC-01: New `mechanism_costs` table seeded with all 27 signal + 28 outbound mechanism cost rows (`mechanism_id` PK, `cr_per_scan`/`cr_per_action`, `mechanism_kind`, `premium`, `requires_gologin`, `free_tier_allowed`)
 - [ ] PRIC-02: `monitoring_signals` schema rewrite — `frequency` (interval), `mechanism_id` (FK to mechanism_costs), `config` (jsonb per-mechanism parameters)
 - [ ] PRIC-03: Server-side credit burn engine computes `daily_burn = cr_per_scan × scans_per_day(cadence) × num_sources` from DB lookup; legacy `MONITORING_COSTS` constants removed
-- [ ] PRIC-04: `subscription_tier` ENUM extended with `free` value
-- [ ] PRIC-05: New users on signup automatically get `subscription_tier='free'` + 250 cr balance (replaces `trial_ends_at` / 3-day trial path; `handle_new_user` trigger updated)
+- [ ] PRIC-04: New ENUMs `subscription_plan` (`free`|`pro`) and `billing_cycle` (`monthly`|`annual`); old `subscription_tier` dropped (hard switch + wipe)
+- [ ] PRIC-05: New users on signup automatically get `subscription_plan='free'` + 250 cr balance (replaces `trial_ends_at` / 3-day trial path; `handle_new_user` trigger updated)
 - [ ] PRIC-06: Free tier hard caps enforced — max 1 social account total (Reddit OR LinkedIn), max 2 mechanisms active, cadence ≥4h, 0 outbound actions allowed (paywall modal on every DM/reply/connection/comment/post)
 - [ ] PRIC-07: Free tier mechanism whitelist — only R1, R3, R4, L1, L7, T1, T2 selectable; gologin-required mechanisms (R7, R8, L6, L10, L11, T3) and heavy mechanisms (L2-L5, T4) locked with upgrade badge
-- [ ] PRIC-08: `monthly-credit-grant` cron (`0 0 1 * *`) applies `balance = min(balance + monthly_grant, balance_cap)` per active subscription tier; cap = 2× grant
-- [ ] PRIC-09: Stripe products refreshed for new grant levels (Free $0, Monthly $49 / 2k cr, Quarterly $35/m / 3k cr, Annual $25/m / 4k cr) and credit packs (Starter 500/$29, Growth 1500/$59, Scale 5000/$149, Agency 15000/$399)
+- [ ] PRIC-08: `monthly-credit-grant` cron (`0 0 1 * *`) applies `balance = min(balance + monthly_grant, balance_cap)` per active plan; cap = 2× grant (Free 500, Pro 4 000)
+- [ ] PRIC-09: Stripe products refreshed — 2 sub prices (Pro monthly $49 / Pro annual $468) + credit packs unchanged (Starter 500/$29, Growth 1500/$59, Scale 5000/$149, Agency 15000/$399)
 - [ ] PRIC-10: Top-up credit packs are blocked for free-tier users (forced upgrade to subscription)
 - [ ] PRIC-11: `/signals` UI redesigned — 27 mechanism cards with toggle, configuration, **static unit-cost label** ("1 credit per scan"), upgrade badge for locked mechanisms, status (last_scan_at, signals_24h)
 - [ ] PRIC-12: UI never shows burn math — no `cr/day`, no `cr/month`, no live ticker, no "wystarczy na X dni", no breakdown

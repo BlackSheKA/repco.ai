@@ -199,29 +199,31 @@
 
 ## 14. Billing (Stripe)
 
-- [x] **BILL-01** — 3-day free trial bez karty (500 kredytów).
-  - **Weryfikacja:** nowa rejestracja → `users.trial_ends_at` ustawione automatycznie (auto-trial trigger z Phase 12); `credit_transactions` ma rząd "+500 trial".
-- [x] **BILL-02** — plany: monthly $49 / quarterly $35/msc / annual $25/msc przez Stripe Checkout.
-- [x] **BILL-03** — packi: Starter 500/$29, Growth 1500/$59, Scale 5000/$149, Agency 15000/$399.
-- [x] **BILL-04** — daily monitoring credit burn:
-  - reddit_keyword: 3/dzień
-  - linkedin_keyword: 6/dzień
-  - subreddit watch: 3/dzień
-- [x] **BILL-05** — daily account credit burn (poza pierwszymi 2 darmowymi):
+> **Nota:** sekcja v1.2 — pełna spec w [PRICING.md](PRICING.md). Stare BILL-* (3-day trial, 3 cycle plans, 5 monitoring signals) wywalone w hard switch. Nowy model: Free + Pro (monthly/annual) + 4 credit packs + per-scan burn engine z 27 mechanism cost matrix.
+
+- [ ] **BILL-01** — Free tier 250 cr/m + Pro tier 2 000 cr/m (monthly: $49, annual: $39/m = $468/yr) przez Stripe Checkout.
+  - **Weryfikacja:** signup → `users.subscription_plan='free'`, +250 cr; subscribe Pro monthly → `subscription_plan='pro'`, `billing_cycle='monthly'`, +2000 cr; annual → `billing_cycle='annual'`.
+- [ ] **BILL-02** — Brak 3-day trialu — Free tier całkowicie zastępuje. `handle_new_user` ustawia `subscription_plan='free'` + 250 cr.
+  - **Weryfikacja:** nowa rejestracja → BRAK `trial_ends_at` (kolumna usunięta lub ignored), automatycznie free.
+- [ ] **BILL-03** — Credit packs (4 SKUs, top-up, never expire): Starter 500/$29, Growth 1500/$59, Scale 5000/$149 ⭐, Agency 15000/$399. Dostępne tylko dla Pro.
+  - **Weryfikacja:** free user próbuje pack checkout → 403; Pro user → Stripe checkout → `credit_transactions` rząd `pack_purchase` + balance += pack_size.
+- [ ] **BILL-04** — Per-scan monitoring burn z `mechanism_costs` table (27 wierszy, R1-R9 / L1-L11 / T1-T5 / E1):
+  - Formuła: `daily_burn = cr_per_scan × scans_per_day(cadence) × num_sources`
+  - Cadence configurable per signal (24h / 6h / 4h / 2h / 1h / 30min / 15min)
+  - Default cadence: 6h economy
+  - **Weryfikacja:** test signal (R1, 1 subreddit, 6h) → burn 4 cr/day; zmiana cadence na 1h → burn 24 cr/day.
+- [ ] **BILL-05** — Daily account credit burn (poza pierwszymi 2 darmowymi):
   - reddit: 3/dzień/konto
   - linkedin: 5/dzień/konto
-- [x] **BILL-06** — action credit cost on completion:
-  - like: 0
-  - follow: 0
-  - public_reply: 15
-  - dm: 30
-  - followup_dm: 20
-  - connection_request: 20
+- [ ] **BILL-06** — Action credit cost (on completion): full per-mechanism table z [PRICING.md §6](PRICING.md#6-outreach-mechanisms-outbound-pricing) (26 outbound mechanizmów OR1-9 / OL1-11 / OX1-8). Engage pool 0 cr, soft outbound 5-20 cr, hard outbound 20-30 cr.
 - [x] **BILL-07** — atomowe SQL (`deduct_credits` RPC) — brak ujemnych sald w race conditions.
   - **Weryfikacja:** symulować dwa równoczesne deduct → suma transakcji = poprawna.
-- [~] **BILL-08** — dashboard pokazuje **tylko balance** (NIE burn rate / "X dni do wyczerpania" — patrz feedback memory `credit_ui_no_burn_math`).
-  - **Weryfikacja:** sidebar widget pokazuje liczbę kredytów, nie pokazuje "Y/day".
-- [x] **BILL-09** — kontekstowe upgrade prompts gdy kredyty kończą się.
+- [ ] **BILL-08** — dashboard pokazuje **tylko balance** (NIE burn rate / "X dni do wyczerpania" — patrz feedback memory `credit_ui_no_burn_math`). Stosuje się też do `/signals` mechanism configurator (unit cost OK, daily ticker NIE).
+  - **Weryfikacja:** sidebar widget pokazuje liczbę kredytów, nie pokazuje "Y/day"; mechanism config pokazuje "1 credit per scan" ale nie "30 cr/day".
+- [ ] **BILL-09** — kontekstowe upgrade prompts gdy kredyty kończą się: binarny "Buy credits" + "Upgrade to Pro" (BEZ countdownu).
+- [ ] **BILL-10** — Grant rollover ADDITIVE z cap 2× monthly grant (Free cap 500, Pro cap 4 000).
+  - **Weryfikacja:** Pro user balance 100 → po grancie 2 100; balance 5 000 → po grancie 4 000 (cap).
+- [ ] **BILL-11** — Annual billing toggle = orthogonal -20% on Pro. 2 Stripe price IDs: `STRIPE_PRICE_PRO_MONTHLY`, `STRIPE_PRICE_PRO_ANNUAL`.
 
 ---
 

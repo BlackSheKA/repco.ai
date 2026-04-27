@@ -15,7 +15,7 @@ Codziennie tysiące osób na Reddicie i LinkedIn pisze publicznie "szukam X", "k
 
 Repco skanuje Reddita co 15 minut i LinkedIn co 2–4h, klasyfikuje intencję od 1 do 10, generuje spersonalizowaną wiadomość nawiązującą do konkretnego posta, czeka na Twoje OK i wysyła z Twojego konta. Z 7-dniowym warmupem, anti-banem i automatycznym follow-upem, jeśli nie odpiszą.
 
-To AI-owy SDR za $25–49/msc zamiast $4000.
+To AI-owy SDR od $39/msc (Pro annual) zamiast $4000.
 
 ## 3. Co repco robi (po ludzku)
 
@@ -94,7 +94,7 @@ To AI-owy SDR za $25–49/msc zamiast $4000.
 "3 pytania w onboardingu i repco generuje DM-y, które brzmią jak Ty. Bez 'I came across your post and was impressed by'. Bez emoji."
 
 ### #6 — **Cena indie hackera**
-"$25–49/msc. Nie $400. Nie $4000."
+"$39/msc. Nie $400. Nie $4000."
 
 ---
 
@@ -109,9 +109,9 @@ To AI-owy SDR za $25–49/msc zamiast $4000.
 | Anti-ban (warmup, fingerprint) | ✅ 7-day progressive | n/a | ❓ | ✅ | n/a |
 | Reply detection | ✅ co 2h | ❌ | ✅ | ✅ | ✅ |
 | Follow-up sekwencje | ✅ day 3/7/14 | ❌ | ✅ | ✅ | ✅ |
-| Cena (indie tier) | **$25–49/msc** | $99+/msc | $99+/msc | $69+/msc | $99/seat/msc |
+| Cena (indie tier) | **$39–49/msc** | $99+/msc | $99+/msc | $69+/msc | $99/seat/msc |
 | Setup time | **3 pytania → live w 5 min** | manual config | manual config | manual + setup fee | days/weeks |
-| Free trial bez karty | ✅ 3 dni / 500 kredytów | ❌ | ⚠️ | ⚠️ | ❌ |
+| Free forever (no card) | ✅ 250 cr/m monitoring | ❌ | ⚠️ | ⚠️ | ❌ |
 | Public proof (`/live`) | ✅ — | ❌ | ❌ | ❌ | ❌ |
 
 **Killer combo:** **cross-platform + tania + safe + self-serve.** Każdy konkurent ma 2 z 4. Repco ma 4.
@@ -161,7 +161,7 @@ Max 1× w całym tekście. Nadużywane.
 
 ### CTA copy
 - Primary: `Scan my product` (free, no signup)
-- Secondary: `Start 3-day trial` (no credit card)
+- Secondary: `Start free` (no credit card, 250 cr/m forever)
 - Pricing CTA: `See plans`
 - Final-section CTA: `Get repco running today`
 
@@ -241,36 +241,48 @@ Max 1× w całym tekście. Nadużywane.
 
 ## 11. Pricing (do podawania w copy)
 
-### Free
-- 3-day trial, 500 kredytów, **bez karty**
-- Pełen feature set
+> Pełna spec w [PRICING.md](PRICING.md). Tu copy-friendly summary do reklam i landingu.
 
-### Subscription
-| Plan | Cena | Komu |
-|---|---|---|
-| Monthly | $49/msc | testerzy / okazjonalni |
-| Quarterly | $35/msc (rozliczenie 3-mies.) | regular users |
-| **Annual** | **$25/msc** (rozliczenie roczne) | committed — **rekomendowany** |
+### Free
+- **$0 forever**, bez karty
+- 250 kredytów / miesiąc
+- Monitoring only — widzisz feed sygnałów, nie wysyłasz wiadomości
+- 1 social account, scan co 4h+
+
+### Pro
+- **$49/msc monthly** lub **$39/msc annual** ($468/rok, save 20%)
+- 2 000 kredytów / miesiąc
+- Pełna paczka outreach: DM-y, komentarze, connection requests
+- Multi-account, premium signals, dowolna szybkość scanu, top-up packs
 
 ### Credit packs (one-time, gdy potrzebujesz extra)
-| Pack | Kredyty | Cena |
-|---|---|---|
-| Starter | 500 | $29 |
-| Growth | 1500 | $59 |
-| Scale | 5000 | $149 |
-| Agency | 15000 | $399 |
+Tylko dla Pro user'ów. Nigdy nie wygasają.
+
+| Pack | Kredyty | Cena | $/cr |
+|---|---|---|---|
+| Starter | 500 | $29 | $0.058 |
+| Growth | 1 500 | $59 | $0.039 |
+| **Scale** ⭐ | **5 000** | **$149** | **$0.030** |
+| Agency | 15 000 | $399 | $0.027 |
 
 ### Co kosztuje ile (transparency w copy)
-- Like / Follow: **0 kredytów**
-- Public reply (komentarz): 15
+
+**Akcje outreach:**
+- Like / Follow / reaction / upvote: **0 kredytów**
+- Komentarz / reply: 15
 - LinkedIn connection request: 20
 - Follow-up DM: 20
 - DM: 30
-- Daily monitoring: 3 kredyty/keyword Reddit, 6/keyword LinkedIn, 3/subreddit
-- Daily account: 3 Reddit / 5 LinkedIn (poza pierwszymi 2 darmowymi)
+
+**Monitoring** — per scan (cron tickuje kilka razy dziennie zależnie od cadence):
+- Lekkie sygnały (Reddit subreddit, LinkedIn keyword, X keyword, competitor): **1 kredyt / scan**
+- Cięższe (LinkedIn profile reactions na N postach): 1 kredyt / scan / aktywny post
+- Premium gologin (own engagement, mentions, inbound): 1-3 kredyty / scan
+
+**Account upkeep:** pierwsze 2 konta gratis, potem 3 cr/dzień Reddit / 5 cr/dzień LinkedIn.
 
 ### Anchor message
-"Agencja SDR: $4000/msc. Apollo + LinkedIn Sales Nav: $200+/msc. Repco: $25/msc i nie wpiszesz domeny na spamlistę."
+"Agencja SDR: $4000/msc. Apollo + LinkedIn Sales Nav: $200+/msc. Repco Pro: $39/msc annual i nie wpiszesz domeny na spamlistę."
 
 ---
 
@@ -309,8 +321,10 @@ Max 1× w całym tekście. Nadużywane.
 | "Już używam Apollo / Reachout" | "Apollo robi cold email do bazy kontaktów. Repco łapie ludzi, którzy **właśnie teraz** publicznie pytają o coś takiego jak Twój produkt. To inna intencja: gorący lead vs cold list." |
 | "Mam tylko 100 followers, repco nie zadziała" | "Repco nie zależy od Twoich followersów. Pisze do ludzi, którzy nie znają Cię — i właśnie szukają tego, co masz. Im mniejszy founder, tym lepszy product-market signal jest dla nich autentyczny." |
 | "Ile to czasu zajmuje setup?" | "3 pytania, 5 minut. Pierwszy sygnał często w <60 sekund od skończenia onboardingu." |
-| "Czy mogę zrezygnować w trakcie miesiąca?" | "Tak, miesięcznie bez kontraktu. Annual ma 50% zniżki, ale tylko jak zdecydujesz." |
-| "Co jeśli skończą mi się kredyty?" | "Zobaczysz prompt zanim się skończą. Możesz dokupić pack one-time albo upgrade'ować plan. Nigdy nie wyślemy bez Twoich kredytów." |
+| "Czy mogę zrezygnować w trakcie miesiąca?" | "Tak, monthly Pro to brak kontraktu — anuluj kiedy chcesz. Annual ma 20% zniżki ($39/msc zamiast $49), ale tylko jak zdecydujesz." |
+| "Co jeśli skończą mi się kredyty?" | "Monitoring zatrzyma się do następnego miesiąca albo do momentu gdy dokupisz pack. Nigdy nie wyślemy nic bez Twoich kredytów. Pack credits nigdy nie wygasają." |
+| "Czemu na free nie mogę wysyłać wiadomości?" | "Free to monitoring only — widzisz feed prospectów, ale outreach jest paid. Powód: outreach niesie ryzyko bana konta, którym zarządzamy bardzo ostrożnie (warmup, rate limits, anti-detection). To wymaga zasobów na nasze koszty." |
+| "Czemu jest tylko jeden plan paid?" | "Bo paid tiery różniły się tylko ilością kredytów — co tylko myli. Pro daje pełen zestaw funkcji + bazowy grant 2 000 cr/msc. Jeśli wysyłasz więcej, dokupisz pack — bez decyzji 'który tier'." |
 | "Czy ktoś już z tego korzysta?" | Pokaż `/live` — realny feed. To jest cały dowód. |
 
 ---
@@ -402,8 +416,8 @@ Max 1× w całym tekście. Nadużywane.
 ✅ "Reply detection co 2h, automatyczny stop sekwencji"
 ✅ "Day 3 / 7 / 14 follow-upy"
 ✅ "Reddit chat DM + LinkedIn message + LinkedIn connect + LinkedIn comment"
-✅ "$25/msc na rocznym planie"
-✅ "3-day trial bez karty"
+✅ "$39/msc na rocznym planie (Pro annual)"
+✅ "Free forever, no card — start monitoring in 60s"
 ✅ "Setup w 3 pytaniach, 5 minut"
 ✅ "Cross-platform — jedyni na rynku, którzy łączą Reddit + LinkedIn DM"
 

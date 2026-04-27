@@ -87,7 +87,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
   4. `connectAccount(userId, platform)` reuses an existing same-country browser_profile of the same user when no platform conflict exists; only allocates a new proxy + profile when no compatible match is available
   5. A user can connect a Reddit account and a LinkedIn account and observe both land on the same `browser_profile_id` row when geographies match
 **Plans**: 2 plans
-  - [ ] 17-01-foundation-PLAN.md — Country map module + GoLogin REST wrappers (createProfileV2, patchProfileFingerprints) + API-shape probe (Wave 1, BPRX-04, BPRX-05)
+  - [x] 17-01-foundation-PLAN.md — Country map module + GoLogin REST wrappers (createProfileV2, patchProfileFingerprints) + API-shape probe (Wave 1, BPRX-04, BPRX-05)
   - [ ] 17-02-allocator-PLAN.md — Allocator orchestrator + connectAccount refactor + UI copy + legacy createProfile removal (Wave 2, BPRX-03, BPRX-06)
 **UI hint**: yes
 
@@ -170,7 +170,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 | 14. LinkedIn Account Quarantine Enforcement (GAP) | v1.1 | 1/1 | Complete | 2026-04-25 |
 | 15. Browser Profile Schema Foundation | v1.2 | 3/3 | Complete    | 2026-04-27 |
 | 16. Mechanism Cost Engine Schema | v1.2 | 0/0 | Not started | - |
-| 17. Residential Proxy + GoLogin Profile Allocator | v1.2 | 0/0 | Not started | - |
+| 17. Residential Proxy + GoLogin Profile Allocator | v1.2 | 1/2 | In Progress|  |
 | 18. Cookies Persistence + Preflight + Ban Detection | v1.2 | 0/0 | Not started | - |
 | 19. Free Tier ENUM + Signup Flow | v1.2 | 0/0 | Not started | - |
 | 20. Pre-Launch User Wipe | v1.2 | 0/0 | Not started | - |

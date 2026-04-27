@@ -467,8 +467,8 @@ Po wipe: clean slate, nowi userzy idą od razu na nowy cennik.
 - `/signals` redesign — 27 mechanizmów (nie 5 typów)
 - Per mechanism card: toggle, konfiguracja, **unit cost label** (statyczny "1 credit per scan"), upgrade badge dla locked, status (last_scan_at, signals_24h)
 - **NIE pokazujemy** daily/monthly burn ticker
-- Pricing page (publiczna `/pricing`): comparison table 4 kolumny (Free / Starter / Growth ⭐ / Scale) + **monthly/annual toggle** above the table (-20% on annual). Reference sketch: [.planning/sketches/001-pricing-page/](sketches/001-pricing-page/) (potrzebuje update na nowe tiery).
-- Optional slider "How many DMs/month?" → highlight rekomendowany tier (≤5 → Free, 6-30 → Starter, 31-100 → Growth, 101+ → Scale)
+- Pricing page (publiczna `/pricing`): **2 plan cards (Free + Pro)** + monthly/annual toggle (-20% on annual) + 4 credit pack cards poniżej.
+- Optional slider "How many DMs/month?" w sekcji packs → highlight rekomendowanego packa (≤5 → Free OK, 6-50 → Pro alone, 51-80 → +Starter pack, 81-130 → +Growth pack, 131-200 → +Scale pack, 200+ → +Agency pack)
 - Free tier landing copy w `src/app/(app)/page.tsx` lub `/pricing`
 
 ### Faza D: Hard switch / wipe (~1 dzień)
@@ -520,10 +520,11 @@ Powiązane z OP4 (sequencing) + OP7 (variants).
 
 ### Pricing experiments
 - "Pay per DM" pricing model jako alternatywa flat sub — flagged w [MARKETING.md:386](MARKETING.md#L386), niezdecydowane
-- A/B testy cenowe (price sensitivity per ICP segment) — szczególnie czy Growth $59 jest sweet spot vs $49 vs $69
+- A/B testy cenowe (Pro sensitivity per ICP segment) — czy $49/m to sweet spot vs $39 vs $59 monthly; czy 2 000 cr/m grant to dobry balance vs 1 500 / 2 500
 - Annual discount calibration (20% może być za skromnie vs Linear 25-30%, lub za hojnie — A/B test po 6 mies)
 - Custom enterprise tier (>$200/mies, dedicated support, custom credit limits, team seats) — out of scope v1, naturalna ewolucja gdy pierwszy agency request
-- Tier upgrade prompts: trigger gdy user przekracza grant 2 mies pod rząd → "Upgrade to Growth saves you $X/m"
+- Annual upgrade prompts: trigger gdy user na Pro monthly 2+ mies pod rząd → dashboard banner "Switch to annual, save $120/year" (1 CTA)
+- Pack purchase prompts: trigger gdy Pro user wyczerpie grant 2× w miesiącu → "Buy a pack to keep going" (kontekstowy, nie countdown)
 
 ### Outbound calibration
 - **Per-user credit cost defaults:** wartości w cost matrix są szacunkowe; revize przed OP1 launch na podstawie realnych Haiku CU compute time + LLM token usage ([OUTBOUND-COMMUNICATION-MECHANISMS.md:1258](OUTBOUND-COMMUNICATION-MECHANISMS.md#L1258))
