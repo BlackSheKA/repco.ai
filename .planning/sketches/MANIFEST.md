@@ -14,4 +14,4 @@ Dark, warm-zinc UI with indigo primary (matching radix-nova preset used in the r
 
 | # | Name | Design Question | Winner | Tags |
 |---|------|----------------|--------|------|
-| 001 | pricing-page | Jak slider + comparison table 4-kolumnowa + monthly/annual toggle razem komunikują "wybierz tier na podstawie objętości outreachu"? | _pending_ | pricing, landing, slider, table, billing-toggle |
+| 001 | pricing-page | Free + Pro + credit packs: czy 1 plan paid + scale-by-packs jest czytelniejszy niż 3 volume tiers? | _pending_ | pricing, landing, free-pro, packs, billing-toggle |

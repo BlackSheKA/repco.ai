@@ -38,14 +38,13 @@
 .variant { display: none; }
 .variant.active { display: block; }
 
-/* ─────────────── Page ─────────────── */
+/* Page */
 .page {
-  max-width: 1100px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: var(--space-16) var(--space-6) var(--space-20);
 }
 
-/* Hero */
 .hero {
   text-align: center;
   margin-bottom: var(--space-12);
@@ -64,83 +63,97 @@
   line-height: 1.5;
 }
 
-/* Section heading */
-.section-head {
-  margin-bottom: var(--space-6);
-}
-.section-head h2 {
-  font-size: var(--text-2xl);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  margin: 0 0 var(--space-2);
-}
-.section-head p {
-  margin: 0;
-  color: var(--color-text-muted);
-  font-size: var(--text-base);
-}
-
-/* ─── Section 1: Decision (Free vs Paid) ─── */
-.decision {
+/* Plans (Free vs Pro) */
+.plans {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-5);
-  margin-bottom: var(--space-16);
+  margin-bottom: var(--space-12);
 }
-.decision-card {
+.plan {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-8);
   display: flex; flex-direction: column;
+  position: relative;
 }
-.decision-card.paid {
-  border-color: var(--color-border-strong);
+.plan.pro {
+  border-color: var(--color-primary);
   background: linear-gradient(180deg, var(--color-surface-elevated), var(--color-surface));
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-glow-primary);
 }
-.decision-card .eyebrow {
+.plan .plan-eyebrow {
   font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--color-text-muted);
   margin-bottom: var(--space-3);
 }
-.decision-card .eyebrow.paid {
+.plan.pro .plan-eyebrow {
   color: var(--color-primary-hover);
 }
-.decision-card .headline {
-  font-size: var(--text-xl);
+.plan .plan-name {
+  font-size: var(--text-2xl);
   font-weight: 600;
-  margin: 0 0 var(--space-2);
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--space-5);
 }
-.decision-card .price {
+.plan .plan-price {
+  display: flex; align-items: baseline; gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.plan .plan-price .currency {
   font-family: var(--font-mono);
-  font-size: var(--text-3xl);
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: var(--space-1);
-}
-.decision-card .price-note {
-  font-size: var(--text-sm);
+  font-size: var(--text-2xl);
   color: var(--color-text-muted);
-  margin-bottom: var(--space-6);
-  font-family: var(--font-mono);
+  font-weight: 500;
 }
-.decision-card .feature-list {
+.plan .plan-price .amount {
+  font-family: var(--font-mono);
+  font-size: 3.25rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.plan .plan-price .per {
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
+}
+.plan .plan-price-note {
+  font-size: var(--text-sm);
+  color: var(--color-text-subtle);
+  font-family: var(--font-mono);
+  margin-bottom: var(--space-6);
+  min-height: 1.4em;
+}
+.plan .plan-credits {
+  font-size: var(--text-base);
+  font-weight: 600;
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+.plan .plan-credits .muted {
+  color: var(--color-text-muted);
+  font-weight: 400;
+  margin-left: var(--space-2);
+  font-size: var(--text-sm);
+}
+.plan .feature-list {
   list-style: none; padding: 0; margin: 0 0 var(--space-6);
   display: flex; flex-direction: column; gap: var(--space-3);
   flex-grow: 1;
 }
-.decision-card .feature-list li {
+.plan .feature-list li {
   font-size: var(--text-sm);
   display: flex; align-items: flex-start; gap: var(--space-3);
   color: var(--color-text);
 }
-.decision-card .feature-list li.cross {
+.plan .feature-list li.cross {
   color: var(--color-text-muted);
 }
-.decision-card .feature-list li::before {
+.plan .feature-list li::before {
   flex-shrink: 0;
   width: 18px; height: 18px;
   border-radius: var(--radius-full);
@@ -149,31 +162,41 @@
   font-weight: 700;
   margin-top: 1px;
 }
-.decision-card .feature-list li:not(.cross)::before {
+.plan .feature-list li:not(.cross)::before {
   content: "✓";
   background: rgba(34, 197, 94, 0.15);
   color: var(--color-success);
 }
-.decision-card .feature-list li.cross::before {
+.plan .feature-list li.cross::before {
   content: "✕";
   background: rgba(255, 255, 255, 0.05);
   color: var(--color-text-subtle);
 }
-
-/* ─── Section 2: Tier picker ─── */
-.tier-picker {
-  margin-bottom: var(--space-16);
+.plan .cta {
+  width: 100%;
+  padding: 14px var(--space-4);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm); font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 120ms;
 }
-.tier-picker-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  margin-bottom: var(--space-6);
+.plan .cta:hover { border-color: var(--color-text-muted); }
+.plan .cta-primary {
+  background: var(--color-primary); border-color: var(--color-primary);
+  color: white;
 }
+.plan .cta-primary:hover { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
 
 /* Billing toggle */
+.billing-toggle {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-8);
+}
 .billing-toggle-pill {
   display: inline-flex;
   background: var(--color-surface);
@@ -186,7 +209,7 @@
   background: transparent;
   border: none;
   color: var(--color-text-muted);
-  padding: 8px 16px;
+  padding: 8px 18px;
   border-radius: var(--radius-full);
   font-size: var(--text-sm);
   font-weight: 500;
@@ -212,173 +235,102 @@
   color: var(--color-accent);
 }
 
-/* Slider (only in variants B + C) */
-.volume-slider {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5) var(--space-6);
+/* Section heading */
+.section-head {
+  text-align: center;
   margin-bottom: var(--space-6);
 }
-.volume-slider .slider-row {
-  display: flex; justify-content: space-between; align-items: baseline;
-  margin-bottom: var(--space-3);
-  flex-wrap: wrap; gap: var(--space-2);
-}
-.volume-slider .slider-row h3 {
-  margin: 0;
-  font-size: var(--text-base);
-  font-weight: 500;
-}
-.volume-slider .slider-row .value {
-  font-family: var(--font-mono);
-  font-size: var(--text-xl);
+.section-head h2 {
+  font-size: var(--text-2xl);
   font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--space-2);
 }
-.volume-slider .slider-row .value .unit {
+.section-head p {
+  margin: 0;
   color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  font-weight: 400;
-  margin-left: var(--space-2);
-}
-input[type="range"] {
-  -webkit-appearance: none; appearance: none;
-  width: 100%; height: 6px;
-  background: linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) var(--pct, 25%), var(--color-border-strong) var(--pct, 25%), var(--color-border-strong) 100%);
-  border-radius: var(--radius-full);
-  outline: none;
-}
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none;
-  width: 18px; height: 18px;
-  background: var(--color-text);
-  border: 3px solid var(--color-primary);
-  border-radius: 50%;
-  cursor: grab;
-  box-shadow: 0 0 0 4px var(--color-primary-soft);
-}
-input[type="range"]::-webkit-slider-thumb:active { cursor: grabbing; }
-input[type="range"]::-moz-range-thumb {
-  width: 18px; height: 18px;
-  background: var(--color-text);
-  border: 3px solid var(--color-primary);
-  border-radius: 50%;
-  cursor: grab;
+  font-size: var(--text-base);
 }
 
-/* Tier cards row */
-.tier-cards {
+/* Packs section */
+.packs-section { margin-bottom: var(--space-16); }
+.packs-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-4);
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
 }
-.tier-card {
+.pack {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  display: flex; flex-direction: column;
-  position: relative;
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  display: flex; flex-direction: column; gap: var(--space-2);
   transition: all 200ms;
+  position: relative;
 }
-.tier-card .tier-name {
+.pack:hover {
+  border-color: var(--color-border-strong);
+  transform: translateY(-2px);
+}
+.pack.popular {
+  border-color: var(--color-primary);
+}
+.pack .pack-name {
   font-size: var(--text-sm);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--color-text-muted);
-  margin-bottom: var(--space-3);
 }
-.tier-card .tier-price {
+.pack .pack-credits {
   font-family: var(--font-mono);
-  font-size: var(--text-3xl);
+  font-size: var(--text-2xl);
   font-weight: 600;
   letter-spacing: -0.02em;
-  margin-bottom: var(--space-1);
 }
-.tier-card .tier-price .price-currency {
-  font-size: var(--text-xl);
-  color: var(--color-text-muted);
-  margin-right: 2px;
-}
-.tier-card .tier-price .price-period {
+.pack .pack-credits-unit {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
   font-weight: 400;
   margin-left: var(--space-1);
 }
-.tier-card .tier-billing {
+.pack .pack-price {
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  color: var(--color-text);
+}
+.pack .pack-rate {
   font-size: var(--text-xs);
   color: var(--color-text-subtle);
   font-family: var(--font-mono);
-  margin-bottom: var(--space-5);
-  min-height: 1.2em;
+  margin-bottom: var(--space-3);
 }
-.tier-card .tier-credits {
-  font-size: var(--text-base);
-  font-weight: 600;
-  margin-bottom: var(--space-2);
-}
-.tier-card .tier-fits {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  margin-bottom: var(--space-6);
-}
-.tier-card .cta {
+.pack .cta {
   margin-top: auto;
-  width: 100%;
-  padding: var(--space-3) var(--space-4);
+  padding: 10px var(--space-3);
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border-strong);
   color: var(--color-text);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: var(--text-sm); font-weight: 500;
   font-family: inherit;
   cursor: pointer;
   transition: all 120ms;
 }
-.tier-card .cta:hover { border-color: var(--color-text-muted); }
-.tier-card .cta-primary {
-  background: var(--color-primary); border-color: var(--color-primary);
-  color: white;
-}
-.tier-card .cta-primary:hover { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
-.tier-card .badge {
+.pack .cta:hover { border-color: var(--color-text-muted); }
+.pack .badge {
   position: absolute;
   top: -10px; left: 50%; transform: translateX(-50%);
-  display: inline-flex; align-items: center;
-  padding: 4px 10px;
+  padding: 3px 10px;
   border-radius: var(--radius-full);
-  font-size: 11px; font-weight: 600;
+  font-size: 10px; font-weight: 600;
   letter-spacing: 0.04em;
   background: var(--color-primary);
   color: white;
 }
 
-/* Variant-specific tier card highlights */
-.variant-a .tier-card.popular,
-.variant-b .tier-card.popular,
-.variant-c .tier-card.popular {
-  border-color: var(--color-primary);
-}
-
-.variant-b .tier-card.popular {
-  box-shadow: var(--shadow-glow-primary);
-  transform: scale(1.04);
-  z-index: 2;
-}
-.variant-b .tier-card.popular .tier-price { color: var(--color-primary-hover); }
-
-.variant-b .tier-card.recommended,
-.variant-c .tier-card.recommended {
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-glow-primary);
-}
-.variant-c .tier-card.recommended {
-  transform: scale(1.03);
-}
-
-/* Section: Every paid tier includes */
+/* Includes */
 .includes {
   margin-bottom: var(--space-12);
   padding: var(--space-6) var(--space-8);
@@ -410,6 +362,78 @@ input[type="range"]::-moz-range-thumb {
   flex-shrink: 0;
 }
 
+/* Slider (variants B + C) */
+.volume-slider {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5) var(--space-6);
+  margin-bottom: var(--space-6);
+}
+.volume-slider .slider-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap; gap: var(--space-2);
+}
+.volume-slider .slider-row h3 {
+  margin: 0; font-size: var(--text-base); font-weight: 500;
+}
+.volume-slider .slider-row .value {
+  font-family: var(--font-mono);
+  font-size: var(--text-xl); font-weight: 600;
+}
+.volume-slider .slider-row .value .unit {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm); font-weight: 400;
+  margin-left: var(--space-2);
+}
+.volume-slider .recommendation {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  display: flex; align-items: center; gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.volume-slider .recommendation strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 6px;
+  background: linear-gradient(to right, var(--color-primary) 0%, var(--color-primary) var(--pct, 25%), var(--color-border-strong) var(--pct, 25%), var(--color-border-strong) 100%);
+  border-radius: var(--radius-full);
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 18px; height: 18px;
+  background: var(--color-text);
+  border: 3px solid var(--color-primary);
+  border-radius: 50%;
+  cursor: grab;
+  box-shadow: 0 0 0 4px var(--color-primary-soft);
+}
+input[type="range"]::-webkit-slider-thumb:active { cursor: grabbing; }
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px;
+  background: var(--color-text);
+  border: 3px solid var(--color-primary);
+  border-radius: 50%;
+  cursor: grab;
+}
+
+/* Recommended highlight on packs (variants B + C) */
+.pack.recommended {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-glow-primary);
+}
+.variant-c .pack.recommended {
+  transform: scale(1.04);
+}
+
 /* FAQ */
 .faq {
   border-top: 1px solid var(--color-border);
@@ -427,8 +451,7 @@ input[type="range"]::-moz-range-thumb {
 }
 .faq-grid h4 {
   margin: 0 0 var(--space-2);
-  font-size: var(--text-base);
-  font-weight: 600;
+  font-size: var(--text-base); font-weight: 600;
 }
 .faq-grid p {
   margin: 0;
@@ -437,7 +460,7 @@ input[type="range"]::-moz-range-thumb {
   line-height: 1.6;
 }
 
-/* Sketch toolbar */
+/* Toolbar */
 #sketch-toolbar {
   position: fixed; bottom: 16px; right: 16px; z-index: 9999;
   background: var(--color-surface-elevated);
@@ -456,8 +479,8 @@ input[type="range"]::-moz-range-thumb {
   padding: 4px 6px; border-radius: var(--radius-sm);
 }
 
-/* Sticky behavior for variant C */
-.variant-c .tier-picker-head {
+/* Sticky for variant C */
+.variant-c .billing-toggle {
   position: sticky;
   top: 56px;
   z-index: 50;
@@ -469,8 +492,8 @@ input[type="range"]::-moz-range-thumb {
 
 /* Responsive */
 @media (max-width: 800px) {
-  .decision { grid-template-columns: 1fr; }
-  .tier-cards { grid-template-columns: 1fr; }
+  .plans { grid-template-columns: 1fr; }
+  .packs-grid { grid-template-columns: repeat(2, 1fr); }
   .includes-grid { grid-template-columns: 1fr; }
   .faq-grid { grid-template-columns: 1fr; }
 }
@@ -481,14 +504,13 @@ input[type="range"]::-moz-range-thumb {
 <div id="variant-nav">
   <button class="variant-tab active" data-variant="a">A: Static</button>
   <button class="variant-tab" data-variant="b">B: With slider</button>
-  <button class="variant-tab" data-variant="c">C: Sticky + slider</button>
-  <span id="variant-nav-meta">Sketch 001 · two-section design</span>
+  <button class="variant-tab" data-variant="c">C: Sticky toggle</button>
+  <span id="variant-nav-meta">Sketch 001 · Free + Pro + packs</span>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     SHARED STRUCTURE — three variants of the same two-section page:
-     1) Free vs Paid decision  →  2) Tier picker  →  3) Includes  →  FAQ
-     Variants differ in: presence of slider, popular highlight, sticky
+     SHARED STRUCTURE — Free + Pro plans → packs → includes → FAQ
+     Variants differ in: presence of slider, sticky toggle behavior
      ═══════════════════════════════════════════════════════════════ -->
 
 <!-- ─── VARIANT A: Static (no slider) ─── -->
@@ -496,31 +518,47 @@ input[type="range"]::-moz-range-thumb {
   <main class="page">
     <header class="hero">
       <h1>Pricing that scales with your outreach</h1>
-      <p>Start free with monitoring. Upgrade when you want to message, connect, and engage.</p>
+      <p>Start free with monitoring. Upgrade to Pro when you want to message, connect, and engage. Add credits anytime.</p>
     </header>
 
-    <!-- Section 1: Decision -->
-    <section class="decision">
-      <div class="decision-card free">
-        <div class="eyebrow">Free</div>
-        <h3 class="headline">Monitor only</h3>
-        <div class="price">$0</div>
-        <div class="price-note">forever · no card</div>
+    <div class="billing-toggle">
+      <div class="billing-toggle-pill">
+        <button class="active" data-cycle="monthly">Monthly</button>
+        <button data-cycle="annual">Annual <span class="save-badge">Save 20%</span></button>
+      </div>
+    </div>
+
+    <!-- Plans: Free vs Pro -->
+    <section class="plans">
+      <div class="plan free">
+        <div class="plan-eyebrow">Free</div>
+        <h3 class="plan-name">Monitor only</h3>
+        <div class="plan-price">
+          <span class="currency">$</span>
+          <span class="amount">0</span>
+          <span class="per">/forever</span>
+        </div>
+        <div class="plan-price-note">no card required</div>
+        <div class="plan-credits">250 <span class="muted">credits / month</span></div>
         <ul class="feature-list">
           <li>See who's asking for what you sell</li>
-          <li>250 credits / month</li>
           <li>Reddit · LinkedIn · X feed</li>
           <li class="cross">No DMs, comments or connections</li>
           <li class="cross">1 connected account, slower scan</li>
         </ul>
-        <button class="cta" style="margin-top:auto;width:100%;padding:12px 16px;background:var(--color-surface-elevated);border:1px solid var(--color-border-strong);color:var(--color-text);border-radius:10px;font:inherit;cursor:pointer;font-weight:500;font-size:14px;">Get started free</button>
+        <button class="cta">Get started free</button>
       </div>
 
-      <div class="decision-card paid">
-        <div class="eyebrow paid">Any paid plan</div>
-        <h3 class="headline">Monitor + reach out</h3>
-        <div class="price">from $20</div>
-        <div class="price-note">/ month · billed annually</div>
+      <div class="plan pro">
+        <div class="plan-eyebrow">Pro</div>
+        <h3 class="plan-name">Monitor + reach out</h3>
+        <div class="plan-price">
+          <span class="currency">$</span>
+          <span class="amount" data-price-monthly="49" data-price-annual="39">49</span>
+          <span class="per">/month</span>
+        </div>
+        <div class="plan-price-note" data-billing-monthly="billed monthly · cancel anytime" data-billing-annual="$468/yr · billed annually">billed monthly · cancel anytime</div>
+        <div class="plan-credits">2 000 <span class="muted">credits / month</span></div>
         <ul class="feature-list">
           <li>Everything in Free</li>
           <li>Send DMs, comments, connection requests</li>
@@ -528,70 +566,60 @@ input[type="range"]::-moz-range-thumb {
           <li>Inbound monitoring (mentions, replies, requests)</li>
           <li>Any scan speed · top-up credit packs</li>
         </ul>
-        <a href="#tiers" style="margin-top:auto;width:100%;padding:12px 16px;background:var(--color-primary);border:1px solid var(--color-primary);color:white;border-radius:10px;font-weight:500;font-size:14px;text-align:center;">Pick a tier ↓</a>
+        <button class="cta cta-primary">Start with Pro</button>
       </div>
     </section>
 
-    <!-- Section 2: Tier picker -->
-    <section class="tier-picker" id="tiers">
-      <div class="tier-picker-head">
-        <div class="section-head">
-          <h2>Pick your credit volume</h2>
-          <p>Same features across paid tiers — pick based on outreach volume.</p>
-        </div>
-        <div class="billing-toggle-pill">
-          <button class="active" data-cycle="monthly">Monthly</button>
-          <button data-cycle="annual">Annual <span class="save-badge">Save 20%</span></button>
-        </div>
+    <!-- Credit packs -->
+    <section class="packs-section">
+      <div class="section-head">
+        <h2>Need more credits?</h2>
+        <p>Top up anytime — packs never expire.</p>
       </div>
 
-      <div class="tier-cards" data-tier-cards>
-        <div class="tier-card" data-tier="starter">
-          <div class="tier-name">Starter</div>
-          <div class="tier-price">
-            <span class="price-currency">$</span><span data-price-monthly="25" data-price-annual="20">25</span><span class="price-period">/mo</span>
-          </div>
-          <div class="tier-billing" data-billing-monthly="billed monthly" data-billing-annual="$240/yr · billed annually">billed monthly</div>
-          <div class="tier-credits">1 000 credits / month</div>
-          <div class="tier-fits">Fits ~25 DMs / month</div>
-          <button class="cta">Start with Starter</button>
+      <div class="packs-grid" data-packs>
+        <div class="pack" data-pack="starter">
+          <div class="pack-name">Starter</div>
+          <div class="pack-credits">500<span class="pack-credits-unit">cr</span></div>
+          <div class="pack-price">$29</div>
+          <div class="pack-rate">$0.058 / cr</div>
+          <button class="cta">Buy Starter pack</button>
         </div>
-
-        <div class="tier-card popular" data-tier="growth">
+        <div class="pack" data-pack="growth">
+          <div class="pack-name">Growth</div>
+          <div class="pack-credits">1 500<span class="pack-credits-unit">cr</span></div>
+          <div class="pack-price">$59</div>
+          <div class="pack-rate">$0.039 / cr</div>
+          <button class="cta">Buy Growth pack</button>
+        </div>
+        <div class="pack popular" data-pack="scale">
           <span class="badge">Most popular</span>
-          <div class="tier-name">Growth</div>
-          <div class="tier-price">
-            <span class="price-currency">$</span><span data-price-monthly="59" data-price-annual="47">59</span><span class="price-period">/mo</span>
-          </div>
-          <div class="tier-billing" data-billing-monthly="billed monthly" data-billing-annual="$566/yr · billed annually">billed monthly</div>
-          <div class="tier-credits">3 000 credits / month</div>
-          <div class="tier-fits">Fits ~80 DMs / month</div>
-          <button class="cta cta-primary">Start with Growth</button>
+          <div class="pack-name">Scale</div>
+          <div class="pack-credits">5 000<span class="pack-credits-unit">cr</span></div>
+          <div class="pack-price">$149</div>
+          <div class="pack-rate">$0.030 / cr</div>
+          <button class="cta">Buy Scale pack</button>
         </div>
-
-        <div class="tier-card" data-tier="scale">
-          <div class="tier-name">Scale</div>
-          <div class="tier-price">
-            <span class="price-currency">$</span><span data-price-monthly="129" data-price-annual="103">129</span><span class="price-period">/mo</span>
-          </div>
-          <div class="tier-billing" data-billing-monthly="billed monthly" data-billing-annual="$1 238/yr · billed annually">billed monthly</div>
-          <div class="tier-credits">8 000 credits / month</div>
-          <div class="tier-fits">Fits ~200 DMs / month</div>
-          <button class="cta">Start with Scale</button>
+        <div class="pack" data-pack="agency">
+          <div class="pack-name">Agency</div>
+          <div class="pack-credits">15 000<span class="pack-credits-unit">cr</span></div>
+          <div class="pack-price">$399</div>
+          <div class="pack-rate">$0.027 / cr</div>
+          <button class="cta">Buy Agency pack</button>
         </div>
       </div>
     </section>
 
-    <!-- Section 3: Every paid tier includes -->
+    <!-- Pro tier includes -->
     <section class="includes">
-      <h3>Every paid tier includes</h3>
+      <h3>Pro includes</h3>
       <ul class="includes-grid">
         <li>Outreach: DMs, comments, connection requests, replies</li>
         <li>Connect Reddit, LinkedIn &amp; X accounts (first 2 free)</li>
         <li>Inbound monitoring: mentions, DM replies, requests received</li>
         <li>Any scan speed (15 min → 24 h)</li>
         <li>Track unlimited keywords, subreddits &amp; profiles</li>
-        <li>Top-up credit packs whenever you need more</li>
+        <li>Buy top-up credit packs anytime</li>
       </ul>
     </section>
 
@@ -600,8 +628,8 @@ input[type="range"]::-moz-range-thumb {
       <h2>Frequently asked</h2>
       <div class="faq-grid">
         <div>
-          <h4>Can I switch tiers later?</h4>
-          <p>Yes — upgrade, downgrade, or cancel at any time. Annual gets prorated refund on downgrade.</p>
+          <h4>Can I cancel anytime?</h4>
+          <p>Yes — cancel your Pro plan anytime. Annual gets prorated refund on cancellation.</p>
         </div>
         <div>
           <h4>What happens if I run out of credits?</h4>
@@ -609,7 +637,7 @@ input[type="range"]::-moz-range-thumb {
         </div>
         <div>
           <h4>Do unused credits roll over?</h4>
-          <p>Yes — credits accumulate up to 2× your monthly grant, so a slow month earns a buffer for the next one.</p>
+          <p>Subscription credits accumulate up to 4 000 (2× monthly grant). Pack credits never expire.</p>
         </div>
         <div>
           <h4>Why can't free users send messages?</h4>
@@ -620,35 +648,49 @@ input[type="range"]::-moz-range-thumb {
   </main>
 </div>
 
-<!-- ─── VARIANT B: With slider above tier cards ─── -->
+<!-- ─── VARIANT B: With slider above packs ─── -->
 <div id="variant-b" class="variant variant-b">
   <main class="page">
     <header class="hero">
       <h1>Pricing that scales with your outreach</h1>
-      <p>Start free with monitoring. Move the slider — we'll point you at the tier that fits.</p>
+      <p>Start free. Upgrade to Pro for outreach. Move the slider — we'll suggest a pack if you need more credits.</p>
     </header>
 
-    <section class="decision">
-      <div class="decision-card free">
-        <div class="eyebrow">Free</div>
-        <h3 class="headline">Monitor only</h3>
-        <div class="price">$0</div>
-        <div class="price-note">forever · no card</div>
+    <div class="billing-toggle">
+      <div class="billing-toggle-pill">
+        <button class="active" data-cycle="monthly">Monthly</button>
+        <button data-cycle="annual">Annual <span class="save-badge">Save 20%</span></button>
+      </div>
+    </div>
+
+    <section class="plans">
+      <div class="plan free">
+        <div class="plan-eyebrow">Free</div>
+        <h3 class="plan-name">Monitor only</h3>
+        <div class="plan-price">
+          <span class="currency">$</span><span class="amount">0</span><span class="per">/forever</span>
+        </div>
+        <div class="plan-price-note">no card required</div>
+        <div class="plan-credits">250 <span class="muted">credits / month</span></div>
         <ul class="feature-list">
           <li>See who's asking for what you sell</li>
-          <li>250 credits / month</li>
           <li>Reddit · LinkedIn · X feed</li>
           <li class="cross">No DMs, comments or connections</li>
           <li class="cross">1 connected account, slower scan</li>
         </ul>
-        <button class="cta" style="margin-top:auto;width:100%;padding:12px 16px;background:var(--color-surface-elevated);border:1px solid var(--color-border-strong);color:var(--color-text);border-radius:10px;font:inherit;cursor:pointer;font-weight:500;font-size:14px;">Get started free</button>
+        <button class="cta">Get started free</button>
       </div>
 
-      <div class="decision-card paid">
-        <div class="eyebrow paid">Any paid plan</div>
-        <h3 class="headline">Monitor + reach out</h3>
-        <div class="price">from $20</div>
-        <div class="price-note">/ month · billed annually</div>
+      <div class="plan pro">
+        <div class="plan-eyebrow">Pro</div>
+        <h3 class="plan-name">Monitor + reach out</h3>
+        <div class="plan-price">
+          <span class="currency">$</span>
+          <span class="amount" data-price-monthly="49" data-price-annual="39">49</span>
+          <span class="per">/month</span>
+        </div>
+        <div class="plan-price-note" data-billing-monthly="billed monthly · cancel anytime" data-billing-annual="$468/yr · billed annually">billed monthly · cancel anytime</div>
+        <div class="plan-credits">2 000 <span class="muted">credits / month</span></div>
         <ul class="feature-list">
           <li>Everything in Free</li>
           <li>Send DMs, comments, connection requests</li>
@@ -656,76 +698,69 @@ input[type="range"]::-moz-range-thumb {
           <li>Inbound monitoring (mentions, replies, requests)</li>
           <li>Any scan speed · top-up credit packs</li>
         </ul>
-        <a href="#tiers-b" style="margin-top:auto;width:100%;padding:12px 16px;background:var(--color-primary);border:1px solid var(--color-primary);color:white;border-radius:10px;font-weight:500;font-size:14px;text-align:center;">Pick a tier ↓</a>
+        <button class="cta cta-primary">Start with Pro</button>
       </div>
     </section>
 
-    <section class="tier-picker" id="tiers-b">
-      <div class="tier-picker-head">
-        <div class="section-head">
-          <h2>Pick your credit volume</h2>
-          <p>Same features across paid tiers — pick based on outreach volume.</p>
-        </div>
-        <div class="billing-toggle-pill">
-          <button class="active" data-cycle="monthly">Monthly</button>
-          <button data-cycle="annual">Annual <span class="save-badge">Save 20%</span></button>
-        </div>
+    <section class="packs-section">
+      <div class="section-head">
+        <h2>Need more credits?</h2>
+        <p>Top up anytime — packs never expire.</p>
       </div>
 
       <div class="volume-slider">
         <div class="slider-row">
-          <h3>How many outbound messages do you plan per month?</h3>
+          <h3>How many DMs do you plan to send per month?</h3>
           <div class="value"><span data-output="dm-count">50</span><span class="unit">DMs/month</span></div>
         </div>
         <input type="range" min="0" max="200" value="50" data-slider step="1">
+        <div class="recommendation">
+          <span data-output="rec-text">Pro grant covers ~50 DMs — no extra packs needed.</span>
+        </div>
       </div>
 
-      <div class="tier-cards" data-tier-cards>
-        <div class="tier-card" data-tier="starter">
-          <div class="tier-name">Starter</div>
-          <div class="tier-price">
-            <span class="price-currency">$</span><span data-price-monthly="25" data-price-annual="20">25</span><span class="price-period">/mo</span>
-          </div>
-          <div class="tier-billing" data-billing-monthly="billed monthly" data-billing-annual="$240/yr · billed annually">billed monthly</div>
-          <div class="tier-credits">1 000 credits / month</div>
-          <div class="tier-fits">Fits ~25 DMs / month</div>
-          <button class="cta">Start with Starter</button>
+      <div class="packs-grid" data-packs>
+        <div class="pack" data-pack="starter">
+          <div class="pack-name">Starter</div>
+          <div class="pack-credits">500<span class="pack-credits-unit">cr</span></div>
+          <div class="pack-price">$29</div>
+          <div class="pack-rate">$0.058 / cr</div>
+          <button class="cta">Buy Starter pack</button>
         </div>
-
-        <div class="tier-card popular" data-tier="growth">
+        <div class="pack" data-pack="growth">
+          <div class="pack-name">Growth</div>
+          <div class="pack-credits">1 500<span class="pack-credits-unit">cr</span></div>
+          <div class="pack-price">$59</div>
+          <div class="pack-rate">$0.039 / cr</div>
+          <button class="cta">Buy Growth pack</button>
+        </div>
+        <div class="pack popular" data-pack="scale">
           <span class="badge">Most popular</span>
-          <div class="tier-name">Growth</div>
-          <div class="tier-price">
-            <span class="price-currency">$</span><span data-price-monthly="59" data-price-annual="47">59</span><span class="price-period">/mo</span>
-          </div>
-          <div class="tier-billing" data-billing-monthly="billed monthly" data-billing-annual="$566/yr · billed annually">billed monthly</div>
-          <div class="tier-credits">3 000 credits / month</div>
-          <div class="tier-fits">Fits ~80 DMs / month</div>
-          <button class="cta cta-primary">Start with Growth</button>
+          <div class="pack-name">Scale</div>
+          <div class="pack-credits">5 000<span class="pack-credits-unit">cr</span></div>
+          <div class="pack-price">$149</div>
+          <div class="pack-rate">$0.030 / cr</div>
+          <button class="cta">Buy Scale pack</button>
         </div>
-
-        <div class="tier-card" data-tier="scale">
-          <div class="tier-name">Scale</div>
-          <div class="tier-price">
-            <span class="price-currency">$</span><span data-price-monthly="129" data-price-annual="103">129</span><span class="price-period">/mo</span>
-          </div>
-          <div class="tier-billing" data-billing-monthly="billed monthly" data-billing-annual="$1 238/yr · billed annually">billed monthly</div>
-          <div class="tier-credits">8 000 credits / month</div>
-          <div class="tier-fits">Fits ~200 DMs / month</div>
-          <button class="cta">Start with Scale</button>
+        <div class="pack" data-pack="agency">
+          <div class="pack-name">Agency</div>
+          <div class="pack-credits">15 000<span class="pack-credits-unit">cr</span></div>
+          <div class="pack-price">$399</div>
+          <div class="pack-rate">$0.027 / cr</div>
+          <button class="cta">Buy Agency pack</button>
         </div>
       </div>
     </section>
 
     <section class="includes">
-      <h3>Every paid tier includes</h3>
+      <h3>Pro includes</h3>
       <ul class="includes-grid">
         <li>Outreach: DMs, comments, connection requests, replies</li>
         <li>Connect Reddit, LinkedIn &amp; X accounts (first 2 free)</li>
         <li>Inbound monitoring: mentions, DM replies, requests received</li>
         <li>Any scan speed (15 min → 24 h)</li>
         <li>Track unlimited keywords, subreddits &amp; profiles</li>
-        <li>Top-up credit packs whenever you need more</li>
+        <li>Buy top-up credit packs anytime</li>
       </ul>
     </section>
 
@@ -733,8 +768,8 @@ input[type="range"]::-moz-range-thumb {
       <h2>Frequently asked</h2>
       <div class="faq-grid">
         <div>
-          <h4>Can I switch tiers later?</h4>
-          <p>Yes — upgrade, downgrade, or cancel at any time. Annual gets prorated refund on downgrade.</p>
+          <h4>Can I cancel anytime?</h4>
+          <p>Yes — cancel your Pro plan anytime. Annual gets prorated refund on cancellation.</p>
         </div>
         <div>
           <h4>What happens if I run out of credits?</h4>
@@ -742,7 +777,7 @@ input[type="range"]::-moz-range-thumb {
         </div>
         <div>
           <h4>Do unused credits roll over?</h4>
-          <p>Yes — credits accumulate up to 2× your monthly grant, so a slow month earns a buffer for the next one.</p>
+          <p>Subscription credits accumulate up to 4 000 (2× monthly grant). Pack credits never expire.</p>
         </div>
         <div>
           <h4>Why can't free users send messages?</h4>
@@ -758,30 +793,44 @@ input[type="range"]::-moz-range-thumb {
   <main class="page">
     <header class="hero">
       <h1>Pricing that scales with your outreach</h1>
-      <p>Start free. Pick a tier when you're ready to reach out — slider picks for you.</p>
+      <p>Toggle billing cycle and slider stay visible as you scroll. Find your fit fast.</p>
     </header>
 
-    <section class="decision">
-      <div class="decision-card free">
-        <div class="eyebrow">Free</div>
-        <h3 class="headline">Monitor only</h3>
-        <div class="price">$0</div>
-        <div class="price-note">forever · no card</div>
+    <div class="billing-toggle">
+      <div class="billing-toggle-pill">
+        <button class="active" data-cycle="monthly">Monthly</button>
+        <button data-cycle="annual">Annual <span class="save-badge">Save 20%</span></button>
+      </div>
+    </div>
+
+    <section class="plans">
+      <div class="plan free">
+        <div class="plan-eyebrow">Free</div>
+        <h3 class="plan-name">Monitor only</h3>
+        <div class="plan-price">
+          <span class="currency">$</span><span class="amount">0</span><span class="per">/forever</span>
+        </div>
+        <div class="plan-price-note">no card required</div>
+        <div class="plan-credits">250 <span class="muted">credits / month</span></div>
         <ul class="feature-list">
           <li>See who's asking for what you sell</li>
-          <li>250 credits / month</li>
           <li>Reddit · LinkedIn · X feed</li>
           <li class="cross">No DMs, comments or connections</li>
           <li class="cross">1 connected account, slower scan</li>
         </ul>
-        <button class="cta" style="margin-top:auto;width:100%;padding:12px 16px;background:var(--color-surface-elevated);border:1px solid var(--color-border-strong);color:var(--color-text);border-radius:10px;font:inherit;cursor:pointer;font-weight:500;font-size:14px;">Get started free</button>
+        <button class="cta">Get started free</button>
       </div>
 
-      <div class="decision-card paid">
-        <div class="eyebrow paid">Any paid plan</div>
-        <h3 class="headline">Monitor + reach out</h3>
-        <div class="price">from $20</div>
-        <div class="price-note">/ month · billed annually</div>
+      <div class="plan pro">
+        <div class="plan-eyebrow">Pro</div>
+        <h3 class="plan-name">Monitor + reach out</h3>
+        <div class="plan-price">
+          <span class="currency">$</span>
+          <span class="amount" data-price-monthly="49" data-price-annual="39">49</span>
+          <span class="per">/month</span>
+        </div>
+        <div class="plan-price-note" data-billing-monthly="billed monthly · cancel anytime" data-billing-annual="$468/yr · billed annually">billed monthly · cancel anytime</div>
+        <div class="plan-credits">2 000 <span class="muted">credits / month</span></div>
         <ul class="feature-list">
           <li>Everything in Free</li>
           <li>Send DMs, comments, connection requests</li>
@@ -789,76 +838,69 @@ input[type="range"]::-moz-range-thumb {
           <li>Inbound monitoring (mentions, replies, requests)</li>
           <li>Any scan speed · top-up credit packs</li>
         </ul>
-        <a href="#tiers-c" style="margin-top:auto;width:100%;padding:12px 16px;background:var(--color-primary);border:1px solid var(--color-primary);color:white;border-radius:10px;font-weight:500;font-size:14px;text-align:center;">Pick a tier ↓</a>
+        <button class="cta cta-primary">Start with Pro</button>
       </div>
     </section>
 
-    <section class="tier-picker" id="tiers-c">
-      <div class="tier-picker-head">
-        <div class="section-head">
-          <h2>Pick your credit volume</h2>
-          <p>Same features across paid tiers — pick based on outreach volume.</p>
-        </div>
-        <div class="billing-toggle-pill">
-          <button class="active" data-cycle="monthly">Monthly</button>
-          <button data-cycle="annual">Annual <span class="save-badge">Save 20%</span></button>
-        </div>
+    <section class="packs-section">
+      <div class="section-head">
+        <h2>Need more credits?</h2>
+        <p>Top up anytime — packs never expire.</p>
       </div>
 
       <div class="volume-slider">
         <div class="slider-row">
-          <h3>How many outbound messages do you plan per month?</h3>
+          <h3>How many DMs do you plan to send per month?</h3>
           <div class="value"><span data-output="dm-count">50</span><span class="unit">DMs/month</span></div>
         </div>
         <input type="range" min="0" max="200" value="50" data-slider step="1">
+        <div class="recommendation">
+          <span data-output="rec-text">Pro grant covers ~50 DMs — no extra packs needed.</span>
+        </div>
       </div>
 
-      <div class="tier-cards" data-tier-cards>
-        <div class="tier-card" data-tier="starter">
-          <div class="tier-name">Starter</div>
-          <div class="tier-price">
-            <span class="price-currency">$</span><span data-price-monthly="25" data-price-annual="20">25</span><span class="price-period">/mo</span>
-          </div>
-          <div class="tier-billing" data-billing-monthly="billed monthly" data-billing-annual="$240/yr · billed annually">billed monthly</div>
-          <div class="tier-credits">1 000 credits / month</div>
-          <div class="tier-fits">Fits ~25 DMs / month</div>
-          <button class="cta">Start with Starter</button>
+      <div class="packs-grid" data-packs>
+        <div class="pack" data-pack="starter">
+          <div class="pack-name">Starter</div>
+          <div class="pack-credits">500<span class="pack-credits-unit">cr</span></div>
+          <div class="pack-price">$29</div>
+          <div class="pack-rate">$0.058 / cr</div>
+          <button class="cta">Buy Starter pack</button>
         </div>
-
-        <div class="tier-card popular" data-tier="growth">
+        <div class="pack" data-pack="growth">
+          <div class="pack-name">Growth</div>
+          <div class="pack-credits">1 500<span class="pack-credits-unit">cr</span></div>
+          <div class="pack-price">$59</div>
+          <div class="pack-rate">$0.039 / cr</div>
+          <button class="cta">Buy Growth pack</button>
+        </div>
+        <div class="pack popular" data-pack="scale">
           <span class="badge">Most popular</span>
-          <div class="tier-name">Growth</div>
-          <div class="tier-price">
-            <span class="price-currency">$</span><span data-price-monthly="59" data-price-annual="47">59</span><span class="price-period">/mo</span>
-          </div>
-          <div class="tier-billing" data-billing-monthly="billed monthly" data-billing-annual="$566/yr · billed annually">billed monthly</div>
-          <div class="tier-credits">3 000 credits / month</div>
-          <div class="tier-fits">Fits ~80 DMs / month</div>
-          <button class="cta cta-primary">Start with Growth</button>
+          <div class="pack-name">Scale</div>
+          <div class="pack-credits">5 000<span class="pack-credits-unit">cr</span></div>
+          <div class="pack-price">$149</div>
+          <div class="pack-rate">$0.030 / cr</div>
+          <button class="cta">Buy Scale pack</button>
         </div>
-
-        <div class="tier-card" data-tier="scale">
-          <div class="tier-name">Scale</div>
-          <div class="tier-price">
-            <span class="price-currency">$</span><span data-price-monthly="129" data-price-annual="103">129</span><span class="price-period">/mo</span>
-          </div>
-          <div class="tier-billing" data-billing-monthly="billed monthly" data-billing-annual="$1 238/yr · billed annually">billed monthly</div>
-          <div class="tier-credits">8 000 credits / month</div>
-          <div class="tier-fits">Fits ~200 DMs / month</div>
-          <button class="cta">Start with Scale</button>
+        <div class="pack" data-pack="agency">
+          <div class="pack-name">Agency</div>
+          <div class="pack-credits">15 000<span class="pack-credits-unit">cr</span></div>
+          <div class="pack-price">$399</div>
+          <div class="pack-rate">$0.027 / cr</div>
+          <button class="cta">Buy Agency pack</button>
         </div>
       </div>
     </section>
 
     <section class="includes">
-      <h3>Every paid tier includes</h3>
+      <h3>Pro includes</h3>
       <ul class="includes-grid">
         <li>Outreach: DMs, comments, connection requests, replies</li>
         <li>Connect Reddit, LinkedIn &amp; X accounts (first 2 free)</li>
         <li>Inbound monitoring: mentions, DM replies, requests received</li>
         <li>Any scan speed (15 min → 24 h)</li>
         <li>Track unlimited keywords, subreddits &amp; profiles</li>
-        <li>Top-up credit packs whenever you need more</li>
+        <li>Buy top-up credit packs anytime</li>
       </ul>
     </section>
 
@@ -866,8 +908,8 @@ input[type="range"]::-moz-range-thumb {
       <h2>Frequently asked</h2>
       <div class="faq-grid">
         <div>
-          <h4>Can I switch tiers later?</h4>
-          <p>Yes — upgrade, downgrade, or cancel at any time. Annual gets prorated refund on downgrade.</p>
+          <h4>Can I cancel anytime?</h4>
+          <p>Yes — cancel your Pro plan anytime. Annual gets prorated refund on cancellation.</p>
         </div>
         <div>
           <h4>What happens if I run out of credits?</h4>
@@ -875,7 +917,7 @@ input[type="range"]::-moz-range-thumb {
         </div>
         <div>
           <h4>Do unused credits roll over?</h4>
-          <p>Yes — credits accumulate up to 2× your monthly grant, so a slow month earns a buffer for the next one.</p>
+          <p>Subscription credits accumulate up to 4 000 (2× monthly grant). Pack credits never expire.</p>
         </div>
         <div>
           <h4>Why can't free users send messages?</h4>
@@ -892,11 +934,11 @@ input[type="range"]::-moz-range-thumb {
     <option value="default">default</option>
   </select>
   <span style="opacity: 0.6;">·</span>
-  <span>001 / two-section</span>
+  <span>001 / Free + Pro</span>
 </div>
 
 <script>
-// ─── Variant tab switching ───
+// Variant tab switching
 document.querySelectorAll('.variant-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     const id = tab.dataset.variant;
@@ -907,16 +949,25 @@ document.querySelectorAll('.variant-tab').forEach(tab => {
   });
 });
 
-// ─── Slider math ───
-function pickTier(dms) {
-  if (dms <= 5)   return null;          // suggests Free, no tier highlight
-  if (dms <= 30)  return 'starter';
-  if (dms <= 100) return 'growth';
-  return 'scale';
+// Recommendation logic
+// Pro grant: 2 000 cr/m. Average DM ≈ 30 cr (after monitoring overhead ~25%).
+// 2 000 cr / ~30 cr/DM = ~50 DMs covered by Pro alone.
+// If user wants more, recommend pack:
+//   50-80 DMs   → +Starter pack (500 cr)
+//   80-130 DMs  → +Growth pack (1.5k cr)
+//   130-200 DMs → +Scale pack (5k cr)
+//   200+        → +Agency pack (15k cr)
+function pickPack(dms) {
+  if (dms <= 5)  return { pack: null, text: 'Free plan is enough — start monitoring without a card.' };
+  if (dms <= 50) return { pack: null, text: 'Pro alone covers it — 2 000 monthly credits.' };
+  if (dms <= 80) return { pack: 'starter', text: 'Pro + 1× Starter pack (500 extra credits).' };
+  if (dms <= 130) return { pack: 'growth', text: 'Pro + 1× Growth pack (1 500 extra credits).' };
+  if (dms <= 200) return { pack: 'scale', text: 'Pro + 1× Scale pack (5 000 extra credits).' };
+  return { pack: 'agency', text: 'Pro + 1× Agency pack (15 000 extra credits) — agency volume.' };
 }
 function fmtDms(v) { return v >= 200 ? '200+' : String(v); }
 
-// ─── Per-variant wiring ───
+// Per-variant wiring
 document.querySelectorAll('.variant').forEach(variant => {
   let cycle = 'monthly';
   const slider = variant.querySelector('[data-slider]');
@@ -936,9 +987,10 @@ document.querySelectorAll('.variant').forEach(variant => {
     const pct = (v / parseInt(slider.max, 10)) * 100;
     slider.style.setProperty('--pct', pct + '%');
     variant.querySelector('[data-output="dm-count"]').textContent = fmtDms(v);
-    const tier = pickTier(v);
-    variant.querySelectorAll('.tier-card').forEach(card => {
-      card.classList.toggle('recommended', tier !== null && card.dataset.tier === tier);
+    const rec = pickPack(v);
+    variant.querySelector('[data-output="rec-text"]').textContent = rec.text;
+    variant.querySelectorAll('.pack').forEach(p => {
+      p.classList.toggle('recommended', rec.pack !== null && p.dataset.pack === rec.pack);
     });
   }
 

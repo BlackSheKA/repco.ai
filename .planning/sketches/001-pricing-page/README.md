@@ -1,21 +1,21 @@
 ---
 sketch: 001
 name: pricing-page
-question: "Two-section design: Free-vs-Paid decision + tier picker — czy to czyściej niż comparison table z 4 kolumnami i 7 wierszami 'unlimited × N'?"
+question: "Free + Pro + credit packs: czy 1 plan paid + scale-by-packs jest czytelniejszy niż 3 volume tiers?"
 winner: null
-tags: [pricing, landing, two-section, tier-picker, billing-toggle]
+tags: [pricing, landing, free-pro, packs, billing-toggle]
 ---
 
-# Sketch 001: Pricing Page (two-section redesign)
+# Sketch 001: Pricing Page (Free + Pro + Packs)
 
 ## Design Question
 
-Poprzednia iteracja używała comparison table 4-kolumnowej × 7 wierszy. Większość paid tierów ma identyczne features → tabela powtarzała "✓ ✓ ✓ ✓" w 5 wierszach co wyglądało jak fake differentiation.
+Iteracje:
+1. v1: Comparison table 4 cols (Free/Monthly/Quarterly/Annual) — broken (annual = 0% margin)
+2. v2: Volume tiers (Free/Starter/Growth/Scale) — paid tiery różniły się **tylko credits**, fake differentiation w wierszach
+3. **v3 (current): Free + Pro + Packs** — jedna decyzja "płacić czy nie", scale przez credit packs
 
-Reframe: **paid tiery różnią się TYLKO ceną i ilością credits**. Comparison table dla nich nie ma sensu. Więc:
-
-- **Sekcja 1 (Free vs Paid):** dwie duże karty z prawdziwą decyzją — "monitor only" vs "monitor + reach out". Tu są realne differences w features.
-- **Sekcja 2 (Tier picker):** 3 paid cards z monthly/annual toggle. Pokazują tylko: cena · credits · "fits ~N DMs". Wszystkie features paid wymienione raz w sekcji "Every paid tier includes".
+Filozofia: **plan = unlock**, **packs = volume**. Nie zmuszamy usera do wyboru "który tier" gdy jedyna różnica to liczba kredytów.
 
 ## How to View
 
@@ -23,33 +23,50 @@ Reframe: **paid tiery różnią się TYLKO ceną i ilością credits**. Comparis
 open .planning/sketches/001-pricing-page/index.html
 ```
 
+**Plan struktura:**
+
+| | Free | Pro |
+|---|---|---|
+| Monthly | $0 | $49/m |
+| Annual | — | $39/m ($468/yr, save 20%) |
+| Credits | 250/m | 2 000/m |
+
+**Packs** (one-time top-up, never expire):
+- Starter 500 cr / $29
+- Growth 1 500 cr / $59
+- Scale 5 000 cr / $149 ⭐
+- Agency 15 000 cr / $399
+
 Slider math (B + C):
-- ≤5 DMs/m → no tier highlighted (recommends Free)
-- 6-30 → **Starter** ($25/m monthly · $20/m annual)
-- 31-100 → **Growth** ⭐ ($59/m monthly · $47/m annual)
-- 101+ → **Scale** ($129/m monthly · $103/m annual)
+- ≤5 DMs/m → "Free is enough"
+- 6-50 → "Pro alone covers it"
+- 51-80 → Pro + Starter pack
+- 81-130 → Pro + Growth pack
+- 131-200 → Pro + Scale pack
+- 200+ → Pro + Agency pack
 
 ## Variants
 
-- **A: Static** — dwie sekcje, brak slidera, brak sticky. Czysta konstrukcja "decision then volume". Najszybszy do build w real app.
+- **A: Static** — billing toggle, 2 plan cards (Free / Pro), 4 pack cards static, includes section, FAQ. Najczystszy, najszybszy do build.
 
-- **B: With slider** — dodaje slider między toggle'em a tier cards. "How many DMs/month?" → highlight rekomendowanej karty (border ring + glow + scale 1.04 dla popular Growth). Slider live-updates.
+- **B: With slider** — dodaje slider między packs head a packs grid. Slider pyta "ile DMs/m" → text recommendation + highlight rekomendowanego packa (border ring + glow).
 
-- **C: Sticky toggle + slider** — toggle + slider sticky pod variant nav. User scrolluje przez tier cards / includes / FAQ a slider zostaje "dotykalny" cały czas. Best for long pages.
+- **C: Sticky toggle** — billing toggle sticky pod variant nav. Slider w packs section. Najwięcej "always-tactile" feel.
 
 ## What to Look For
 
-1. **Decision card balance** — Free vs Paid. Czy "from $20/mo" w Paid karcie jest dobrym anchor czy lepiej dać bigger price? Czy `cross` items na Free ("No DMs", "1 account, slower scan") są clear constraint czy negative selling?
-2. **Tier picker density** — 3 karty obok siebie (Starter / Growth ⭐ / Scale). Każda: name, price, credits, "fits ~N DMs", CTA. Dużo białej przestrzeni — czy to good breathing room czy puste?
-3. **"Most popular" badge na Growth** — w wariancie A/C tylko badge + border. W wariancie B Growth zawsze ma scale 1.04 + glow (więcej attention zawsze). Który feels right?
-4. **Slider interplay** (B + C) — drag → highlight tier. Co się dzieje gdy slider trafia w Growth (i tak popular by default)? Double highlight czy override?
-5. **"Includes" sekcja** — pod tier cards jedna lista "Every paid tier includes:" z 6 itemami w 2 kolumny. Czy to lepiej niż pokazywanie każdego itema 3× w cards columns?
-6. **Annual toggle** — kliknij Monthly ↔ Annual. Cena się zmienia, billing line update'uje na "$240/yr · billed annually". Jasne czy mylące?
-7. **Mobile (<800px)** — wszystko w 1 column. Czy decision cards działają stack'owane?
+1. **Plans card balance** — Free vs Pro side-by-side. Pro ma `.pro` border + glow primary. Czy odróżnia się wystarczająco bez przesady?
+2. **Annual toggle effect** — kliknij Monthly ↔ Annual. Pro price: $49 → $39, billing line: "billed monthly · cancel anytime" → "$468/yr · billed annually". Free się nie zmienia.
+3. **Packs grid** — 4 karty w rzędzie. Scale (Most popular) ma badge + border. Czy grid wygląda balanced czy jedna karta dominuje?
+4. **Slider recommendation copy** (B + C) — drag slider, recommendation text update'uje się ("Pro alone covers it" → "Pro + 1× Starter pack" → ...). Highlight przeskakuje przez packs. Płynne czy juj?
+5. **"Includes" sekcja** — "Pro includes" jako reminder co user dostaje za $49/m. 6 itemów w 2 kolumny. Lepiej zostawić czy wywalić (info już w Pro karcie)?
+6. **Mobile (<800px)** — plans stack 1 col, packs 2×2 grid. Working?
+7. **Bez burn math** — verify: pre-purchase value calc OK ("fits ~50 DMs"), ale brak "wystarczy na N dni", "burn rate", countdown.
 
 ## Open Questions
 
-- Czy cross items na Free karcie (5 features w tym 2 z ✕) to dobry mix czy za dużo "no's"?
-- "fits ~25 DMs / month" przy każdym tierze — pre-purchase value calc (dozwolone) czy zaczyna się ślizgać w burn-rate territory?
-- Slider w MVP czy odpalamy bez (ship faster)?
-- Variants B i C robią dokładnie to samo poza sticky — czy worth utrzymywać oba?
+- Free karta ma 2 cross items + 2 check items. Czy to clear constraint czy negative selling?
+- Pro card price font (3.25rem) vs Free price font (3.25rem) — równa wielkość, ale Pro ma glow + border. Czy Pro czyta się jako "primary CTA" czy jako "alternative"?
+- Slider w packs section sugeruje że user **musi kupić pack** żeby wysłać >50 DMs. Czy to dobrze (clear scaling path) czy mylące (Pro user nie zawsze chce add packs)?
+- Czy "Most popular" badge na Scale pack jest pomocne (większość power user'ów to wybierze) czy zwadliwe (może ludzie kupią Scale gdy wystarczyłby Growth)?
+- Cena $49/m vs anchor "$39 annual" — który eksponować na hero?

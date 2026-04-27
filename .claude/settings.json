@@ -3,7 +3,10 @@
     "allow": [
       "mcp__plugin_playwright_playwright__browser_navigate",
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('version:', d.get\\('version'\\)\\)\")",
-      "Bash(mkdir -p .claude/commands)"
+      "Bash(mkdir -p .claude/commands)",
+      "Bash(rm -f cookie_encoded.txt cookie_value.txt session.json)",
+      "Bash(rm -rf .playwright-mcp/ .claude/worktrees/)",
+      "Bash(rm -f .claude/scheduled_tasks.lock)"
     ],
     "additionalDirectories": [
       "C:\\Users\\kamil\\.claude\\plans"
