@@ -15,10 +15,6 @@
       "schedule": "*/5 * * * *"
     },
     {
-      "path": "/api/cron/monitor-reddit",
-      "schedule": "*/15 * * * *"
-    },
-    {
       "path": "/api/cron/warmup",
       "schedule": "0 6 * * *"
     },
@@ -41,10 +37,6 @@
     {
       "path": "/api/cron/digest",
       "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/cron/monitor-linkedin",
-      "schedule": "0 */4 * * *"
     },
     {
       "path": "/api/cron/linkedin-prescreen",
