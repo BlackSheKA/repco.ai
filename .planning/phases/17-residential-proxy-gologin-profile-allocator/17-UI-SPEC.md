@@ -1,10 +1,11 @@
 ---
 phase: 17
 slug: residential-proxy-gologin-profile-allocator
-status: draft
+status: approved
 shadcn_initialized: true
 preset: radix-nova
 created: 2026-04-27
+reviewed_at: 2026-04-27T00:00:00Z
 ---
 
 # Phase 17 — UI Design Contract
