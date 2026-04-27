@@ -1,7 +1,7 @@
 /**
  * LinkedIn auth-wall detection.
  *
- * When a GoLogin LinkedIn profile session expires, LinkedIn serves a
+ * When a LinkedIn profile session expires (any vendor), LinkedIn serves a
  * "Join LinkedIn" / "Sign in" wall INLINE at `/in/{slug}` — the URL
  * does not redirect to `/login` or `/authwall`. Every DOM-based
  * failure-mode detector in the Phase 13 executors (no Message button,

@@ -1,19 +1,13 @@
 /**
  * Deterministic LinkedIn Like executor.
  *
- * Per 13-RESEARCH.md §2 React(Like) + §8 Landmine #8 (selector scoping):
- * all locators scoped to `main [data-id*='urn:li:activity']` to avoid
- * liking the wrong post on feed-variant layouts. No URL hack; CDP click
- * on React button is expected to work (Phase 10 gate was Connect-specific).
- *
- * LNKD-03 (like) — credit cost = 0, auto-executes post-warmup day 2+.
- *
- * Failure modes per 13-CONTEXT.md §Failure-mode taxonomy:
- *   post_unreachable, post_deleted, session_expired, react_button_missing
- * Transversal: security_checkpoint, already_liked, unknown.
+ * Phase 17.5 plan-03: Stagehand fallback when deterministic React Like
+ * scoping misses; structured extraction confirms post-click flip state.
  */
 
 import type { Page } from "playwright-core"
+import { Stagehand } from "@browserbasehq/stagehand"
+import { z } from "zod"
 import { detectLinkedInAuthwall } from "./linkedin-authwall"
 
 export interface LinkedInLikeResult {
@@ -31,10 +25,9 @@ export interface LinkedInLikeResult {
 
 export async function likeLinkedInPost(
   page: Page,
+  stagehand: Stagehand,
   postUrl: string,
 ): Promise<LinkedInLikeResult> {
-  // H-02 defense-in-depth: refuse to navigate to arbitrary origins with
-  // an authenticated LinkedIn session attached.
   if (!/^https:\/\/www\.linkedin\.com\//i.test(postUrl)) {
     return {
       success: false,
@@ -68,15 +61,10 @@ export async function likeLinkedInPost(
 
   await page.waitForTimeout(2500)
 
-  // Inline signup/sign-in wall — must run BEFORE 404/react-button
-  // detection so `react_button_missing` is not misattributed from an
-  // auth wall. Surfaced by Phase 13 UAT 2026-04-24.
   if (await detectLinkedInAuthwall(page)) {
     return { success: false, failureMode: "session_expired" }
   }
 
-  // W-02: narrow 404 detection to URL redirects or dedicated 404 DOM so
-  // posts whose body text merely contains "404" aren't mis-classified.
   if (/\/404(\b|\/)/.test(url)) {
     return { success: false, failureMode: "post_unreachable" }
   }
@@ -96,7 +84,6 @@ export async function likeLinkedInPost(
     return { success: false, failureMode: "post_deleted" }
   }
 
-  // Scope to main post article — avoid comment/reshare React buttons (Landmine #8).
   const mainPost = page.locator("main [data-id*='urn:li:activity']").first()
   const mainPostVisible = await mainPost
     .isVisible({ timeout: 5000 })
@@ -106,7 +93,6 @@ export async function likeLinkedInPost(
   if (mainPostVisible) {
     scope = mainPost
   } else {
-    // Fallback: feed update layout.
     const fallbackScope = page
       .locator("main article, main .feed-shared-update-v2")
       .first()
@@ -119,7 +105,6 @@ export async function likeLinkedInPost(
     scope = fallbackScope
   }
 
-  // Already-liked detection.
   const alreadyPressed = scope
     .locator(
       "button[aria-label^='React Like'][aria-pressed='true'], button.react-button__trigger[aria-pressed='true']",
@@ -144,6 +129,22 @@ export async function likeLinkedInPost(
     .isVisible({ timeout: 3000 })
     .catch(() => false)
   if (!hasLike) {
+    // Stagehand fallback for DOM A/B churn.
+    try {
+      await stagehand.act(
+        "Click the Like (thumbs-up) reaction button on the main LinkedIn post",
+        { page },
+      )
+      await page.waitForTimeout(2500)
+      const flipped = await scope
+        .locator("button[aria-pressed='true']")
+        .first()
+        .isVisible({ timeout: 5000 })
+        .catch(() => false)
+      if (flipped) return { success: true }
+    } catch {
+      /* fall through */
+    }
     return { success: false, failureMode: "react_button_missing" }
   }
 
@@ -156,6 +157,18 @@ export async function likeLinkedInPost(
     .isVisible({ timeout: 5000 })
     .catch(() => false)
   if (flipped) return { success: true }
+
+  // Stagehand verification fallback.
+  try {
+    const verdict = await stagehand.extract(
+      "Detect whether the Like (reaction) button on the main LinkedIn post is now in the pressed/active state",
+      z.object({ liked: z.boolean() }),
+      { page },
+    )
+    if (verdict.liked) return { success: true }
+  } catch {
+    /* fall through */
+  }
   return {
     success: false,
     failureMode: "unknown",
