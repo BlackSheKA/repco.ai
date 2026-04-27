@@ -1,10 +1,11 @@
 ---
 phase: 15
 slug: browser-profile-schema-foundation
-status: draft
+status: approved
 shadcn_initialized: true
 preset: radix-nova
 created: 2026-04-27
+reviewed_at: 2026-04-27T00:00:00Z
 ---
 
 # Phase 15 — UI Design Contract
