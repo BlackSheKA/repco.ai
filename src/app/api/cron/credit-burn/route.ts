@@ -18,7 +18,8 @@ interface UserRow {
 
 interface MonitoringSignalRow {
   user_id: string
-  signal_type: string
+  mechanism_id: string
+  frequency: string
   active: boolean
 }
 
@@ -89,7 +90,7 @@ export async function GET(request: Request) {
     const [signalsRes, accountsRes] = await Promise.all([
       supabase
         .from("monitoring_signals")
-        .select("user_id, signal_type, active")
+        .select("user_id, mechanism_id, frequency, active")
         .in("user_id", userIds)
         .eq("active", true),
       supabase
@@ -134,7 +135,7 @@ export async function GET(request: Request) {
       const signals = signalsByUser.get(user.id) ?? []
       const accounts = accountsByUser.get(user.id) ?? []
 
-      const monitoringBurn = calculateMonitoringBurn(signals)
+      const monitoringBurn = await calculateMonitoringBurn(signals)
       const accountBurn = calculateAccountBurn(accounts)
       const total = monitoringBurn + accountBurn
 
