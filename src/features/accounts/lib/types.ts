@@ -13,6 +13,8 @@ export type HealthStatus =
   | "warning"
   | "cooldown"
   | "banned"
+  | "needs_reconnect"
+  | "captcha_required"
 
 export interface BrowserProfile {
   id: string
@@ -43,6 +45,9 @@ export interface SocialAccount {
   active_hours_end: number
   active: boolean
   session_verified_at: string | null
+  /** Phase 18: preflight cache (1h TTL) — written by runRedditPreflight. */
+  last_preflight_at: string | null
+  last_preflight_status: "ok" | "banned" | "transient" | null
   created_at: string
 }
 

@@ -132,5 +132,9 @@ export function getHealthDisplay(status: HealthStatus): {
       return { label: "Cooldown", color: "yellow" }
     case "banned":
       return { label: "Banned", color: "red" }
+    case "needs_reconnect":
+      return { label: "Needs reconnect", color: "amber" }
+    case "captcha_required":
+      return { label: "Captcha required", color: "amber" }
   }
 }
