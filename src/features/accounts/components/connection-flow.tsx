@@ -20,7 +20,7 @@ import {
 
 interface ConnectionFlowProps {
   accountId: string
-  profileId: string
+  profileId: string | null
   platform: "reddit" | "linkedin"
   onComplete: () => void
   onCancel: () => void
