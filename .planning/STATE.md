@@ -4,7 +4,7 @@ milestone: v1.2
 milestone_name: Survival + Foundation
 status: Ready to execute
 stopped_at: Phase 17 UI-SPEC approved
-last_updated: "2026-04-27T11:48:22.245Z"
+last_updated: "2026-04-27T11:52:20.872Z"
 last_activity: 2026-04-27
 progress:
   total_phases: 8
