@@ -21,9 +21,13 @@ export async function getBrowserProfileForAccount(
     .single()
 
   if (!data) return null
-  // Supabase-js embeds the FK target under the table name. When browser_profile_id IS NULL,
-  // browser_profiles is null. When non-null, it is the row object.
-  const profile = (data as { browser_profiles: BrowserProfile | null }).browser_profiles
+  // Supabase-js embeds the FK target under the table name. The generated
+  // typings widen the embed to `BrowserProfile[]` (one-to-many shape), but
+  // the runtime returns a single row object (or null) for to-one FKs.
+  // Cast through `unknown` to express the actual runtime shape.
+  const profile = (
+    data as unknown as { browser_profiles: BrowserProfile | null }
+  ).browser_profiles
   return profile ?? null
 }
 

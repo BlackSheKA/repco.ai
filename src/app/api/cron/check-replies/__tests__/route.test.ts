@@ -1,4 +1,23 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import type { BrowserProfile } from "@/features/accounts/lib/types"
+
+const mockBrowserProfile = (
+  overrides: Partial<BrowserProfile> = {},
+): BrowserProfile => ({
+  id: "bp-1",
+  gologin_profile_id: "gp-1",
+  gologin_proxy_id: "proxy-1",
+  country_code: "PL",
+  timezone: "Europe/Warsaw",
+  locale: "pl-PL",
+  display_name: null,
+  ...overrides,
+})
+
+vi.mock("@/features/browser-profiles/lib/get-browser-profile", () => ({
+  getBrowserProfileForAccount: vi.fn(async () => mockBrowserProfile()),
+  getBrowserProfileById: vi.fn(async () => mockBrowserProfile()),
+}))
 
 /**
  * Integration test for the check-replies cron route.
@@ -129,7 +148,7 @@ function buildRouteSupabase() {
                         id: "acct-1",
                         user_id: "user-1",
                         handle: "u/myaccount",
-                        gologin_profile_id: "gp-1",
+                        browser_profile_id: "bp-1",
                         consecutive_inbox_failures: 0,
                       },
                     ],
