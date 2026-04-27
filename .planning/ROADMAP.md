@@ -46,7 +46,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 - [~] **Phase 17: Residential Proxy + GoLogin Profile Allocator** — _ABANDONED 2026-04-27, pivoted to Browserbase (see Phase 17.5). GoLogin parallel-launch quota and per-slot pricing don't fit our SaaS scale. Lessons preserved in `.planning/research/browserbase-vs-gologin.md`._
 - [ ] **Phase 17.5: Browser Profile Allocator (Browserbase)** — Replaces Phase 17. Persistent context per account + per-session residential proxy with country geo-targeting via Browserbase. Drops BPRX-04 fingerprint patch (auto-handled by Browserbase). Iframe-embeddable live view replaces external viewer.
 - [ ] **Phase 18: Cookies Persistence + Preflight + Ban Detection** — cookies_jar save/restore, Reddit `about.json` preflight, Haiku CU post-action ban detector
-- [ ] **Phase 19: Free + Pro Plan ENUMs + Signup Flow** — drop old `subscription_tier`, create `subscription_plan` (`free`|`pro`) + `billing_cycle` (`monthly`|`annual`); `handle_new_user` rewrite (250 cr, no trial); email+IP anti-abuse
+- [ ] **Phase 19: Free + Pro Plan ENUMs + Signup Flow** — create `subscription_plan` (`free`|`pro`) + `billing_cycle` (`monthly`|`annual`); `handle_new_user` rewrite (250 cr free signup, no trial); `(email_normalized, ip)` anti-abuse via `signup_audit`
 - [ ] **Phase 20: Pre-Launch User Wipe** — destructive `auth.users` reset behind explicit confirmation gate; cascading FK cleanup
 - [ ] **Phase 21: Free Tier Enforcement + Monthly Grant + Stripe Refresh** — hard caps (1 account / 2 mechanisms / ≥4h / 0 outbound), mechanism whitelist, monthly-credit-grant cron, Stripe products refreshed, top-up pack lockdown
 - [ ] **Phase 22: Signals UI Redesign + Free Tier Copy** — 27 mechanism cards with toggle/config/locked badges, no burn math anywhere, `/pricing` Free column + signup CTA refresh
@@ -129,11 +129,11 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 **Depends on**: Phase 16 (mechanism_costs must exist before tier semantics meaningfully apply, and `users.credits_balance_cap` / `credits_included_monthly` are defined here)
 **Requirements**: PRIC-04, PRIC-05, PRIC-14
 **Success Criteria** (what must be TRUE):
-  1. New ENUMs created: `subscription_plan` (`free`|`pro`) and `billing_cycle` (`monthly`|`annual`); old `subscription_tier` ENUM dropped (hard switch — pre-launch wipe in Phase 20 means no users to migrate)
-  2. `users.subscription_plan` (default `free`), `users.billing_cycle` (nullable for free, NOT NULL for pro)
-  3. A new signup atomically receives `subscription_plan='free'` + 250 cr balance + a `credit_transactions` audit row, with no `trial_ends_at` set; the `startFreeTrial` server action no longer exists
-  4. `users.credits_balance_cap` and `users.credits_included_monthly` columns are populated correctly per plan on signup and on subscription change (Free: 500/250, Pro: 4 000/2 000)
-  5. A second signup from the same email + IP combination is rejected (or flagged in an audit log) by the `handle_new_user` trigger
+  1. New ENUMs created: `subscription_plan` (`free`|`pro`) and `billing_cycle` (`monthly`|`annual`). Quarterly tier dropped per PRICING.md §11. No `subscription_tier` ENUM exists in the live schema (never created); legacy `billing_period` column kept in place — Phase 21 owns the drop.
+  2. `users.subscription_plan` (NOT NULL DEFAULT `'free'`), `users.billing_cycle` (nullable; CHECK enforces NOT NULL when `subscription_plan='pro'`)
+  3. A new signup atomically receives `subscription_plan='free'` + 250 cr balance + a `credit_transactions` ledger row + a `signup_audit` row, with no `trial_ends_at` set. Confirmed no `startFreeTrial` server action exists in the codebase.
+  4. `users.credits_balance_cap` and `users.credits_included_monthly` columns are populated correctly per plan on signup and on subscription change (Free: 500 cap / 250 grant, Pro: 4 000 cap / 2 000 grant)
+  5. A second signup from the same `(email_normalized, ip)` combination is flagged via `signup_audit.duplicate_flag = true` (audit-only — no hard reject; `public.normalize_email()` handles Gmail dot+plus normalization, mirrored by `src/features/auth/lib/normalize-email.ts`)
 **Plans**: TBD
 
 ### Phase 20: Pre-Launch User Wipe
