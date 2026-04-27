@@ -33,46 +33,6 @@ function headers(): HeadersInit {
 }
 
 /**
- * Create a new GoLogin Cloud browser profile for a social account.
- *
- * @param accountHandle - The social account handle (used in profile name)
- * @returns The GoLogin profile ID
- */
-export async function createProfile(
-  accountHandle: string,
-  startUrl?: string
-): Promise<string> {
-  const response = await fetch(`${GOLOGIN_API}/browser`, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify({
-      name: `repco-${accountHandle}`,
-      os: "win",
-      browserType: "chrome",
-      startUrl: startUrl ?? "",
-      navigator: {
-        userAgent:
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
-        resolution: "1920x1080",
-        language: "en-US,en",
-        platform: "Win32",
-      },
-      proxy: { mode: "gologin" },
-    }),
-  })
-
-  if (!response.ok) {
-    const body = await response.text()
-    throw new Error(
-      `GoLogin createProfile failed (${response.status}): ${body}`
-    )
-  }
-
-  const profile = (await response.json()) as { id: string }
-  return profile.id
-}
-
-/**
  * Delete a GoLogin browser profile.
  *
  * @param profileId - The GoLogin profile ID to delete

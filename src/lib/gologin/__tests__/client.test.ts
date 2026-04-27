@@ -8,63 +8,8 @@ vi.stubGlobal("fetch", mockFetch)
 process.env.GOLOGIN_API_TOKEN = "test-token-for-tests"
 
 // Dynamic import after stubbing globals
-const { createProfile, getProfile, deleteProfile } = await import("../client")
-
-describe("createProfile — ABAN-01 GoLogin profile creation", () => {
-  beforeEach(() => {
-    mockFetch.mockReset()
-  })
-
-  it("sends POST to /browser with repco-{handle} name", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ id: "profile-abc" }),
-      text: async () => "",
-    })
-
-    await createProfile("testuser")
-
-    expect(mockFetch).toHaveBeenCalledOnce()
-    const [url, init] = mockFetch.mock.calls[0]
-    expect(url).toContain("/browser")
-    expect(init.method).toBe("POST")
-    const body = JSON.parse(init.body)
-    expect(body.name).toBe("repco-testuser")
-  })
-
-  it("returns the profile ID from the response", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ id: "profile-xyz-123" }),
-      text: async () => "",
-    })
-
-    const id = await createProfile("myaccount")
-    expect(id).toBe("profile-xyz-123")
-  })
-
-  it("uses GoLogin proxy mode in request body", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ id: "pid" }),
-      text: async () => "",
-    })
-
-    await createProfile("anyuser")
-    const body = JSON.parse(mockFetch.mock.calls[0][1].body)
-    expect(body.proxy?.mode).toBe("gologin")
-  })
-
-  it("throws on non-OK response", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 401,
-      text: async () => "Unauthorized",
-    })
-
-    await expect(createProfile("user")).rejects.toThrow("createProfile failed")
-  })
-})
+// Note: createProfile was removed in Phase 17 (D-15). Tests removed with it.
+const { getProfile, deleteProfile } = await import("../client")
 
 describe("getProfile — ABAN-01 GoLogin profile lookup", () => {
   beforeEach(() => {
