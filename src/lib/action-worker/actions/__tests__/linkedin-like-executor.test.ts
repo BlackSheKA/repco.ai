@@ -8,7 +8,17 @@
 
 import { describe, it, expect, vi } from "vitest"
 import type { Page } from "playwright-core"
+import type { Stagehand } from "@browserbasehq/stagehand"
 import { likeLinkedInPost } from "../linkedin-like-executor"
+
+const fakeStagehand = {
+  act: vi.fn(async () => {
+    throw new Error("stub")
+  }),
+  extract: vi.fn(async () => {
+    throw new Error("stub")
+  }),
+} as unknown as Stagehand
 
 type VisibleSpec = { visible?: boolean; afterClick?: boolean }
 interface Scenario {
@@ -80,7 +90,7 @@ const POST = "https://www.linkedin.com/feed/update/urn:li:activity:1234567890/"
 describe("likeLinkedInPost", () => {
   it("returns post_unreachable when page.goto throws", async () => {
     const page = createMockPage({ gotoThrows: true })
-    const r = await likeLinkedInPost(page, POST)
+    const r = await likeLinkedInPost(page, fakeStagehand, POST)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("post_unreachable")
   })
@@ -93,7 +103,7 @@ describe("likeLinkedInPost", () => {
         "urn:li:activity": { visible: true },
       },
     })
-    const r = await likeLinkedInPost(page, POST)
+    const r = await likeLinkedInPost(page, fakeStagehand, POST)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("post_unreachable")
   })
@@ -106,14 +116,14 @@ describe("likeLinkedInPost", () => {
         "urn:li:activity": { visible: true },
       },
     })
-    const r = await likeLinkedInPost(page, POST)
+    const r = await likeLinkedInPost(page, fakeStagehand, POST)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("post_deleted")
   })
 
   it("returns session_expired when URL lands on /login", async () => {
     const page = createMockPage({ url: "https://www.linkedin.com/login" })
-    const r = await likeLinkedInPost(page, POST)
+    const r = await likeLinkedInPost(page, fakeStagehand, POST)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("session_expired")
   })
@@ -122,7 +132,7 @@ describe("likeLinkedInPost", () => {
     const page = createMockPage({
       url: "https://www.linkedin.com/checkpoint/challenge",
     })
-    const r = await likeLinkedInPost(page, POST)
+    const r = await likeLinkedInPost(page, fakeStagehand, POST)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("security_checkpoint")
   })
@@ -135,7 +145,7 @@ describe("likeLinkedInPost", () => {
         "React Like'][aria-pressed='true'": { visible: true },
       },
     })
-    const r = await likeLinkedInPost(page, POST)
+    const r = await likeLinkedInPost(page, fakeStagehand, POST)
     expect(r.success).toBe(true)
     expect(r.failureMode).toBe("already_liked")
   })
@@ -149,7 +159,7 @@ describe("likeLinkedInPost", () => {
         "react-button__trigger": { visible: false },
       },
     })
-    const r = await likeLinkedInPost(page, POST)
+    const r = await likeLinkedInPost(page, fakeStagehand, POST)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("react_button_missing")
   })
@@ -163,7 +173,7 @@ describe("likeLinkedInPost", () => {
         "aria-pressed='true'": { visible: true, afterClick: true },
       },
     })
-    const r = await likeLinkedInPost(page, POST)
+    const r = await likeLinkedInPost(page, fakeStagehand, POST)
     expect(r.success).toBe(true)
     expect(r.failureMode).toBeUndefined()
   })

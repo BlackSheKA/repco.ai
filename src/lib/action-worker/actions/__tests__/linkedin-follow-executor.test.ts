@@ -10,7 +10,17 @@
 
 import { describe, it, expect, vi } from "vitest"
 import type { Page } from "playwright-core"
+import type { Stagehand } from "@browserbasehq/stagehand"
 import { followLinkedInProfile } from "../linkedin-follow-executor"
+
+const fakeStagehand = {
+  act: vi.fn(async () => {
+    throw new Error("stub")
+  }),
+  extract: vi.fn(async () => {
+    throw new Error("stub")
+  }),
+} as unknown as Stagehand
 
 type VisibleSpec = { visible?: boolean }
 interface Scenario {
@@ -101,7 +111,7 @@ const PROFILE = "https://www.linkedin.com/in/test-user"
 describe("followLinkedInProfile", () => {
   it("returns profile_unreachable when page.goto throws", async () => {
     const page = createMockPage({ gotoThrows: true })
-    const r = await followLinkedInProfile(page, PROFILE)
+    const r = await followLinkedInProfile(page, fakeStagehand, PROFILE)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("profile_unreachable")
   })
@@ -111,14 +121,14 @@ describe("followLinkedInProfile", () => {
       url: PROFILE,
       bodyText: "This profile is unavailable",
     })
-    const r = await followLinkedInProfile(page, PROFILE)
+    const r = await followLinkedInProfile(page, fakeStagehand, PROFILE)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("profile_unreachable")
   })
 
   it("returns session_expired when URL lands on /login", async () => {
     const page = createMockPage({ url: "https://www.linkedin.com/login" })
-    const r = await followLinkedInProfile(page, PROFILE)
+    const r = await followLinkedInProfile(page, fakeStagehand, PROFILE)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("session_expired")
   })
@@ -127,7 +137,7 @@ describe("followLinkedInProfile", () => {
     const page = createMockPage({
       url: "https://www.linkedin.com/checkpoint/challenge",
     })
-    const r = await followLinkedInProfile(page, PROFILE)
+    const r = await followLinkedInProfile(page, fakeStagehand, PROFILE)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("security_checkpoint")
   })
@@ -139,7 +149,7 @@ describe("followLinkedInProfile", () => {
         "aria-label^='Follow'][aria-pressed='true'": { visible: true },
       },
     })
-    const r = await followLinkedInProfile(page, PROFILE)
+    const r = await followLinkedInProfile(page, fakeStagehand, PROFILE)
     expect(r.success).toBe(true)
     expect(r.failureMode).toBe("already_following")
   })
@@ -157,7 +167,7 @@ describe("followLinkedInProfile", () => {
         },
       },
     })
-    const r = await followLinkedInProfile(page, PROFILE)
+    const r = await followLinkedInProfile(page, fakeStagehand, PROFILE)
     expect(r.success).toBe(true)
     expect(r.failureMode).toBeUndefined()
   })
@@ -179,7 +189,7 @@ describe("followLinkedInProfile", () => {
         },
       },
     })
-    const r = await followLinkedInProfile(page, PROFILE)
+    const r = await followLinkedInProfile(page, fakeStagehand, PROFILE)
     expect(r.success).toBe(true)
     expect(r.failureMode).toBeUndefined()
   })
@@ -192,7 +202,7 @@ describe("followLinkedInProfile", () => {
         "aria-label^='Follow']:not([aria-pressed='true']": { visible: true },
       },
     })
-    const r = await followLinkedInProfile(page, PROFILE)
+    const r = await followLinkedInProfile(page, fakeStagehand, PROFILE)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("follow_premium_gated")
   })
@@ -205,7 +215,7 @@ describe("followLinkedInProfile", () => {
         "aria-label='More actions'": { visible: false },
       },
     })
-    const r = await followLinkedInProfile(page, PROFILE)
+    const r = await followLinkedInProfile(page, fakeStagehand, PROFILE)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("follow_button_missing")
   })

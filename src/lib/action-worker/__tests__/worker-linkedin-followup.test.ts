@@ -19,8 +19,6 @@ const mockBrowserProfile = (
 ): BrowserProfile => ({
   id: "bp-test-id",
   browserbase_context_id: "ctx-test-id",
-  gologin_profile_id: "gp-test-id",
-  gologin_proxy_id: "proxy-test-id",
   country_code: "PL",
   timezone: "Europe/Warsaw",
   locale: "pl-PL",
@@ -56,19 +54,38 @@ vi.mock("@/lib/computer-use/executor", () => ({
   executeCUAction: executeCUActionMock,
 }))
 
-// ---- GoLogin + screenshot + CU helper mocks ----
-vi.mock("@/lib/gologin/adapter", () => ({
-  connectToProfile: vi.fn(async () => ({
-    browser: { close: vi.fn() },
-    page: {
-      goto: vi.fn(async () => undefined),
-      setViewportSize: vi.fn(async () => undefined),
-      screenshot: vi.fn(async () => Buffer.from("fake")),
-    },
-    profileId: "test-profile",
+// ---- Browserbase + Playwright + Stagehand mocks ----
+vi.mock("@/lib/browserbase/client", () => ({
+  createSession: vi.fn(async () => ({
+    id: "sess_test",
+    connectUrl: "wss://test",
   })),
-  disconnectProfile: vi.fn(async () => undefined),
-  releaseProfile: vi.fn(async () => undefined),
+  releaseSession: vi.fn(async () => undefined),
+  createContext: vi.fn(),
+  deleteContext: vi.fn(),
+}))
+
+const fakePage = {
+  goto: vi.fn(async () => undefined),
+  setViewportSize: vi.fn(async () => undefined),
+  screenshot: vi.fn(async () => Buffer.from("fake")),
+}
+vi.mock("playwright-core", () => ({
+  chromium: {
+    connectOverCDP: vi.fn(async () => ({
+      contexts: () => [{ pages: () => [fakePage], newPage: vi.fn() }],
+      close: vi.fn(async () => undefined),
+    })),
+  },
+}))
+
+vi.mock("@browserbasehq/stagehand", () => ({
+  Stagehand: class FakeStagehand {
+    init = vi.fn(async () => undefined)
+    close = vi.fn(async () => undefined)
+    act = vi.fn()
+    extract = vi.fn()
+  },
 }))
 vi.mock("@/lib/computer-use/screenshot", () => ({
   captureScreenshot: vi.fn(async () => "ZmFrZQ=="),
@@ -308,7 +325,8 @@ describe("worker LinkedIn followup_dm dispatch (LNKD-05)", () => {
     // Worker passes the stashed linkedinProfileHandle ("alice") if present;
     // sendLinkedInDM's extractLinkedInSlug normalizes both full URL and slug.
     expect(sendLinkedInDMMock).toHaveBeenCalledWith(
-      expect.anything(),
+      expect.anything(), // page
+      expect.anything(), // stagehand
       expect.stringMatching(/alice/),
       "hi there from follow-up",
     )

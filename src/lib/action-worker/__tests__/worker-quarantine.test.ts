@@ -18,8 +18,6 @@ const mockBrowserProfile = (
 ): BrowserProfile => ({
   id: "bp-test-id",
   browserbase_context_id: "ctx-test-id",
-  gologin_profile_id: "gp-test-id",
-  gologin_proxy_id: "proxy-test-id",
   country_code: "PL",
   timezone: "Europe/Warsaw",
   locale: "pl-PL",
@@ -59,21 +57,43 @@ vi.mock("@/lib/computer-use/executor", () => ({
   executeCUAction: executeCUActionMock,
 }))
 
-// ---- GoLogin + screenshot mocks ----
-const connectToProfileMock = vi.fn(async () => ({
-  browser: { close: vi.fn() },
-  page: {
-    goto: vi.fn(async () => undefined),
-    setViewportSize: vi.fn(async () => undefined),
-    screenshot: vi.fn(async () => Buffer.from("fake")),
-  },
-  profileId: "test-profile",
+// ---- Browserbase + Playwright + Stagehand mocks ----
+const createSessionMock = vi.fn(async () => ({
+  id: "sess_test",
+  connectUrl: "wss://test",
+}))
+const releaseSessionMock = vi.fn(async () => undefined)
+
+vi.mock("@/lib/browserbase/client", () => ({
+  createSession: createSessionMock,
+  releaseSession: releaseSessionMock,
+  createContext: vi.fn(),
+  deleteContext: vi.fn(),
 }))
 
-vi.mock("@/lib/gologin/adapter", () => ({
-  connectToProfile: connectToProfileMock,
-  disconnectProfile: vi.fn(async () => undefined),
-  releaseProfile: vi.fn(async () => undefined),
+const fakePage = {
+  goto: vi.fn(async () => undefined),
+  setViewportSize: vi.fn(async () => undefined),
+  screenshot: vi.fn(async () => Buffer.from("fake")),
+}
+const fakeBrowser = {
+  contexts: () => [{ pages: () => [fakePage], newPage: vi.fn() }],
+  close: vi.fn(async () => undefined),
+}
+
+vi.mock("playwright-core", () => ({
+  chromium: {
+    connectOverCDP: vi.fn(async () => fakeBrowser),
+  },
+}))
+
+vi.mock("@browserbasehq/stagehand", () => ({
+  Stagehand: class FakeStagehand {
+    init = vi.fn(async () => undefined)
+    close = vi.fn(async () => undefined)
+    act = vi.fn()
+    extract = vi.fn()
+  },
 }))
 vi.mock("@/lib/computer-use/screenshot", () => ({
   captureScreenshot: vi.fn(async () => "ZmFrZQ=="),
@@ -282,7 +302,7 @@ describe("executeAction quarantine guard (Phase 14)", () => {
     likeLinkedInPostMock.mockReset()
     commentLinkedInPostMock.mockReset()
     executeCUActionMock.mockReset()
-    connectToProfileMock.mockClear()
+    createSessionMock.mockClear()
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://x.supabase.co"
     process.env.SUPABASE_SERVICE_ROLE_KEY = "test-key"
     const { claimAction } = await import("@/lib/action-worker/claim")
@@ -304,7 +324,7 @@ describe("executeAction quarantine guard (Phase 14)", () => {
       success: false,
       error: "account_quarantined",
     })
-    expect(connectToProfileMock).not.toHaveBeenCalled()
+    expect(createSessionMock).not.toHaveBeenCalled()
 
     const actionsUpdates = currentSu!.updates.get("actions") ?? []
     expect(actionsUpdates).toContainEqual(
@@ -338,7 +358,7 @@ describe("executeAction quarantine guard (Phase 14)", () => {
       success: false,
       error: "account_quarantined",
     })
-    expect(connectToProfileMock).not.toHaveBeenCalled()
+    expect(createSessionMock).not.toHaveBeenCalled()
 
     const jobLogInserts = currentSu!.inserts.get("job_logs") ?? []
     const log = jobLogInserts[0] as {
@@ -361,7 +381,7 @@ describe("executeAction quarantine guard (Phase 14)", () => {
       success: false,
       error: "account_quarantined",
     })
-    expect(connectToProfileMock).not.toHaveBeenCalled()
+    expect(createSessionMock).not.toHaveBeenCalled()
   })
 
   it("blocks dispatch when account.health_status='warning' (reddit)", async () => {
@@ -377,7 +397,7 @@ describe("executeAction quarantine guard (Phase 14)", () => {
       success: false,
       error: "account_quarantined",
     })
-    expect(connectToProfileMock).not.toHaveBeenCalled()
+    expect(createSessionMock).not.toHaveBeenCalled()
     expect(executeCUActionMock).not.toHaveBeenCalled()
 
     const jobLogInserts = currentSu!.inserts.get("job_logs") ?? []
@@ -403,7 +423,7 @@ describe("executeAction quarantine guard (Phase 14)", () => {
     const { executeAction } = await import("../worker")
     await executeAction("action-1", "corr-cd-past")
 
-    expect(connectToProfileMock).toHaveBeenCalledTimes(1)
+    expect(createSessionMock).toHaveBeenCalledTimes(1)
   })
 
   it("does NOT block when account is healthy with no cooldown", async () => {
@@ -425,6 +445,6 @@ describe("executeAction quarantine guard (Phase 14)", () => {
     const { executeAction } = await import("../worker")
     await executeAction("action-1", "corr-green-rd")
 
-    expect(connectToProfileMock).toHaveBeenCalledTimes(1)
+    expect(createSessionMock).toHaveBeenCalledTimes(1)
   })
 })

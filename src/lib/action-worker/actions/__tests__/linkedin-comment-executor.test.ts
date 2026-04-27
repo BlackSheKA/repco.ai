@@ -8,7 +8,17 @@
 
 import { describe, it, expect, vi } from "vitest"
 import type { Page } from "playwright-core"
+import type { Stagehand } from "@browserbasehq/stagehand"
 import { commentLinkedInPost } from "../linkedin-comment-executor"
+
+const fakeStagehand = {
+  act: vi.fn(async () => {
+    throw new Error("stub")
+  }),
+  extract: vi.fn(async () => {
+    throw new Error("stub")
+  }),
+} as unknown as Stagehand
 
 type VisibleSpec = {
   visible?: boolean
@@ -95,7 +105,7 @@ describe("commentLinkedInPost", () => {
   it("returns char_limit_exceeded BEFORE navigation when text > 1250 chars", async () => {
     const page = createMockPage({})
     const big = "a".repeat(1251)
-    const r = await commentLinkedInPost(page, POST, big)
+    const r = await commentLinkedInPost(page, fakeStagehand, POST, big)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("char_limit_exceeded")
     expect(page.goto).not.toHaveBeenCalled()
@@ -103,7 +113,7 @@ describe("commentLinkedInPost", () => {
 
   it("returns post_unreachable when page.goto throws", async () => {
     const page = createMockPage({ gotoThrows: true })
-    const r = await commentLinkedInPost(page, POST, TEXT)
+    const r = await commentLinkedInPost(page, fakeStagehand, POST, TEXT)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("post_unreachable")
   })
@@ -114,14 +124,14 @@ describe("commentLinkedInPost", () => {
       bodyText: "This post is no longer available",
       selectors: { "urn:li:activity": { visible: true } },
     })
-    const r = await commentLinkedInPost(page, POST, TEXT)
+    const r = await commentLinkedInPost(page, fakeStagehand, POST, TEXT)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("post_unreachable")
   })
 
   it("returns session_expired when URL lands on /login", async () => {
     const page = createMockPage({ url: "https://www.linkedin.com/login" })
-    const r = await commentLinkedInPost(page, POST, TEXT)
+    const r = await commentLinkedInPost(page, fakeStagehand, POST, TEXT)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("session_expired")
   })
@@ -130,7 +140,7 @@ describe("commentLinkedInPost", () => {
     const page = createMockPage({
       url: "https://www.linkedin.com/checkpoint/challenge",
     })
-    const r = await commentLinkedInPost(page, POST, TEXT)
+    const r = await commentLinkedInPost(page, fakeStagehand, POST, TEXT)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("security_checkpoint")
   })
@@ -144,7 +154,7 @@ describe("commentLinkedInPost", () => {
         "aria-label='Comment'": { visible: false },
       },
     })
-    const r = await commentLinkedInPost(page, POST, TEXT)
+    const r = await commentLinkedInPost(page, fakeStagehand, POST, TEXT)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("comment_disabled")
   })
@@ -158,7 +168,7 @@ describe("commentLinkedInPost", () => {
         "ql-editor": { visible: false },
       },
     })
-    const r = await commentLinkedInPost(page, POST, TEXT)
+    const r = await commentLinkedInPost(page, fakeStagehand, POST, TEXT)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("comment_post_failed")
   })
@@ -175,7 +185,7 @@ describe("commentLinkedInPost", () => {
         "comments-comments-list": { visible: false },
       },
     })
-    const r = await commentLinkedInPost(page, POST, TEXT)
+    const r = await commentLinkedInPost(page, fakeStagehand, POST, TEXT)
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("comment_post_failed")
   })
@@ -191,7 +201,7 @@ describe("commentLinkedInPost", () => {
         "comments-comment-list": { visible: true, afterType: true },
       },
     })
-    const r = await commentLinkedInPost(page, POST, TEXT)
+    const r = await commentLinkedInPost(page, fakeStagehand, POST, TEXT)
     expect(r.success).toBe(true)
     expect(r.failureMode).toBeUndefined()
     expect(page.keyboard.type).toHaveBeenCalled()

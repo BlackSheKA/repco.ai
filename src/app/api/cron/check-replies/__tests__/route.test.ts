@@ -6,8 +6,6 @@ const mockBrowserProfile = (
 ): BrowserProfile => ({
   id: "bp-1",
   browserbase_context_id: "ctx-1",
-  gologin_profile_id: "gp-1",
-  gologin_proxy_id: "proxy-1",
   country_code: "PL",
   timezone: "Europe/Warsaw",
   locale: "pl-PL",
@@ -33,7 +31,7 @@ vi.mock("@/features/browser-profiles/lib/get-browser-profile", () => ({
  *              verified manually per 07-VALIDATION.md)
  *   - RPLY-03  sendReplyAlert called with ('user@example.com','u/alice','Reddit')
  *
- * Mocks all external integrations (Sentry, Axiom, Anthropic, GoLogin,
+ * Mocks all external integrations (Sentry, Axiom, Anthropic, Browserbase,
  * screenshot, Resend) but exercises the REAL matchReplyToProspect +
  * handleReplyDetected so the mid-layer glue is under test.
  */
@@ -52,18 +50,32 @@ vi.mock("@sentry/nextjs", () => ({
   ),
 }))
 
-// Mock GoLogin adapter — return a fake browser+page so the route proceeds
-vi.mock("@/lib/gologin/adapter", () => ({
-  connectToProfile: vi.fn(async () => ({
-    browser: { close: vi.fn() },
-    page: {
-      goto: vi.fn(async () => undefined),
-      screenshot: vi.fn(async () => Buffer.from("fake")),
-    },
-    profileId: "test-profile",
+// Mock Browserbase client + playwright-core so the route proceeds without real net.
+vi.mock("@/lib/browserbase/client", () => ({
+  createSession: vi.fn(async () => ({
+    id: "sess_test",
+    connectUrl: "wss://test",
   })),
-  disconnectProfile: vi.fn(async () => undefined),
-  releaseProfile: vi.fn(async () => undefined),
+  releaseSession: vi.fn(async () => undefined),
+}))
+
+vi.mock("playwright-core", () => ({
+  chromium: {
+    connectOverCDP: vi.fn(async () => ({
+      contexts: () => [
+        {
+          pages: () => [
+            {
+              goto: vi.fn(async () => undefined),
+              screenshot: vi.fn(async () => Buffer.from("fake")),
+            },
+          ],
+          newPage: vi.fn(),
+        },
+      ],
+      close: vi.fn(async () => undefined),
+    })),
+  },
 }))
 
 // Mock screenshot util — Haiku only needs a non-empty base64 string

@@ -5,16 +5,46 @@ vi.mock("@supabase/supabase-js", () => ({
   createClient: vi.fn(() => mockSupabase),
 }))
 
-// Mock GoLogin adapter to avoid any real Playwright/CDP connection.
-vi.mock("@/lib/gologin/adapter", () => ({
-  connectToProfile: vi.fn(async () => ({
-    browser: { close: async () => {} },
-    context: {},
-    page: { goto: async () => {}, url: () => "about:blank" },
-    profileId: "test-profile",
+// Mock Browserbase + playwright-core + Stagehand to avoid real network.
+vi.mock("@/lib/browserbase/client", () => ({
+  createSession: vi.fn(async () => ({
+    id: "sess_test",
+    connectUrl: "wss://test",
   })),
-  disconnectProfile: vi.fn(async () => {}),
-  releaseProfile: vi.fn(async () => {}),
+  releaseSession: vi.fn(async () => undefined),
+}))
+
+vi.mock("playwright-core", () => ({
+  chromium: {
+    connectOverCDP: vi.fn(async () => ({
+      contexts: () => [
+        {
+          pages: () => [
+            {
+              goto: async () => {},
+              url: () => "about:blank",
+              setViewportSize: async () => {},
+              content: async () => "",
+              locator: () => ({
+                isVisible: async () => false,
+              }),
+            },
+          ],
+          newPage: vi.fn(),
+        },
+      ],
+      close: vi.fn(async () => undefined),
+    })),
+  },
+}))
+
+vi.mock("@browserbasehq/stagehand", () => ({
+  Stagehand: class FakeStagehand {
+    init = vi.fn(async () => undefined)
+    close = vi.fn(async () => undefined)
+    act = vi.fn()
+    extract = vi.fn()
+  },
 }))
 
 // Fluent Supabase query mock — chainable no-ops that return empty data.

@@ -1,7 +1,7 @@
 /**
  * Unit tests for detectLinkedInAuthwall.
  *
- * Authored 2026-04-24 after Phase 13 UAT revealed logged-out GoLogin
+ * Authored 2026-04-24 after Phase 13 UAT revealed logged-out browser
  * sessions were silently misattributed as target-side failure modes
  * (not_connected, follow_button_missing, react_button_missing,
  * prescreen verdict=null).
