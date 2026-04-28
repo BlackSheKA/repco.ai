@@ -9,6 +9,7 @@ import {
   getSessionDebugUrl,
   listRunningSessionsByMetadata,
   releaseSession,
+  retrieveSessionStatus,
 } from "@/lib/browserbase/client"
 import {
   getBrowserProfileForAccount,
@@ -100,6 +101,7 @@ export async function startAccountBrowser(accountId: string): Promise<{
   success: boolean
   debuggerFullscreenUrl?: string
   loginUrl?: string
+  sessionId?: string
   error?: string
 }> {
   const supabase = await createClient()
@@ -135,10 +137,12 @@ export async function startAccountBrowser(accountId: string): Promise<{
       contextId: browserProfile.browserbase_context_id,
       country: browserProfile.country_code as SupportedCountry,
       timeoutSeconds: 1800,
-      // keepAlive=false: some BB plans don't support keepAlive and reject the
-      // session immediately when set to true. Without it, sessions still last
-      // until the timeout above as long as we don't call browser.close().
-      keepAlive: false,
+      // keepAlive=true: server-side initial nav opens its own CDP connection
+      // and calls browser.close() afterwards. Without keepAlive, that close
+      // would also end the BB session before the user iframe even attaches.
+      // With keepAlive, the session stays RUNNING until either its 1800s
+      // timeout OR an explicit releaseSession() from stopAccountBrowser.
+      keepAlive: true,
       userMetadata: { accountId, kind: "connect_flow" },
     })
 
@@ -150,21 +154,47 @@ export async function startAccountBrowser(accountId: string): Promise<{
     // letting the client go out of scope. The session keeps running until its
     // own 1800s timeout.
     const loginUrl = ACCOUNT_LOGIN_URLS[account.platform]
-    // Server-side initial navigate is parked. Both Playwright `connectOverCDP`
-    // and raw-WS CDP `Page.navigate` fail against BB from this runtime
-    // (Node 24 / Windows): the wss connection appears to be single-shot — once
-    // we attach, BB releases the session as soon as the wss closes (404
-    // on subsequent debug() / 410 Session stopped on iframe attach). Tracked
-    // as Phase 17.6 follow-up. Iframe lands on about:blank; user uses the
-    // built-in BB address bar to type loginUrl. The URL is also surfaced in
-    // the response so a future copy-button can render it.
+    if (loginUrl) {
+      try {
+        // DYNAMIC import: a top-level `import { chromium } from "playwright-core"`
+        // gets bundled by Turbopack in the Next.js dev server in a way that
+        // breaks the CDP WebSocket handshake against Browserbase ("Target
+        // page, context or browser has been closed"). Loading playwright-core
+        // at request time bypasses Turbopack and matches the standalone
+        // .mjs repro that verified this exact pattern works.
+        const { chromium } = await import("playwright-core")
+        const browser = await chromium.connectOverCDP(session.connectUrl)
+        const context = browser.contexts()[0] ?? (await browser.newContext())
+        const page = context.pages()[0] ?? (await context.newPage())
+        await page.goto(loginUrl, {
+          waitUntil: "domcontentloaded",
+          timeout: 20000,
+        })
+        // Do NOT close the page or browser. We want the page to stay open
+        // on `loginUrl` so the iframe (which connects via debuggerFullscreenUrl)
+        // displays the login form to the user. `browser.close()` would close
+        // the page in the BB session ("no pages found") and `page.close()`
+        // alone would clear our work. With keepAlive=true the BB session
+        // stays RUNNING until stopAccountBrowser releases it; the orphaned
+        // wss client is harmless and Node will GC it.
+      } catch (navErr) {
+        // Best effort: iframe falls back to about:blank with the address bar.
+        console.warn("[startAccountBrowser] initial nav failed", {
+          platform: account.platform,
+          message:
+            navErr instanceof Error ? navErr.message : String(navErr),
+        })
+      }
+    }
 
     const debuggerFullscreenUrl = await getSessionDebugUrl(session.id)
-    // T-17.5-03: never log debuggerFullscreenUrl or session.id.
+    // T-17.5-03: never log debuggerFullscreenUrl. session.id is returned to
+    // the client so it can poll liveness directly via retrieveSessionStatus.
     return {
       success: true,
       debuggerFullscreenUrl,
       loginUrl,
+      sessionId: session.id,
     }
   } catch (err) {
     console.error("[startAccountBrowser] failed", {
@@ -188,6 +218,33 @@ export async function startAccountBrowser(accountId: string): Promise<{
  * and ask BB to release it. We don't track session IDs in the DB (per
  * D17.5-09 — session lifecycle is owned by BB).
  */
+/**
+ * Returns whether a specific Browserbase session is still RUNNING. Polled by
+ * ConnectionFlow to detect idle-timeout and surface a recovery UI ("session
+ * expired, click Retry") instead of a frozen iframe. Direct retrieve is
+ * faster and more reliable than the list-by-metadata path (BB indexes
+ * sessions for list asynchronously, so freshly-created sessions can show as
+ * "missing" for ~minutes).
+ */
+export async function getSessionAliveStatus(
+  sessionId: string,
+): Promise<{ alive: boolean; status?: string }> {
+  if (!sessionId) return { alive: false }
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { alive: false }
+  try {
+    const status = await retrieveSessionStatus(sessionId)
+    return { alive: status === "RUNNING", status }
+  } catch {
+    // Treat probe failures as alive — better than spuriously flipping the
+    // iframe to error on a transient BB API hiccup.
+    return { alive: true }
+  }
+}
+
 export async function stopAccountBrowser(
   accountId: string,
 ): Promise<{ success: boolean; error?: string }> {

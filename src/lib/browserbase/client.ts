@@ -191,6 +191,12 @@ export async function navigateBrowserbaseSession(
   })
 }
 
+/** One-shot session status retrieval. Returns the BB status string. */
+export async function retrieveSessionStatus(sessionId: string): Promise<string> {
+  const s = await client().sessions.retrieve(sessionId)
+  return s.status
+}
+
 /**
  * Poll session status until RUNNING (or timeout). Newly created BB sessions
  * report RUNNING almost immediately, but the CDP wss endpoint sometimes

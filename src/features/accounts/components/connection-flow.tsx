@@ -6,6 +6,7 @@ import { AlertTriangle, CheckCircle, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
+  getSessionAliveStatus,
   startAccountBrowser,
   stopAccountBrowser,
   verifyAccountSession,
@@ -38,6 +39,7 @@ export function ConnectionFlow({
   const [debuggerFullscreenUrl, setDebuggerFullscreenUrl] = useState<
     string | null
   >(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
   const [startingBrowser, setStartingBrowser] = useState(true)
   const [iframeLoaded, setIframeLoaded] = useState(false)
   const loggedInButtonRef = useRef<HTMLButtonElement | null>(null)
@@ -67,6 +69,7 @@ export function ConnectionFlow({
       setStartingBrowser(false)
       if (result.success && result.debuggerFullscreenUrl) {
         setDebuggerFullscreenUrl(result.debuggerFullscreenUrl)
+        setSessionId(result.sessionId ?? null)
       } else {
         setHasError(true)
       }
@@ -77,19 +80,54 @@ export function ConnectionFlow({
   // the instructions above the viewport. Trust the user's existing scroll
   // position; iframe slots in below the instructions in document flow.
 
+  // Poll BB session.retrieve for liveness while the iframe is mounted. If
+  // the user walks away and BB times the session out, the iframe stays
+  // visible but any login attempt would fail silently — instead we flip to
+  // the error state so the user can click Retry.
+  //
+  // 30s cadence. We require TWO consecutive non-RUNNING reads before
+  // flipping (BB's status briefly reports COMPLETED/CLOSING during normal
+  // operation; one stray read shouldn't kill the flow).
+  useEffect(() => {
+    if (!debuggerFullscreenUrl || !sessionId || hasError) return
+    let cancelled = false
+    let strikes = 0
+    const interval = setInterval(async () => {
+      const { alive } = await getSessionAliveStatus(sessionId)
+      if (cancelled) return
+      if (alive) {
+        strikes = 0
+        return
+      }
+      strikes += 1
+      if (strikes >= 2) {
+        setHasError(true)
+        setDebuggerFullscreenUrl(null)
+        setIframeLoaded(false)
+      }
+    }, 30000)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [sessionId, debuggerFullscreenUrl, hasError])
+
   function retry() {
     setStartingBrowser(true)
     setHasError(false)
     setIframeLoaded(false)
     setDebuggerFullscreenUrl(null)
+    setSessionId(null)
     setStartNonce((n) => n + 1)
   }
 
   // Focus the primary CTA once the iframe is ready (a11y per UI-SPEC).
+  // preventScroll: focus() defaults to scrollIntoView and the CTA sits below
+  // the iframe → that pushes the instructions off the top of the viewport.
   useEffect(() => {
     if (!iframeLoaded) return
     const raf = requestAnimationFrame(() => {
-      loggedInButtonRef.current?.focus()
+      loggedInButtonRef.current?.focus({ preventScroll: true })
     })
     return () => cancelAnimationFrame(raf)
   }, [iframeLoaded])
@@ -141,9 +179,12 @@ export function ConnectionFlow({
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-base text-destructive">
                   <AlertTriangle className="h-4 w-4" />
-                  <span>Could not start remote browser</span>
+                  <span>Remote browser session expired</span>
                 </div>
-                <p className="text-sm text-muted-foreground">{D11_COPY}</p>
+                <p className="text-sm text-muted-foreground">
+                  The remote browser has timed out. Click Retry to start a
+                  fresh session.
+                </p>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={retry}>
                     Retry
