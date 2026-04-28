@@ -376,7 +376,11 @@ export async function executeAction(
           projectId: process.env.BROWSERBASE_PROJECT_ID!,
           browserbaseSessionID: session.id,
           model: {
-            modelName: "claude-haiku-4-5-20251001",
+            // Stagehand v3+ requires "provider/model" format. Bare model
+            // names throw UnsupportedModelError at init(), which the outer
+            // try/catch masks as a generic "Browserbase connection failed",
+            // silently failing every LinkedIn action.
+            modelName: "anthropic/claude-haiku-4-5-20251001",
             apiKey: process.env.ANTHROPIC_API_KEY!,
           },
           verbose: 0,

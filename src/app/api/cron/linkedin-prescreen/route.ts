@@ -209,7 +209,8 @@ export async function GET(request: Request): Promise<Response> {
       projectId: process.env.BROWSERBASE_PROJECT_ID!,
       browserbaseSessionID: session.id,
       model: {
-        modelName: "claude-haiku-4-5-20251001",
+        // Stagehand v3+ requires "provider/model" format.
+        modelName: "anthropic/claude-haiku-4-5-20251001",
         apiKey: process.env.ANTHROPIC_API_KEY!,
       },
       verbose: 0,
