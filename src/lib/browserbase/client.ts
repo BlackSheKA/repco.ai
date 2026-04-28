@@ -54,12 +54,19 @@ export async function createContext(): Promise<{ id: string }> {
 }
 
 export async function deleteContext(contextId: string): Promise<void> {
-  try {
-    await client().contexts.delete(contextId)
-  } catch (err: unknown) {
-    if (isNotFound(err)) return
-    throw err
-  }
+  // SDK bug (@browserbasehq/sdk@2.10.0): contexts.delete sets
+  // Content-Type: application/json on a body-less DELETE; the BB API
+  // responds 400 "Body cannot be empty". Bypass with raw fetch (no
+  // Content-Type header) — server returns 204 cleanly. Every D-10 rollback
+  // funnels through here, so a silent SDK 400 leaks BB contexts.
+  const apiKey = process.env.BROWSERBASE_API_KEY
+  if (!apiKey) throw new Error("BROWSERBASE_API_KEY not set")
+  const res = await fetch(
+    `https://api.browserbase.com/v1/contexts/${contextId}`,
+    { method: "DELETE", headers: { "X-BB-API-Key": apiKey } },
+  )
+  if (res.status === 204 || res.status === 404) return
+  throw new Error(`deleteContext ${res.status}: ${await res.text()}`)
 }
 
 export interface CreateSessionArgs {

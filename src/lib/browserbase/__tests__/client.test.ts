@@ -25,6 +25,14 @@ describe("browserbase client env-var guards", () => {
     await expect(createContext()).rejects.toThrow("BROWSERBASE_API_KEY not set")
   })
 
+  it("deleteContext throws when BROWSERBASE_API_KEY missing", async () => {
+    delete process.env.BROWSERBASE_API_KEY
+    const { deleteContext } = await import("../client")
+    await expect(deleteContext("ctx_x")).rejects.toThrow(
+      "BROWSERBASE_API_KEY not set",
+    )
+  })
+
   it("createSession throws when BROWSERBASE_PROJECT_ID missing", async () => {
     process.env.BROWSERBASE_API_KEY = "bb_test_x"
     delete process.env.BROWSERBASE_PROJECT_ID
