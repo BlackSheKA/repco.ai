@@ -188,11 +188,13 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
   7. UAT: send a real DM and a real comment from a warmup-skipped Reddit account end-to-end; both succeed; `mechanism_costs` burn matches the deterministic-action row (no surprise CU cost).
   8. Memory rule `project_linkedin_cu_improvements` (LinkedIn DOM-hybrid + pre-screening backlog) gets a sibling note for Reddit captured during this phase if any failure-modes don't yield to Stagehand `act()` and need DOM hooks.
 
-**Plans**: TBD during phase planning. Sketch:
-  - 17.7-01-reddit-dm-executor-PLAN.md — deterministic `reddit-dm-executor.ts`, vitest with mocked page+stagehand, integration test against a fixture session
-  - 17.7-02-reddit-engage-executor-PLAN.md — same shape for top-level comment + reply
-  - 17.7-03-worker-rewire-PLAN.md — worker.ts dispatch swap + delete of `src/lib/computer-use/actions/reddit-*.ts` + cleanup of `executeCUAction` import sites if no other callers remain
-  - 17.7-04-uat-PLAN.md — end-to-end DM + comment UAT against a real warmed account, cost regression assertion, ban-detector parity check
+**Plans:** 5 plans
+Plans:
+- [ ] 17.7-01-reddit-dm-executor-PLAN.md — sendRedditDM + shared reddit-utils.ts + reddit-authwall.ts + unit tests (Wave 1)
+- [ ] 17.7-02-reddit-comment-executor-PLAN.md — commentRedditPost (handles comment + public_reply) + unit tests (Wave 2; depends on 01)
+- [ ] 17.7-03-reddit-like-and-follow-executors-PLAN.md — likeRedditPost + followRedditProfile + unit tests (Wave 2; depends on 01)
+- [ ] 17.7-04-worker-rewire-and-mechanism-costs-PLAN.md — worker.ts dispatch refactor, delete CU prompt files, mechanism_costs migration 00028 (Wave 3; depends on 01/02/03)
+- [ ] 17.7-05-uat-PLAN.md — end-to-end UAT against warmed Reddit account; zero-CU-call invariant; cost regression evidence (Wave 4; depends on 04; manual)
 
 **Trade-offs / risks to capture in CONTEXT during planning**:
   - Stagehand `act()` is more brittle on Reddit than LinkedIn because Reddit's chat UI is a React-heavy iframe-within-iframe in places; some failure modes may require DOM-aware fallback (Memory rule `feedback_supabase_mocked_tests_mask_column_drift` analogue: if Stagehand silently no-ops we won't catch it without explicit post-action assertions).
