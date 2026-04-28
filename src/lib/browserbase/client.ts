@@ -89,6 +89,15 @@ export interface BrowserbaseSession {
 export async function createSession(
   args: CreateSessionArgs,
 ): Promise<BrowserbaseSession> {
+  // BB Verified (`browserSettings.verified: true`) would give us
+  // bot-protection-partner-recognized fingerprints, materially improving
+  // automated-login success against LinkedIn/Reddit. Verified at runtime
+  // 2026-04-28: this requires an Enterprise BB plan ("Advanced stealth
+  // mode is only available on the Enterprise plan", 403 on Developer).
+  // We're on Developer ($20/mo). Production stays on standard mode;
+  // user does manual login inside the iframe, BB context persistence
+  // handles the rest. Re-evaluate if/when we move to Enterprise.
+  // Docs: https://docs.browserbase.com/platform/identity/verified-customization
   const s = await client().sessions.create({
     projectId: projectId(),
     browserSettings: {
