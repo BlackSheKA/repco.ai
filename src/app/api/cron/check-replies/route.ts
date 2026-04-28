@@ -317,8 +317,7 @@ export async function GET(request: Request) {
                 account.handle ?? account.id,
                 "warning",
                 {
-                  platform:
-                    (account.platform as "reddit" | "linkedin") ?? "reddit",
+                  platform: "reddit",
                   supabase,
                   userId: account.user_id,
                   accountId: account.id,

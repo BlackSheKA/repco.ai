@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { CheckCircle2, LogIn, MessageSquare, RefreshCw, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -114,6 +115,7 @@ export function AccountCard({
   const verifiedAgo = verified
     ? formatTimeAgo(account.session_verified_at as string)
     : null
+  const router = useRouter()
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [isDeleting, startDelete] = useTransition()
   const [isReconnecting, startReconnect] = useTransition()
@@ -126,6 +128,11 @@ export function AccountCard({
       const result = await attemptReconnect(account.id)
       if (result.success) {
         toast.success("Account reconnected")
+        // attemptReconnect updates social_accounts.health_status server-side;
+        // the Realtime UPDATE channel can race the response and miss the
+        // event, leaving the card stuck on the degraded badge until next
+        // navigation. Force a re-fetch to guarantee the UI catches up.
+        router.refresh()
       } else if (result.error === "still_banned") {
         toast.error("Account still banned — connect a different account")
       } else if (result.error === "try_again") {
