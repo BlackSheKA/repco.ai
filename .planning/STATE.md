@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: — Survival + Foundation
-status: Executing Phase 17.7
-stopped_at: Phase 17.8 UI-SPEC approved
-last_updated: "2026-04-28T13:00:00.000Z"
+status: Phase 17.7 implementation complete; live UAT deferred (BB→Reddit IP block)
+stopped_at: Phase 17.7 implementation shipped — 17.7-05 UAT deferred pending residential proxy infra (Phase 18-XX)
+last_updated: "2026-04-28T13:40:00.000Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 13
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 30
-  completed_plans: 24
-  percent: 80
+  completed_plans: 29
+  percent: 96
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-27 — v1.2 milestone started)
 
 **Core value:** People actively looking for your product get a personalized, relevant DM within hours
-**Current focus:** Phase 17.7 — reddit-executors-pivot-from-computer-use-to-stagehand
+**Current focus:** Phase 17.7 implementation SHIPPED (live UAT deferred). Next: Phase 17.8 (account-identity-hygiene — UI-SPEC approved, ready to plan).
 
 ## Current Position
 
-Phase: 17.7 (reddit-executors-pivot-from-computer-use-to-stagehand) — EXECUTING
-Plan: 1 of 5
+Phase: 17.7 (reddit-executors-pivot-from-computer-use-to-stagehand) — IMPLEMENTATION COMPLETE; live UAT deferred (Phase 18-XX residential proxy)
+Plan: 5 of 5 (4 impl plans done; 17.7-05 deferred — see `17.7-UAT.md` for blocker rationale and reopening criteria)
 Milestone: v1.2 (Phases 15–22, continues from 14)
 
 ## Performance Metrics
