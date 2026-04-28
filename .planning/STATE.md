@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.2
-milestone_name: Survival + Foundation
+milestone_name: — Survival + Foundation
 status: Ready to execute
-stopped_at: Phase 17.5 UI-SPEC approved
-last_updated: "2026-04-27T16:11:53.721Z"
+stopped_at: Phase 17.7 context gathered
+last_updated: "2026-04-28T09:29:05.770Z"
 last_activity: 2026-04-27
 progress:
-  total_phases: 9
-  completed_phases: 3
+  total_phases: 12
+  completed_phases: 5
   total_plans: 21
-  completed_plans: 10
-  percent: 48
+  completed_plans: 20
+  percent: 95
 ---
 
 # Project State
@@ -190,5 +190,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-27
-Stopped at: Phase 17.5 UI-SPEC approved
-Resume file: .planning/phases/17.5-browser-profile-allocator-browserbase/17.5-UI-SPEC.md
+Stopped at: Phase 17.7 context gathered
+Resume file: .planning/phases/17.7-reddit-executors-pivot-from-computer-use-to-stagehand/17.7-CONTEXT.md
