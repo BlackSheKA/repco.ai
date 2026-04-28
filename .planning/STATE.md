@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: — Survival + Foundation
-status: Phase 17.7 implementation complete; live UAT deferred (BB→Reddit IP block)
-stopped_at: Phase 17.7 implementation shipped — 17.7-05 UAT deferred pending residential proxy infra (Phase 18-XX)
-last_updated: "2026-04-28T13:40:00.000Z"
+status: PR #5 open (development → main) — Phase 17.5 + v1.2 batch shipped for review
+stopped_at: PR #5 awaits review/merge; production deploy gated on /deploy-to-production after merge
+last_updated: "2026-04-28T14:00:00.000Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 13
