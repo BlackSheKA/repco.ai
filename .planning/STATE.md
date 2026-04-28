@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: — Survival + Foundation
 status: Executing Phase 17.7
-stopped_at: Phase 17.7 context gathered
-last_updated: "2026-04-28T10:32:53.289Z"
+stopped_at: Phase 17.8 context gathered (scope pivoted)
+last_updated: "2026-04-28T11:00:26.426Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 12
   completed_phases: 5
   total_plans: 26
-  completed_plans: 20
-  percent: 77
+  completed_plans: 22
+  percent: 85
 ---
 
 # Project State
@@ -190,5 +190,5 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-04-28
-Stopped at: Phase 17.7 context gathered
-Resume file: .planning/phases/17.7-reddit-executors-pivot-from-computer-use-to-stagehand/17.7-CONTEXT.md
+Stopped at: Phase 17.8 context gathered (scope pivoted)
+Resume file: .planning/phases/17.8-account-identity-hygiene/17.8-CONTEXT.md
