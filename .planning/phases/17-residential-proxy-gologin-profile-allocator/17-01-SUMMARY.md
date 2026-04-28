@@ -1,6 +1,7 @@
 ---
 phase: 17
 plan: "01"
+superseded_by: 17.5
 subsystem: browser-profiles
 tags: [phase-17, gologin, country-map, allocator-foundation, bprx-04, bprx-05]
 dependency_graph:
@@ -39,6 +40,8 @@ metrics:
   files_created: 3
   files_modified: 1
 ---
+
+> **Superseded by Phase 17.5** (Browserbase pivot). See `.planning/phases/17.5-browser-profile-allocator-browserbase/` for the working implementation. This summary preserved as historical evidence of the GoLogin pivot per D17.5-08.
 
 # Phase 17 Plan 01: Foundation Summary
 

@@ -1,6 +1,7 @@
 ---
 phase: 17-residential-proxy-gologin-profile-allocator
 plan: "02"
+superseded_by: 17.5
 subsystem: browser-profiles
 tags: [phase-17, gologin, allocator, connect-account, geolocation-proxy, bprx-03, bprx-06]
 
@@ -49,6 +50,8 @@ requirements-completed: [BPRX-03, BPRX-06]
 duration: ~15min
 completed: 2026-04-27
 ---
+
+> **Superseded by Phase 17.5** (Browserbase pivot). See `.planning/phases/17.5-browser-profile-allocator-browserbase/` for the working implementation. This summary preserved as historical evidence of the GoLogin pivot per D17.5-08.
 
 # Phase 17 Plan 02: Allocator Summary
 
