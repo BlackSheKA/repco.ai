@@ -100,12 +100,19 @@ vi.mock("@/lib/computer-use/screenshot", () => ({
   uploadScreenshot: vi.fn(async () => "https://example.com/shot.png"),
 }))
 
-vi.mock("@/lib/computer-use/actions/reddit-dm", () => ({
-  getRedditDMPrompt: vi.fn(() => "reddit-dm-prompt"),
+// Phase 17.7: Reddit prompt builders deleted; Reddit dispatch routes through
+// the deterministic Stagehand executors mocked below.
+vi.mock("@/lib/action-worker/actions/reddit-dm-executor", () => ({
+  sendRedditDM: vi.fn(async () => ({ success: true })),
 }))
-vi.mock("@/lib/computer-use/actions/reddit-engage", () => ({
-  getRedditLikePrompt: vi.fn(() => "reddit-like-prompt"),
-  getRedditFollowPrompt: vi.fn(() => "reddit-follow-prompt"),
+vi.mock("@/lib/action-worker/actions/reddit-comment-executor", () => ({
+  commentRedditPost: vi.fn(async () => ({ success: true })),
+}))
+vi.mock("@/lib/action-worker/actions/reddit-like-executor", () => ({
+  likeRedditPost: vi.fn(async () => ({ success: true })),
+}))
+vi.mock("@/lib/action-worker/actions/reddit-follow-executor", () => ({
+  followRedditProfile: vi.fn(async () => ({ success: true })),
 }))
 vi.mock("@/lib/computer-use/actions/linkedin-connect", () => ({
   getLinkedInConnectPrompt: vi.fn(() => "linkedin-connect-prompt"),
