@@ -131,14 +131,15 @@ export function AccountList({
           <Button
             onClick={() => openConnectDialog("reddit")}
             disabled={isPending}
+            className="bg-[#FF4500] text-white hover:bg-[#FF4500]/90"
           >
             <Plus className="mr-2 h-4 w-4" />
             Connect Reddit Account
           </Button>
           <Button
-            variant="outline"
             onClick={() => openConnectDialog("linkedin")}
             disabled={isPending}
+            className="bg-[#0A66C2] text-white hover:bg-[#0A66C2]/90"
           >
             <Plus className="mr-2 h-4 w-4" />
             Connect LinkedIn Account
@@ -261,17 +262,17 @@ export function AccountList({
       {accounts.length > 0 && !connecting && (
         <div className="flex flex-wrap gap-3">
           <Button
-            variant="outline"
             onClick={() => openConnectDialog("reddit")}
             disabled={isPending}
+            className="bg-[#FF4500] text-white hover:bg-[#FF4500]/90"
           >
             <Plus className="mr-2 h-4 w-4" />
             Connect Reddit Account
           </Button>
           <Button
-            variant="outline"
             onClick={() => openConnectDialog("linkedin")}
             disabled={isPending}
+            className="bg-[#0A66C2] text-white hover:bg-[#0A66C2]/90"
           >
             <Plus className="mr-2 h-4 w-4" />
             Connect LinkedIn Account
