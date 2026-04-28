@@ -34,11 +34,10 @@ import { likeLinkedInPost } from "@/lib/action-worker/actions/linkedin-like-exec
 import { commentLinkedInPost } from "@/lib/action-worker/actions/linkedin-comment-executor"
 import { captureScreenshot } from "@/lib/computer-use/screenshot"
 import { uploadScreenshot } from "@/lib/computer-use/screenshot"
-import { getRedditDMPrompt } from "@/lib/computer-use/actions/reddit-dm"
-import {
-  getRedditLikePrompt,
-  getRedditFollowPrompt,
-} from "@/lib/computer-use/actions/reddit-engage"
+import { sendRedditDM } from "@/lib/action-worker/actions/reddit-dm-executor"
+import { commentRedditPost } from "@/lib/action-worker/actions/reddit-comment-executor"
+import { likeRedditPost } from "@/lib/action-worker/actions/reddit-like-executor"
+import { followRedditProfile } from "@/lib/action-worker/actions/reddit-follow-executor"
 import { getLinkedInConnectPrompt } from "@/lib/computer-use/actions/linkedin-connect"
 import { claimAction } from "./claim"
 import { checkAndIncrementLimit } from "./limits"
@@ -366,27 +365,26 @@ export async function executeAction(
       const context = browser.contexts()[0] ?? (await browser.newContext())
       page = context.pages()[0] ?? (await context.newPage())
 
-      if (account!.platform === "linkedin") {
-        // Bind Stagehand to the existing Browserbase session so it operates on
-        // the same browser the Playwright `page` is attached to. Stagehand
-        // calls receive `{ page }` in act/extract options.
-        stagehand = new Stagehand({
-          env: "BROWSERBASE",
-          apiKey: process.env.BROWSERBASE_API_KEY!,
-          projectId: process.env.BROWSERBASE_PROJECT_ID!,
-          browserbaseSessionID: session.id,
-          model: {
-            // Stagehand v3+ requires "provider/model" format. Bare model
-            // names throw UnsupportedModelError at init(), which the outer
-            // try/catch masks as a generic "Browserbase connection failed",
-            // silently failing every LinkedIn action.
-            modelName: "anthropic/claude-haiku-4-5-20251001",
-            apiKey: process.env.ANTHROPIC_API_KEY!,
-          },
-          verbose: 0,
-        })
-        await stagehand.init()
-      }
+      // Phase 17.7: Stagehand is bound for BOTH LinkedIn and Reddit. The Reddit
+      // executors landed in 17.7-01..03 use Stagehand observe()/act()/extract()
+      // as a deterministic-DOM fallback only — same pattern as LinkedIn. Bind
+      // it once here so either platform branch can reuse the same instance.
+      stagehand = new Stagehand({
+        env: "BROWSERBASE",
+        apiKey: process.env.BROWSERBASE_API_KEY!,
+        projectId: process.env.BROWSERBASE_PROJECT_ID!,
+        browserbaseSessionID: session.id,
+        model: {
+          // Stagehand v3+ requires "provider/model" format. Bare model
+          // names throw UnsupportedModelError at init(), which the outer
+          // try/catch masks as a generic "Browserbase connection failed",
+          // silently failing every action.
+          modelName: "anthropic/claude-haiku-4-5-20251001",
+          apiKey: process.env.ANTHROPIC_API_KEY!,
+        },
+        verbose: 0,
+      })
+      await stagehand.init()
     } catch (err) {
       runError = `Browserbase connection failed: ${err instanceof Error ? err.message : String(err)}`
       runStatus = "failed"
@@ -432,7 +430,9 @@ export async function executeAction(
       }
     }
 
-    // 12. Build CU prompt — ONLY for Reddit.
+    // 12. Build CU prompt — Phase 17.7 only LinkedIn connection_request still
+    // uses a CU prompt; Reddit dispatches directly to deterministic Stagehand
+    // executors below (no prompt-build needed).
     let prompt: string | null = null
     const prospect = await supabase
       .from("prospects")
@@ -441,28 +441,10 @@ export async function executeAction(
       .single()
     const handle = (prospect.data?.handle as string) ?? ""
 
-    if (account!.platform !== "linkedin") {
-      if (
-        action.action_type === "dm" ||
-        action.action_type === "followup_dm"
-      ) {
-        prompt = getRedditDMPrompt(
-          handle,
-          action.final_content ?? action.drafted_content ?? "",
-        )
-      } else if (action.action_type === "like") {
-        const { data: signal } = await supabase
-          .from("intent_signals")
-          .select("post_url")
-          .eq("id", action.prospect_id)
-          .maybeSingle()
-        prompt = getRedditLikePrompt((signal?.post_url as string) ?? "")
-      } else if (action.action_type === "follow") {
-        prompt = getRedditFollowPrompt(handle)
-      } else {
-        prompt = `Perform a public reply action for ${handle}`
-      }
-    } else if (action.action_type === "connection_request") {
+    if (
+      account!.platform === "linkedin" &&
+      action.action_type === "connection_request"
+    ) {
       const slug = linkedinProfileHandle ?? handle
       prompt = getLinkedInConnectPrompt(
         slug,
@@ -630,12 +612,112 @@ export async function executeAction(
           `LinkedIn ${action.action_type} executor not implemented`,
         )
       }
+    } else if (account!.platform === "reddit") {
+      // Phase 17.7: deterministic Stagehand dispatch — zero Haiku CU calls.
+      const sh = stagehand!
+
+      if (
+        action.action_type === "dm" ||
+        action.action_type === "followup_dm"
+      ) {
+        const body = action.final_content ?? action.drafted_content ?? ""
+        const dmResult = await sendRedditDM(page, sh, handle, body)
+        const finalScreenshot = await captureScreenshot(page)
+        result = {
+          success: dmResult.success,
+          steps: 1,
+          screenshots: [finalScreenshot],
+          stepLog: [],
+          error: dmResult.failureMode,
+        }
+      } else if (action.action_type === "public_reply") {
+        const { data: prospectWithSignal } = await supabase
+          .from("prospects")
+          .select("intent_signal_id")
+          .eq("id", action.prospect_id)
+          .single()
+        let postUrl: string | null = null
+        if (prospectWithSignal?.intent_signal_id) {
+          const { data: signal } = await supabase
+            .from("intent_signals")
+            .select("post_url")
+            .eq("id", prospectWithSignal.intent_signal_id)
+            .maybeSingle()
+          postUrl = (signal?.post_url as string | null) ?? null
+        }
+        if (!postUrl) {
+          runError = "No post_url for Reddit comment"
+          runStatus = "failed"
+          await updateActionStatus(supabase, actionId, "failed", runError)
+          return { success: false, error: runError }
+        }
+        const body = action.final_content ?? action.drafted_content ?? ""
+        // intent_signals has no comment_id column today (verified Phase 17.7-04
+        // pre-deletion audit). public_reply currently posts as a top-level
+        // reply on the parent post; nested-reply targeting is deferred until
+        // an `intent_signals.comment_id` column lands.
+        const commentResult = await commentRedditPost(
+          page,
+          sh,
+          postUrl,
+          body,
+          undefined,
+        )
+        const finalScreenshot = await captureScreenshot(page)
+        result = {
+          success: commentResult.success,
+          steps: 1,
+          screenshots: [finalScreenshot],
+          stepLog: [],
+          error: commentResult.failureMode,
+        }
+      } else if (action.action_type === "like") {
+        const { data: prospectWithSignal } = await supabase
+          .from("prospects")
+          .select("intent_signal_id")
+          .eq("id", action.prospect_id)
+          .single()
+        let postUrl: string | null = null
+        if (prospectWithSignal?.intent_signal_id) {
+          const { data: signal } = await supabase
+            .from("intent_signals")
+            .select("post_url")
+            .eq("id", prospectWithSignal.intent_signal_id)
+            .maybeSingle()
+          postUrl = (signal?.post_url as string | null) ?? null
+        }
+        if (!postUrl) {
+          runError = "No post_url for Reddit like"
+          runStatus = "failed"
+          await updateActionStatus(supabase, actionId, "failed", runError)
+          return { success: false, error: runError }
+        }
+        const likeResult = await likeRedditPost(page, sh, postUrl)
+        const finalScreenshot = await captureScreenshot(page)
+        result = {
+          success: likeResult.success,
+          steps: 1,
+          screenshots: [finalScreenshot],
+          stepLog: [],
+          error: likeResult.failureMode,
+        }
+      } else if (action.action_type === "follow") {
+        const followResult = await followRedditProfile(page, sh, handle)
+        const finalScreenshot = await captureScreenshot(page)
+        result = {
+          success: followResult.success,
+          steps: 1,
+          screenshots: [finalScreenshot],
+          stepLog: [],
+          error: followResult.failureMode,
+        }
+      } else {
+        throw new Error(
+          `Reddit ${action.action_type} executor not implemented`,
+        )
+      }
     } else {
-      result = await executeCUAction(
-        page,
-        prompt ?? `Perform a ${action.action_type} action for ${handle}`,
-        "claude-haiku-4-5-20251001",
-      )
+      throw new Error(`Unsupported platform: ${account!.platform}`)
     }
 
     cuSteps = result.steps
