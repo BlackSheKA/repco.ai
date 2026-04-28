@@ -112,7 +112,7 @@ export async function startAccountBrowser(accountId: string): Promise<{
 
   const { data: account } = await supabase
     .from("social_accounts")
-    .select("browser_profile_id, platform")
+    .select("browser_profile_id, platform, handle")
     .eq("id", accountId)
     .eq("user_id", user.id)
     .single()
@@ -143,7 +143,17 @@ export async function startAccountBrowser(accountId: string): Promise<{
       // With keepAlive, the session stays RUNNING until either its 1800s
       // timeout OR an explicit releaseSession() from stopAccountBrowser.
       keepAlive: true,
-      userMetadata: { accountId, kind: "connect_flow" },
+      // Identity tags surfaced in the BB dashboard so we can tell which
+      // session belongs to which account/user without DB lookup. Values
+      // must be strings; truncate handles to BB's column width.
+      userMetadata: {
+        accountId,
+        kind: "connect_flow",
+        platform: account.platform,
+        handle: (account.handle ?? "").slice(0, 64),
+        userId: user.id,
+        userEmail: (user.email ?? "").slice(0, 128),
+      },
     })
 
     // Browserbase sessions start at about:blank. Navigate the existing tab to

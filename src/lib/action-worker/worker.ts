@@ -348,6 +348,17 @@ export async function executeAction(
         // D17.5-07: per-action default 300s.
         timeoutSeconds: 300,
         keepAlive: false,
+        // Identity tags surfaced in the BB dashboard so we can correlate
+        // sessions back to action / account / user without DB lookup.
+        userMetadata: {
+          kind: "action",
+          actionId: action.id as string,
+          actionType: runActionType ?? "unknown",
+          accountId: account!.id as string,
+          handle: ((account!.handle as string) ?? "").slice(0, 64),
+          platform: (account!.platform as string) ?? "unknown",
+          userId: (account!.user_id as string) ?? "",
+        },
       })
       sessionId = session.id
 
