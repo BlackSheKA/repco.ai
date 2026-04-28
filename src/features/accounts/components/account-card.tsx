@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { CheckCircle2, LogIn, MessageSquare, Trash2 } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { CheckCircle2, LogIn, MessageSquare, RefreshCw, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -19,6 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { deleteAccount } from "@/features/accounts/actions/account-actions"
+import { attemptReconnect } from "@/features/accounts/server/attempt-reconnect"
 import { HealthBadge } from "./health-badge"
 import { WarmupProgress } from "./warmup-progress"
 import type {
@@ -101,12 +103,47 @@ export function AccountCard({
 }: AccountCardProps) {
   const username = account.handle ?? "unknown"
   const platformLabel = PLATFORM_LABEL[account.platform] ?? account.platform
-  const verified = account.session_verified_at !== null
+  // "Session active" badge only makes sense when the account is healthy/warming.
+  // When health_status is degraded (needs_reconnect / banned / captcha_required)
+  // the verified-at timestamp is stale by definition, so we hide the green
+  // pill to avoid contradicting the red "Needs reconnect" / "Banned" state.
+  const isDegraded =
+    account.health_status === "needs_reconnect" ||
+    account.health_status === "banned" ||
+    account.health_status === "captcha_required"
+  const verified = account.session_verified_at !== null && !isDegraded
   const verifiedAgo = verified
     ? formatTimeAgo(account.session_verified_at as string)
     : null
+  const router = useRouter()
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [isDeleting, startDelete] = useTransition()
+  const [isReconnecting, startReconnect] = useTransition()
+  const showReconnect =
+    account.health_status === "needs_reconnect" ||
+    account.health_status === "captcha_required"
+
+  function handleReconnect() {
+    startReconnect(async () => {
+      const result = await attemptReconnect(account.id)
+      if (result.success) {
+        toast.success("Account reconnected")
+        // attemptReconnect updates social_accounts.health_status server-side;
+        // the Realtime UPDATE channel can race the response and miss the
+        // event, leaving the card stuck on the degraded badge until next
+        // navigation. Force a re-fetch to guarantee the UI catches up.
+        router.refresh()
+      } else if (result.error === "still_banned") {
+        toast.error("Account still banned — connect a different account")
+      } else if (result.error === "try_again") {
+        toast.warning("Couldn't verify — try again in a minute")
+      } else if (result.error === "platform_unsupported") {
+        toast.info("Use Re-login to fix this account")
+      } else {
+        toast.error(result.error ?? "Reconnect failed")
+      }
+    })
+  }
 
   function handleDelete() {
     startDelete(async () => {
@@ -163,7 +200,7 @@ export function AccountCard({
               onClick={() =>
                 onReconnect(
                   account.id,
-                  account.gologin_profile_id,
+                  account.browser_profile_id,
                   account.platform,
                 )
               }
@@ -176,6 +213,20 @@ export function AccountCard({
               <LogIn className="mr-1 h-3.5 w-3.5" />
               {verified ? "Re-login" : "Log in"}
             </Button>
+            {showReconnect && (
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                className="h-7"
+                onClick={handleReconnect}
+                disabled={isReconnecting}
+                aria-label={`Reconnect ${username}`}
+              >
+                <RefreshCw className="mr-1 h-3.5 w-3.5" />
+                {isReconnecting ? "Reconnecting..." : "Reconnect"}
+              </Button>
+            )}
             <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
               <AlertDialogTrigger asChild>
                 <Button

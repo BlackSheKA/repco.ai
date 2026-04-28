@@ -9,7 +9,18 @@
 
 import { describe, it, expect, vi } from "vitest"
 import type { Page } from "playwright-core"
+import type { Stagehand } from "@browserbasehq/stagehand"
 import { sendLinkedInDM } from "../linkedin-dm-executor"
+
+// Stub Stagehand: act/extract reject so deterministic Playwright path is exercised.
+const fakeStagehand = {
+  act: vi.fn(async () => {
+    throw new Error("stub")
+  }),
+  extract: vi.fn(async () => {
+    throw new Error("stub")
+  }),
+} as unknown as Stagehand
 
 type VisibleSpec = { visible?: boolean; text?: string }
 interface Scenario {
@@ -101,7 +112,7 @@ describe("sendLinkedInDM", () => {
       url: PROFILE,
       selectors: { "aria-label^='Message'": { visible: false } },
     })
-    const r = await sendLinkedInDM(page, PROFILE, "hi")
+    const r = await sendLinkedInDM(page, fakeStagehand, PROFILE, "hi")
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("not_connected")
   })
@@ -110,7 +121,7 @@ describe("sendLinkedInDM", () => {
     const page = createMockPage({
       url: "https://www.linkedin.com/login",
     })
-    const r = await sendLinkedInDM(page, PROFILE, "hi")
+    const r = await sendLinkedInDM(page, fakeStagehand, PROFILE, "hi")
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("session_expired")
   })
@@ -119,7 +130,7 @@ describe("sendLinkedInDM", () => {
     const page = createMockPage({
       url: "https://www.linkedin.com/checkpoint/challenge",
     })
-    const r = await sendLinkedInDM(page, PROFILE, "hi")
+    const r = await sendLinkedInDM(page, fakeStagehand, PROFILE, "hi")
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("security_checkpoint")
   })
@@ -130,7 +141,7 @@ describe("sendLinkedInDM", () => {
       bodyText: "They have limited who can message them directly.",
       selectors: { "aria-label^='Message'": { visible: true } },
     })
-    const r = await sendLinkedInDM(page, PROFILE, "hi")
+    const r = await sendLinkedInDM(page, fakeStagehand, PROFILE, "hi")
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("message_disabled")
   })
@@ -143,7 +154,7 @@ describe("sendLinkedInDM", () => {
         "msg-form__contenteditable": { visible: false },
       },
     })
-    const r = await sendLinkedInDM(page, PROFILE, "hi")
+    const r = await sendLinkedInDM(page, fakeStagehand, PROFILE, "hi")
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("dialog_never_opened")
   })
@@ -158,7 +169,7 @@ describe("sendLinkedInDM", () => {
         "msg-form__send-button": { visible: true },
       },
     })
-    const r = await sendLinkedInDM(page, PROFILE, "hi")
+    const r = await sendLinkedInDM(page, fakeStagehand, PROFILE, "hi")
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("weekly_limit_reached")
   })
@@ -173,7 +184,7 @@ describe("sendLinkedInDM", () => {
         "button:has-text('Send')": { visible: false },
       },
     })
-    const r = await sendLinkedInDM(page, PROFILE, "hi")
+    const r = await sendLinkedInDM(page, fakeStagehand, PROFILE, "hi")
     expect(r.success).toBe(false)
     expect(r.failureMode).toBe("send_button_missing")
   })
@@ -188,7 +199,7 @@ describe("sendLinkedInDM", () => {
         "msg-form__send-button": { visible: true },
       },
     })
-    const r = await sendLinkedInDM(page, PROFILE, "hello there")
+    const r = await sendLinkedInDM(page, fakeStagehand, PROFILE, "hello there")
     expect(r.success).toBe(true)
     expect(r.failureMode).toBeUndefined()
   })

@@ -1,5 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": {
+      "development": false
+    }
+  },
   "crons": [
     {
       "path": "/api/cron/zombie-recovery",
@@ -8,10 +13,6 @@
     {
       "path": "/api/cron/refresh-live-stats",
       "schedule": "*/5 * * * *"
-    },
-    {
-      "path": "/api/cron/monitor-reddit",
-      "schedule": "*/15 * * * *"
     },
     {
       "path": "/api/cron/warmup",
@@ -38,12 +39,12 @@
       "schedule": "0 * * * *"
     },
     {
-      "path": "/api/cron/monitor-linkedin",
-      "schedule": "0 */4 * * *"
-    },
-    {
       "path": "/api/cron/linkedin-prescreen",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/apify-zombie-cleanup",
+      "schedule": "*/30 * * * *"
     }
   ]
 }

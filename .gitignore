@@ -39,3 +39,13 @@ next-env.d.ts
 # scratch/local tooling
 /tmp/
 .vercel
+
+# secrets / session artifacts (NEVER commit)
+cookie_encoded.txt
+cookie_value.txt
+session.json
+
+# transient debug / runtime state
+.playwright-mcp/
+.claude/worktrees/
+.claude/scheduled_tasks.lock

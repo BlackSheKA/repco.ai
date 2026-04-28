@@ -1,27 +1,30 @@
 /**
  * /api/cron/linkedin-prescreen — LNKD-05 + LNKD-06
  *
- * Hourly pre-screen for `pipeline_status='detected'` LinkedIn prospects.
- * Visits /in/{slug}, classifies DOM into one of four verdicts:
- *   - security_checkpoint -> abort run, flag account health=warning
- *   - profile_unreachable -> pipeline_status=unreachable, reason=profile_unreachable
- *   - already_connected   -> pipeline_status=connected (unreachable_reason NOT set)
- *   - creator_mode_no_connect -> pipeline_status=unreachable, reason=creator_mode_no_connect
- *   - (null)              -> leave as detected; refresh last_prescreen_attempt_at
+ * Phase 17.5 plan-03: rewrites legacy browser connect to Browserbase + Stagehand
+ * for fragile profile DOM signals. Connection lifecycle: createSession →
+ * chromium.connectOverCDP → Stagehand bound to same session → finally
+ * close + releaseSession (T-17.5-LIFECYCLE-01).
  *
- * Batch cap: 50 prospects per run. Single healthy LinkedIn account per run.
  * T-13-05-01 mitigation: Bearer CRON_SECRET check first.
  */
 
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { Stagehand } from "@browserbasehq/stagehand"
+import { chromium, type Browser } from "playwright-core"
+import { z } from "zod"
 import { logger } from "@/lib/logger"
-import { connectToProfile, releaseProfile } from "@/lib/gologin/adapter"
+import {
+  createSession,
+  releaseSession,
+} from "@/lib/browserbase/client"
+import { getBrowserProfileById } from "@/features/browser-profiles/lib/get-browser-profile"
 import { extractLinkedInSlug } from "@/lib/action-worker/actions/linkedin-connect-executor"
 import { detectLinkedInAuthwall } from "@/lib/action-worker/actions/linkedin-authwall"
+import type { SupportedCountry } from "@/features/browser-profiles/lib/country-map"
 
 export const runtime = "nodejs"
-// Playwright visits are slow; Vercel Pro cron allows up to 300s.
 export const maxDuration = 300
 
 export type PrescreenState = {
@@ -40,16 +43,6 @@ export type PrescreenVerdict =
   | "already_connected"
   | "creator_mode_no_connect"
 
-/**
- * Priority order per 13-CONTEXT.md §Pre-screening DOM signals:
- * checkpoint > auth-wall > 404 > message-sidebar (already connected) >
- * follow-only (creator mode).
- *
- * `account_logged_out` added 2026-04-24 after Phase 13 UAT revealed the
- * null-verdict case silently absorbed logged-out sessions (all three
- * button signals absent), masking session expiry and locking prospects
- * as `detected` without a classifier signal being obtained at all.
- */
 export function classifyPrescreenResult(
   state: PrescreenState,
 ): PrescreenVerdict | null {
@@ -89,16 +82,17 @@ export async function GET(request: Request): Promise<Response> {
   }
   let screened = 0
   let runError: string | null = null
-  let connection: Awaited<ReturnType<typeof connectToProfile>> | undefined
+  let sessionId: string | undefined
+  let browser: Browser | undefined
+  let stagehand: Stagehand | undefined
 
   try {
-    // 1. Pick a healthy LinkedIn account with a GoLogin profile.
     const { data: accounts } = await supabase
       .from("social_accounts")
-      .select("id, gologin_profile_id, user_id")
+      .select("id, browser_profile_id, user_id")
       .eq("platform", "linkedin")
       .eq("health_status", "healthy")
-      .not("gologin_profile_id", "is", null)
+      .not("browser_profile_id", "is", null)
       .order("session_verified_at", { ascending: true, nullsFirst: true })
       .limit(1)
 
@@ -126,10 +120,6 @@ export async function GET(request: Request): Promise<Response> {
       })
     }
 
-    // 2. Select batch: up to 50 prospects whose last attempt was null or >7 days.
-    //    H-01: do NOT stamp last_prescreen_attempt_at up-front. Per-prospect stamps
-    //    happen AFTER the visit (see below) so a mid-run crash does not silently
-    //    burn 7 days for prospects that were never visited.
     const sevenDaysAgo = new Date(
       Date.now() - 7 * 24 * 60 * 60 * 1000,
     ).toISOString()
@@ -168,11 +158,65 @@ export async function GET(request: Request): Promise<Response> {
       return NextResponse.json({ ok: true, screened: 0, reasons })
     }
 
-    // 3. Open GoLogin session.
-    connection = await connectToProfile(account.gologin_profile_id as string)
-    await connection.page.setViewportSize({ width: 1280, height: 900 })
+    const browserProfile = await getBrowserProfileById(
+      account.browser_profile_id as string,
+      supabase,
+    )
+    if (!browserProfile) {
+      logger.warn("linkedin-prescreen: browser profile not found", {
+        correlationId,
+        accountId: account.id,
+      })
+      await supabase.from("job_logs").insert({
+        job_type: "monitor" as const,
+        status: "completed" as const,
+        user_id: account.user_id,
+        started_at: startedAt.toISOString(),
+        finished_at: new Date().toISOString(),
+        duration_ms: Date.now() - startedAt.getTime(),
+        metadata: {
+          cron: "linkedin-prescreen",
+          correlation_id: correlationId,
+          reason: "browser_profile_not_found",
+          screened: 0,
+        },
+      })
+      await logger.flush()
+      return NextResponse.json({
+        ok: true,
+        screened: 0,
+        reason: "browser_profile_not_found",
+      })
+    }
 
-    // 4. Iterate prospects. Abort entire run on first checkpoint.
+    // Open Browserbase session + Playwright + Stagehand.
+    const session = await createSession({
+      contextId: browserProfile.browserbase_context_id,
+      country: browserProfile.country_code as SupportedCountry,
+      timeoutSeconds: 300, // D17.5-07: prescreen
+      keepAlive: false,
+    })
+    sessionId = session.id
+
+    browser = await chromium.connectOverCDP(session.connectUrl)
+    const context = browser.contexts()[0] ?? (await browser.newContext())
+    const page = context.pages()[0] ?? (await context.newPage())
+    await page.setViewportSize({ width: 1280, height: 900 })
+
+    stagehand = new Stagehand({
+      env: "BROWSERBASE",
+      apiKey: process.env.BROWSERBASE_API_KEY!,
+      projectId: process.env.BROWSERBASE_PROJECT_ID!,
+      browserbaseSessionID: session.id,
+      model: {
+        // Stagehand v3+ requires "provider/model" format.
+        modelName: "anthropic/claude-haiku-4-5-20251001",
+        apiKey: process.env.ANTHROPIC_API_KEY!,
+      },
+      verbose: 0,
+    })
+    await stagehand.init()
+
     for (const prospect of prospects) {
       if (!prospect.profile_url && !prospect.handle) continue
       const slug = prospect.profile_url
@@ -182,7 +226,7 @@ export async function GET(request: Request): Promise<Response> {
 
       let navError = false
       try {
-        await connection.page.goto(url, {
+        await page.goto(url, {
           waitUntil: "domcontentloaded",
           timeout: 30000,
         })
@@ -190,10 +234,9 @@ export async function GET(request: Request): Promise<Response> {
         navError = true
       }
 
-      const currentUrl = connection.page.url()
+      const currentUrl = page.url()
       const isCheckpoint = /\/checkpoint\//.test(currentUrl)
       if (isCheckpoint) {
-        // T-13-05-08: abort on first checkpoint; flip account to warning.
         await supabase
           .from("social_accounts")
           .update({ health_status: "warning" })
@@ -206,16 +249,11 @@ export async function GET(request: Request): Promise<Response> {
         break
       }
 
-      // Auth-wall detection must precede DOM-button signals — otherwise
-      // a logged-out session shows all three button signals as `false`
-      // and the classifier returns verdict=null, silently locking
-      // prospects as `detected` without ever getting a classifier signal.
-      // Surfaced by Phase 13 UAT 2026-04-24.
-      const isAuthwall = await detectLinkedInAuthwall(connection.page)
+      const isAuthwall = await detectLinkedInAuthwall(page)
 
       let pageBody = ""
       try {
-        pageBody = (await connection.page.content()) ?? ""
+        pageBody = (await page.content()) ?? ""
       } catch {
         pageBody = ""
       }
@@ -227,38 +265,30 @@ export async function GET(request: Request): Promise<Response> {
           navError ||
           /profile-unavailable|this profile is unavailable/i.test(pageBody) ||
           currentUrl.includes("/404"),
-        // W-01: use the same prefix selector as linkedin-dm-executor so
-        // prescreen verdicts agree with the DM executor's 1st-degree check.
         hasMessageSidebar: isAuthwall
           ? false
-          : await connection.page
+          : await page
               .locator("main button[aria-label^='Message']")
               .isVisible({ timeout: 1500 })
               .catch(() => false),
         hasConnectButton: isAuthwall
           ? false
-          : await connection.page
+          : await page
               .locator("main button[aria-label^='Connect']")
               .isVisible({ timeout: 1500 })
               .catch(() => false),
         hasFollowButton: isAuthwall
           ? false
-          : await connection.page
+          : await page
               .locator("main button[aria-label^='Follow']")
               .isVisible({ timeout: 1500 })
               .catch(() => false),
       }
 
-      const verdict = classifyPrescreenResult(state)
+      let verdict = classifyPrescreenResult(state)
       screened += 1
       const nowIso = new Date().toISOString()
 
-      // `account_logged_out` mirrors `security_checkpoint` handling:
-      // abort the run and flip account health to `warning` so the next
-      // cron tick picks a different account (or halts if none healthy).
-      // Prospects visited during a logged-out run MUST NOT be stamped
-      // with `last_prescreen_attempt_at` — they never actually got a
-      // classifier signal.
       if (verdict === "account_logged_out") {
         await supabase
           .from("social_accounts")
@@ -272,10 +302,31 @@ export async function GET(request: Request): Promise<Response> {
         break
       }
 
+      // When deterministic signals leave verdict null, ask Stagehand to
+      // classify the buyer-persona / pipeline status of this profile. This
+      // is the high-volatility selector path that benefits most from the
+      // LLM (D17.5-06).
       if (!verdict) {
-        // W-03: null verdict = still a valid candidate. Stamp so we don't
-        // re-hit it on the next cron tick, but the per-prospect stamp (vs
-        // pre-batch) means crashes don't silently lock non-visited rows.
+        try {
+          const stagehandVerdict = await stagehand.extract(
+            "Classify this LinkedIn profile page: is the viewer already a 1st-degree connection? Is this a creator-mode profile with no Connect option?",
+            z.object({
+              alreadyConnected: z.boolean(),
+              creatorModeNoConnect: z.boolean(),
+            }),
+            { page },
+          )
+          if (stagehandVerdict.alreadyConnected) {
+            verdict = "already_connected"
+          } else if (stagehandVerdict.creatorModeNoConnect) {
+            verdict = "creator_mode_no_connect"
+          }
+        } catch {
+          /* fall through — leave verdict null */
+        }
+      }
+
+      if (!verdict) {
         await supabase
           .from("prospects")
           .update({ last_prescreen_attempt_at: nowIso })
@@ -286,8 +337,6 @@ export async function GET(request: Request): Promise<Response> {
       reasons[verdict] += 1
 
       if (verdict === "already_connected") {
-        // 1st-degree — not unreachable. Move to 'connected'; do NOT set
-        // unreachable_reason (see migration 00017 column comment).
         await supabase
           .from("prospects")
           .update({
@@ -296,7 +345,6 @@ export async function GET(request: Request): Promise<Response> {
           })
           .eq("id", prospect.id)
       } else {
-        // profile_unreachable or creator_mode_no_connect -> unreachable + reason
         await supabase
           .from("prospects")
           .update({
@@ -353,7 +401,7 @@ export async function GET(request: Request): Promise<Response> {
         },
       })
     } catch {
-      // swallow — we're already in the error path
+      /* swallow */
     }
     await logger.flush()
     return NextResponse.json(
@@ -361,8 +409,15 @@ export async function GET(request: Request): Promise<Response> {
       { status: 500 },
     )
   } finally {
-    // releaseProfile closes CDP AND calls stopCloudBrowser to free the
-    // GoLogin parallel-launch slot. Surfaced by Phase 13 UAT 2026-04-24.
-    await releaseProfile(connection)
+    // T-17.5-LIFECYCLE-01: release session unconditionally.
+    if (stagehand) {
+      await stagehand.close().catch(() => {})
+    }
+    if (browser) {
+      await browser.close().catch(() => {})
+    }
+    if (sessionId) {
+      await releaseSession(sessionId).catch(() => {})
+    }
   }
 }

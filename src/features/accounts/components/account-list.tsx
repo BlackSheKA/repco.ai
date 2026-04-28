@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Loader2, Plus } from "lucide-react"
 
@@ -31,6 +32,7 @@ export function AccountList({
   initialUsages,
   userId,
 }: AccountListProps) {
+  const router = useRouter()
   const { accounts } = useRealtimeAccounts(userId, initialAccounts)
   const [connecting, setConnecting] = useState(false)
   const [connectingPlatform, setConnectingPlatform] = useState<
@@ -63,7 +65,7 @@ export function AccountList({
         return
       }
       setNewAccountId(result.accountId ?? null)
-      setNewProfileId(result.profileId ?? null)
+      setNewProfileId(result.contextId ?? null)
       setNewAccountPlatform("linkedin")
     }
   }
@@ -91,7 +93,7 @@ export function AccountList({
     }
 
     setNewAccountId(result.accountId ?? null)
-    setNewProfileId(result.profileId ?? null)
+    setNewProfileId(result.contextId ?? null)
     setNewAccountPlatform("reddit")
   }
 
@@ -111,13 +113,9 @@ export function AccountList({
     profileId: string | null,
     platform: "reddit" | "linkedin",
   ) {
-    if (!profileId) {
-      toast.error("This account has no browser profile")
-      return
-    }
     setConnecting(true)
     setNewAccountId(accountId)
-    setNewProfileId(profileId)
+    setNewProfileId(profileId) // may be null during Phase 15-17 transition
     setNewAccountPlatform(platform)
   }
 
@@ -133,14 +131,15 @@ export function AccountList({
           <Button
             onClick={() => openConnectDialog("reddit")}
             disabled={isPending}
+            className="bg-[#FF4500] text-white hover:bg-[#FF4500]/90"
           >
             <Plus className="mr-2 h-4 w-4" />
             Connect Reddit Account
           </Button>
           <Button
-            variant="outline"
             onClick={() => openConnectDialog("linkedin")}
             disabled={isPending}
+            className="bg-[#0A66C2] text-white hover:bg-[#0A66C2]/90"
           >
             <Plus className="mr-2 h-4 w-4" />
             Connect LinkedIn Account
@@ -199,7 +198,7 @@ export function AccountList({
                   {submitting && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  {submitting ? "Creating profile..." : "Continue"}
+                  {submitting ? "Setting up your account..." : "Continue"}
                 </Button>
               </div>
             </form>
@@ -207,7 +206,7 @@ export function AccountList({
         </Card>
       )}
 
-      {connecting && newAccountId && newProfileId && (
+      {connecting && newAccountId && (
         <ConnectionFlow
           accountId={newAccountId}
           profileId={newProfileId}
@@ -217,6 +216,11 @@ export function AccountList({
             setNewAccountId(null)
             setNewProfileId(null)
             toast.success("Account connected successfully")
+            // Force a re-fetch from the server. Realtime INSERT events for
+            // server-action-driven inserts can race the channel subscription
+            // and miss the new row, leaving the just-connected account
+            // invisible until the next manual refresh.
+            router.refresh()
           }}
           onCancel={cancelConnect}
         />
@@ -230,7 +234,7 @@ export function AccountList({
             <CardContent className="flex items-center gap-3 py-6">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               <p className="text-base">
-                Creating your LinkedIn browser profile...
+                Setting up your account...
               </p>
             </CardContent>
           </Card>
@@ -258,17 +262,17 @@ export function AccountList({
       {accounts.length > 0 && !connecting && (
         <div className="flex flex-wrap gap-3">
           <Button
-            variant="outline"
             onClick={() => openConnectDialog("reddit")}
             disabled={isPending}
+            className="bg-[#FF4500] text-white hover:bg-[#FF4500]/90"
           >
             <Plus className="mr-2 h-4 w-4" />
             Connect Reddit Account
           </Button>
           <Button
-            variant="outline"
             onClick={() => openConnectDialog("linkedin")}
             disabled={isPending}
+            className="bg-[#0A66C2] text-white hover:bg-[#0A66C2]/90"
           >
             <Plus className="mr-2 h-4 w-4" />
             Connect LinkedIn Account

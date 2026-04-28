@@ -1,39 +1,39 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: milestone
-status: Ready to execute
-stopped_at: 13-02-PLAN.md complete — Wave 2 continues with 13-03 (LinkedIn like + comment executors)
-last_updated: "2026-04-25T09:02:35.470Z"
-last_activity: 2026-04-25
+milestone: v1.2
+milestone_name: — Survival + Foundation
+status: PR #5 open (development → main) — Phase 17.5 + v1.2 batch shipped for review
+stopped_at: PR #5 awaits review/merge; production deploy gated on /deploy-to-production after merge
+last_updated: "2026-04-28T14:00:00.000Z"
+last_activity: 2026-04-28
 progress:
-  total_phases: 14
-  completed_phases: 1
-  total_plans: 6
-  completed_plans: 5
-  percent: 83
+  total_phases: 13
+  completed_phases: 7
+  total_plans: 30
+  completed_plans: 29
+  percent: 96
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-16)
+See: .planning/PROJECT.md (updated 2026-04-27 — v1.2 milestone started)
 
 **Core value:** People actively looking for your product get a personalized, relevant DM within hours
-**Current focus:** Phase 13 — linkedin-action-expansion
+**Current focus:** Phase 17.7 implementation SHIPPED (live UAT deferred). Next: Phase 17.8 (account-identity-hygiene — UI-SPEC approved, ready to plan).
 
 ## Current Position
 
-Phase: 13
-Plan: Not started
-Milestone: v1.1
+Phase: 17.7 (reddit-executors-pivot-from-computer-use-to-stagehand) — IMPLEMENTATION COMPLETE; live UAT deferred (Phase 18-XX residential proxy)
+Plan: 5 of 5 (4 impl plans done; 17.7-05 deferred — see `17.7-UAT.md` for blocker rationale and reopening criteria)
+Milestone: v1.2 (Phases 15–22, continues from 14)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 5
+- Total plans completed: 11
 - Average duration: -
 - Total execution time: 0 hours
 
@@ -42,6 +42,7 @@ Milestone: v1.1
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 13 | 5 | - | - |
+| 15 | 3 | - | - |
 
 **Recent Trend:**
 
@@ -131,6 +132,8 @@ Recent decisions affecting current work:
 - [Phase 03]: Sidebar uses usePathname() for dynamic active state instead of hardcoded booleans
 - [Phase 03]: Account connection uses prompt() for username input (simplified MVP)
 - [Phase 03]: SupabaseClient type annotation on createServiceClient return to resolve generic param mismatch in supabase-js 2.103
+- [Phase 19][2026-04-27]: Migration 00027_free_tier_signup.sql applied to dev branch effppfiphrykllkpkdbv via Management API; Wave 0 harness `node scripts/test-trigger-19.mjs --quick` reports 7 OK lines (enums, columns, audit-table, normalize, signup, duplicate, plan-config); Plan 19-02 unblocked. Filename renumbered from 00025 to 00027 because 00025/00026 were taken by Phases 17.5/18.
+- [Phase 17.5][2026-04-28]: Phase 17.5 COMPLETE. Plan 17.5-04 closed: 7 UAT scenarios automated against dev BB project (geolocation 7/7, D-02 reuse 3/3, D-10 rollback, iframe + click + cookie persistence + Reddit challenge + Stagehand pipeline boot). 2 production bugs found and fixed mid-flight: (a) `@browserbasehq/sdk@2.10.0` `contexts.delete` returns 400 on body-less DELETE → leaks BB context per D-10 rollback in prod; replaced with raw fetch in `client.ts:deleteContext`. (b) `@browserbasehq/stagehand@3.3.0` rejects bare model names with `UnsupportedModelError` → silently masked as "Browserbase connection failed" by outer try/catch → every LinkedIn action + linkedin-prescreen cron failed silently in prod; fixed `worker.ts:379` + `linkedin-prescreen/route.ts:212` to `"anthropic/claude-haiku-4-5-20251001"`. UI: Connect buttons now use platform brand colors (Reddit `#FF4500`, LinkedIn `#0A66C2`) + connect-flow modal nudges user to tick "Keep me signed in" so `li_at` survives BB session boundaries. Vercel prod env updated (BROWSERBASE keys added, GOLOGIN removed). Phase 17 SUMMARY-y annotated `superseded_by: 17.5`. Surfaced `verifyAccountSession` sham (Finding #5) + no auto-degrade (Finding #6) — both spec'd as new Phase 17.9 in ROADMAP. BB Verified mode is Enterprise-only on Developer plan ($20/mo) — comment in `client.ts` for one-line flip when/if upgraded.
 - [Phase 04]: [Phase 04 P01]: Sequence state on prospects table (not separate); getNextFollowUpStep pure for unit testability; missed-step skip to next due step; idempotent handleReplyDetected
 - [Phase 04]: [Phase 04 P02]: No reply body in reply alert email (locked CONTEXT decision); createElement for send functions to keep .ts files and preserve React props for Vitest introspection
 - [Phase 04]: [Phase 04 P03]: Follow-up angle injected via suggestedAngle override (reuse QC pipeline); skip empty digests to avoid training users to ignore; yesterday TZ boundary via formatInTimeZone round-trip (date-fns-tz v3 dropped zonedTimeToUtc)
@@ -187,6 +190,6 @@ None yet.
 
 ## Session Continuity
 
-Last activity: 2026-04-25
-Stopped at: 13-02-PLAN.md complete — Wave 2 continues with 13-03 (LinkedIn like + comment executors)
-Resume file: None
+Last activity: 2026-04-28
+Stopped at: Phase 17.8 UI-SPEC approved
+Resume file: .planning/phases/17.8-account-identity-hygiene/17.8-UI-SPEC.md

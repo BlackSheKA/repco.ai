@@ -8,22 +8,59 @@ repco.ai is an AI sales rep that monitors Reddit and LinkedIn 24/7, detects peop
 
 People who are actively looking for your product get a personalized, relevant DM within hours — not days, not never.
 
-## Current Milestone: v1.1 — LinkedIn Action Expansion
+## Current Milestone: v1.2 — Survival + Foundation
 
-**Started:** 2026-04-23
-**Goal:** Reach outreach parity with Reddit on LinkedIn by porting the deterministic DOM flow pattern (proven in v1.0 Phase 10 + commit 042e842) to every remaining LinkedIn action type — DM, Follow, Like/Comment, followup_dm — plus pre-screening prospects whose Connect path LinkedIn structurally blocks.
+**Started:** 2026-04-27
+**Goal:** Stop the account-ban bleeding (per-profile residential proxy + cookies + preflight detection) and ship the PLG-ready pricing foundation (27-mechanism cost engine + free tier + hard wipe) so v1.3+ can expand signal/outbound mechanisms on a coherent base.
 
-**Target features:**
-- LinkedIn DM executor (1st-degree connections)
-- LinkedIn Follow executor (creator/influencer engage)
-- LinkedIn Like + Comment executor (post interactions)
-- LinkedIn followup_dm sequences (reuse day 3/7/14 cron)
-- Prospect pre-screening queue (keep structurally-unreachable prospects out of approval queue)
+**Two parallel tracks:**
+
+**Track 1 — Anti-Ban (Fazy 0–4 from `ANTI-BAN-ARCHITECTURE.md`):**
+- New `browser_profiles` table: 1 residential proxy = 1 GoLogin profile = N social_accounts (max 1 per platform)
+- Per-profile residential GeoProxy via GoLogin matched to `country_code` + consistent timezone/locale/UA stack
+- Cookies persistence (`cookies_jar JSONB`, save/restore around sessions)
+- Pre-action preflight (Reddit `about.json`) + post-action Haiku CU detector (ban/captcha/suspended modals)
+- Auto-reuse profile algorithm (same user + same country + no platform conflict → reuse)
+
+**Track 2 — Pricing & Free Tier (Fazy A–E from `PRICING.md`):**
+- `mechanism_costs` table seeded with all 27 signal + 28 outbound mechanism costs (single source of truth, used by both signal/outbound expansion in v1.3)
+- `monitoring_signals` schema rewrite: `frequency`, `mechanism_id`, `config jsonb`
+- New `subscription_plan` ENUM (`free` | `pro`) with `billing_cycle` (`monthly` | `annual`) replaces 3-day trial and old monthly/quarterly/annual tier ENUM; Free: 250 cr/m, 1 account, 2 mechanisms, ≥4h cadence, 0 outbound. Pro: 2 000 cr/m, full features, $49/m monthly or $39/m annual.
+- Outbound paywall modals + locked-mechanism badges in `/signals` UI redesign
+- `monthly-credit-grant` cron (1st of month, additive cap = 2× grant)
+- Hard wipe of `auth.users` (pre-launch test data) with confirmation gate; Stripe products refreshed for new grant levels
+- UI never shows burn math (balance + per-action cost only)
+
+**Deferred to v1.3+:**
+- Anti-Ban Faza 3 (real warmup activity) and Faza 5 (account-creation hygiene cosmetics)
+- Pricing Fazy F–G (outbound mechanism cost engine + sequence/variants billing) — paired with outbound expansion
+- All 27 signal mechanisms P1–P11 — only the cost rows seeded in v1.2; actual mechanism implementations in v1.3
+- All 28 outbound mechanisms OP1–OP8 — same; cost rows seeded, implementations in v1.3
+
+**Reference docs (input specs):**
+- `.planning/ANTI-BAN-ARCHITECTURE.md`
+- `.planning/PRICING.md`
+- `.planning/SIGNAL-DETECTION-MECHANISMS.md` (cost-table data only for v1.2)
+- `.planning/OUTBOUND-COMMUNICATION-MECHANISMS.md` (cost-table data only for v1.2)
 
 **Key context:**
-- Builds directly on connection_request executor from v1.0 — same anti-bot bypass (navigate to underlying URL) is expected to work for Message, Follow, React, Comment
-- Claude Computer Use is NOT used for LinkedIn actions in v1.1 — deterministic Playwright locators only (cheaper, faster, reliable against isTrusted gating)
-- Pre-screening is the higher-leverage part: saves user credits + approval-queue time on infeasible targets
+- Reddit account got banned immediately on manual login through GoLogin profile — proves default `proxy: { mode: "gologin" }` shared pool is burned. Faza 1 is the unblock for everything else.
+- 8 residential proxies (geo.floppydata.com pool) already provisioned with 2 GB traffic — Faza 1 needs no pre-purchase.
+- All current users are test data (`feedback_dev_branch_no_touch` + `project_users_are_test_data`) — wipe is safe; rule changes when first real customer arrives.
+- Free tier is the PLG hook: feed visible, all outreach locked → upgrade pressure without burn-math doomsday clock.
+
+## Last shipped
+
+**v1.1 LinkedIn Action Expansion** (2026-04-27)
+- LinkedIn DM, Follow, Like, Comment executors via deterministic Playwright (no Claude CU)
+- Day 3/7/14 followup_dm routes to LinkedIn DM executor (Reddit regression-safe)
+- Prospect pre-screening cron filters structurally-unreachable LinkedIn prospects
+- Account quarantine enforcement: `health_status` + `cooldown_until` gate execution at both worker and `claim_action` RPC layers
+
+**Open carry-over from v1.1:**
+- Phase 13 Nyquist `wave_0_complete: false` — `/gsd-validate-phase 13` recommended
+- 8 human-verification UAT tests on Phase 13 (warmed GoLogin profile + real prospects required)
+- 11 deferred code-quality nits / improvement items per `13-REVIEW-FIX.md`
 
 ## Requirements
 
@@ -52,17 +89,50 @@ People who are actively looking for your product get a personalized, relevant DM
 - [x] Weekly results card: 1200x630 OG image + X/LinkedIn share intents — Validated in Phase 5
 - [x] Stripe billing: 3 subscription tiers + 4 credit packs, hosted Checkout + webhook — Validated in Phase 5
 - [x] Credit economy: daily burn cron (monitoring + account) + action-level deduction — Validated in Phase 5
+- [x] LNKD-01: LinkedIn DM 1st-degree (deterministic DOM, no CU) — Validated in v1.1 Phase 13
+- [x] LNKD-02: LinkedIn Follow + Premium-gate detection — Validated in v1.1 Phase 13 (read-gate added in Phase 14)
+- [x] LNKD-03: LinkedIn React (Like) + post failure modes — Validated in v1.1 Phase 13
+- [x] LNKD-04: LinkedIn Comment ≤1250 chars — Validated in v1.1 Phase 13
+- [x] LNKD-05: Day 3/7/14 followup_dm → LinkedIn DM executor — Validated in v1.1 Phase 13
+- [x] LNKD-06: Pre-screen marks unreachable LinkedIn prospects — Validated in v1.1 Phase 13 (read-gate added in Phase 14)
+- [x] Action engine: event-driven (Supabase DB Webhook → Vercel Function → GoLogin → Playwright CDP → Claude Haiku CU) — Validated in v1.0 Phase 3
+- [x] Human-in-the-loop: DM + public reply require approval; like + follow auto-approved — Validated in v1.0 Phase 3
+- [x] DM generation: Claude Sonnet 4.6, max 3 sentences, references specific post, quality control pass — Validated in v1.0 Phase 3
+- [x] Anti-ban system: GoLogin Cloud profiles, behavioral noise, warmup protocol (7 days), rate limiting — Validated in v1.0 Phase 3
+- [x] Dashboard: multi-column layout with persistent terminal header, agent card, intent feed, approval queue, results — Validated in v1.0 Phases 2 + 5
+- [x] Account health monitoring: warmup progress, health status, daily limits — Validated in v1.0 Phase 3 + v1.1 Phase 14 (runtime quarantine read-gate)
+- [x] Warmup scheduler: 7-day progressive warmup protocol per account — Validated in v1.0 Phase 3
+- [x] LinkedIn integration: monitoring (v1.0 Phase 6) + outreach (v1.0 Phase 10 + v1.1 Phases 13–14)
 
-### Active
+### Active (v1.2 scope)
 
-- [ ] Action engine: event-driven (Supabase DB Webhook -> Vercel Function -> GoLogin -> Playwright CDP -> Claude Haiku CU)
-- [ ] Human-in-the-loop: DM + public reply require approval; like + follow auto-approved
-- [ ] DM generation: Claude Sonnet 4.6, max 3 sentences, references specific post, quality control pass
-- [ ] Anti-ban system: GoLogin Cloud profiles, behavioral noise, warmup protocol (7 days), rate limiting
-- [ ] Dashboard: multi-column layout with persistent terminal header, agent card, intent feed, approval queue, results
-- [ ] Account health monitoring: warmup progress, health status, daily limits
-- [ ] Warmup scheduler: 7-day progressive warmup protocol per account
-- [ ] LinkedIn integration (Phase 6)
+**Anti-Ban (BPRX):**
+- [x] BPRX-01: New `browser_profiles` table — 1 residential proxy = 1 GoLogin profile = N `social_accounts` (max 1 per platform); enforced by `(browser_profile_id, platform)` unique constraint — Validated in Phase 15
+- [x] BPRX-02: New `social_accounts` rows are linked to a `browser_profile_id` (replaces `gologin_profile_id` + `proxy_id` columns) — Validated in Phase 15
+- [ ] BPRX-03: New browser_profiles allocate residential GeoProxy via GoLogin REST matched to `country_code` (no shared `mode: "gologin"` proxy ever again)
+- [ ] BPRX-04: Per-profile fingerprint uniqueness via `patch_profile_fingerprints` after profile creation
+- [ ] BPRX-05: Country → timezone + locale + UA mapping is consistent (US→`America/New_York`+`en-US`, GB→`Europe/London`+`en-GB`, DE→`Europe/Berlin`+`de-DE`, PL→`Europe/Warsaw`+`pl-PL`)
+- [ ] BPRX-06: Auto-reuse algorithm — when a user adds a new account, server picks an existing same-country profile that doesn't already have that platform, otherwise creates a new browser_profile + proxy
+- [ ] BPRX-07: Cookies persisted to `browser_profiles.cookies_jar JSONB` after every session and restored before the next session (no fresh-login pattern)
+- [ ] BPRX-08: Pre-action preflight checks Reddit `about.json` (suspended / very-low-karma / 404) before action executes; failure flips `health_status='banned'` and aborts
+- [ ] BPRX-09: Post-action Haiku CU detector inspects screenshot for "rule broken" / captcha / "account suspended" / rate-limit modals; any positive flips `health_status='banned'` and halts
+- [ ] BPRX-10: All current `auth.users` test rows are wiped behind an explicit confirmation gate before the new schema goes live (pre-launch reset, no data preservation needed)
+
+**Pricing & Free Tier (PRIC):**
+- [ ] PRIC-01: New `mechanism_costs` table seeded with all 27 signal + 28 outbound mechanism cost rows (`mechanism_id` PK, `cr_per_scan`/`cr_per_action`, `mechanism_kind`, `premium`, `requires_gologin`, `free_tier_allowed`)
+- [ ] PRIC-02: `monitoring_signals` schema rewrite — `frequency` (interval), `mechanism_id` (FK to mechanism_costs), `config` (jsonb per-mechanism parameters)
+- [ ] PRIC-03: Server-side credit burn engine computes `daily_burn = cr_per_scan × scans_per_day(cadence) × num_sources` from DB lookup; legacy `MONITORING_COSTS` constants removed
+- [ ] PRIC-04: New ENUMs `subscription_plan` (`free`|`pro`) and `billing_cycle` (`monthly`|`annual`); old `subscription_tier` dropped (hard switch + wipe)
+- [ ] PRIC-05: New users on signup automatically get `subscription_plan='free'` + 250 cr balance (replaces `trial_ends_at` / 3-day trial path; `handle_new_user` trigger updated)
+- [ ] PRIC-06: Free tier hard caps enforced — max 1 social account total (Reddit OR LinkedIn), max 2 mechanisms active, cadence ≥4h, 0 outbound actions allowed (paywall modal on every DM/reply/connection/comment/post)
+- [ ] PRIC-07: Free tier mechanism whitelist — only R1, R3, R4, L1, L7, T1, T2 selectable; gologin-required mechanisms (R7, R8, L6, L10, L11, T3) and heavy mechanisms (L2-L5, T4) locked with upgrade badge
+- [ ] PRIC-08: `monthly-credit-grant` cron (`0 0 1 * *`) applies `balance = min(balance + monthly_grant, balance_cap)` per active plan; cap = 2× grant (Free 500, Pro 4 000)
+- [ ] PRIC-09: Stripe products refreshed — 2 sub prices (Pro monthly $49 / Pro annual $468) + credit packs unchanged (Starter 500/$29, Growth 1500/$59, Scale 5000/$149, Agency 15000/$399)
+- [ ] PRIC-10: Top-up credit packs are blocked for free-tier users (forced upgrade to subscription)
+- [ ] PRIC-11: `/signals` UI redesigned — 27 mechanism cards with toggle, configuration, **static unit-cost label** ("1 credit per scan"), upgrade badge for locked mechanisms, status (last_scan_at, signals_24h)
+- [ ] PRIC-12: UI never shows burn math — no `cr/day`, no `cr/month`, no live ticker, no "wystarczy na X dni", no breakdown
+- [ ] PRIC-13: Free tier landing copy on `/pricing` (Free column added) and dashboard signup hook reflects 250-cr / 1-account / 0-outreach contract
+- [ ] PRIC-14: Anti-abuse — 1 free tier per `email + IP` enforced in `handle_new_user` trigger with audit log; `users.credits_balance_cap` and `users.credits_included_monthly` columns set per tier
 
 ### Out of Scope
 
@@ -110,4 +180,4 @@ People who are actively looking for your product get a personalized, relevant DM
 | Event-driven actions (DB Webhook) over polling | Zero empty invocations, fires only on user approval | — Pending |
 
 ---
-*Last updated: 2026-04-21 — Phase 5 Billing + Onboarding + Growth complete (7/7 plans, 8/10 UAT tests pass + 2 partial; Stripe + Resend wired, products created in test + live mode, webhook endpoints live; trial-start UI button deferred to follow-up)*
+*Last updated: 2026-04-27 — Phase 15 complete: `browser_profiles` schema foundation + 9-site reader refactor (BPRX-01, BPRX-02 validated)*

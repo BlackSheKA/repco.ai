@@ -12,10 +12,32 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import type { BrowserProfile } from "@/features/accounts/lib/types"
+
+const mockBrowserProfile = (
+  overrides: Partial<BrowserProfile> = {},
+): BrowserProfile => ({
+  id: "bp-test-id",
+  browserbase_context_id: "ctx-test-id",
+  country_code: "PL",
+  timezone: "Europe/Warsaw",
+  locale: "pl-PL",
+  display_name: null,
+  ...overrides,
+})
+
+vi.mock("@/features/browser-profiles/lib/get-browser-profile", () => ({
+  getBrowserProfileForAccount: vi.fn(async () => mockBrowserProfile()),
+  getBrowserProfileById: vi.fn(async () => mockBrowserProfile()),
+}))
 
 // ---- Executor mocks (the whole point of the test) ----
 const sendLinkedInDMMock = vi.fn()
 const executeCUActionMock = vi.fn()
+const sendRedditDMMock = vi.fn()
+const commentRedditPostMock = vi.fn()
+const likeRedditPostMock = vi.fn()
+const followRedditProfileMock = vi.fn()
 
 vi.mock("@/lib/action-worker/actions/linkedin-dm-executor", () => ({
   sendLinkedInDM: sendLinkedInDMMock,
@@ -32,37 +54,62 @@ vi.mock("@/lib/action-worker/actions/linkedin-like-executor", () => ({
 vi.mock("@/lib/action-worker/actions/linkedin-comment-executor", () => ({
   commentLinkedInPost: vi.fn(),
 }))
+vi.mock("@/lib/action-worker/actions/reddit-dm-executor", () => ({
+  sendRedditDM: sendRedditDMMock,
+}))
+vi.mock("@/lib/action-worker/actions/reddit-comment-executor", () => ({
+  commentRedditPost: commentRedditPostMock,
+}))
+vi.mock("@/lib/action-worker/actions/reddit-like-executor", () => ({
+  likeRedditPost: likeRedditPostMock,
+}))
+vi.mock("@/lib/action-worker/actions/reddit-follow-executor", () => ({
+  followRedditProfile: followRedditProfileMock,
+}))
 vi.mock("@/lib/computer-use/executor", () => ({
   executeCUAction: executeCUActionMock,
 }))
 
-// ---- GoLogin + screenshot + CU helper mocks ----
-vi.mock("@/lib/gologin/adapter", () => ({
-  connectToProfile: vi.fn(async () => ({
-    browser: { close: vi.fn() },
-    page: {
-      goto: vi.fn(async () => undefined),
-      setViewportSize: vi.fn(async () => undefined),
-      screenshot: vi.fn(async () => Buffer.from("fake")),
-    },
-    profileId: "test-profile",
+// ---- Browserbase + Playwright + Stagehand mocks ----
+vi.mock("@/lib/browserbase/client", () => ({
+  createSession: vi.fn(async () => ({
+    id: "sess_test",
+    connectUrl: "wss://test",
   })),
-  disconnectProfile: vi.fn(async () => undefined),
-  releaseProfile: vi.fn(async () => undefined),
+  releaseSession: vi.fn(async () => undefined),
+  createContext: vi.fn(),
+  deleteContext: vi.fn(),
+}))
+
+const fakePage = {
+  goto: vi.fn(async () => undefined),
+  setViewportSize: vi.fn(async () => undefined),
+  screenshot: vi.fn(async () => Buffer.from("fake")),
+}
+vi.mock("playwright-core", () => ({
+  chromium: {
+    connectOverCDP: vi.fn(async () => ({
+      contexts: () => [{ pages: () => [fakePage], newPage: vi.fn() }],
+      close: vi.fn(async () => undefined),
+    })),
+  },
+}))
+
+vi.mock("@browserbasehq/stagehand", () => ({
+  Stagehand: class FakeStagehand {
+    init = vi.fn(async () => undefined)
+    close = vi.fn(async () => undefined)
+    act = vi.fn()
+    extract = vi.fn()
+  },
 }))
 vi.mock("@/lib/computer-use/screenshot", () => ({
   captureScreenshot: vi.fn(async () => "ZmFrZQ=="),
   uploadScreenshot: vi.fn(async () => "https://example.com/shot.png"),
 }))
 
-// Prompts (Reddit path) — return stable strings so executeCUAction gets called
-vi.mock("@/lib/computer-use/actions/reddit-dm", () => ({
-  getRedditDMPrompt: vi.fn(() => "reddit-dm-prompt"),
-}))
-vi.mock("@/lib/computer-use/actions/reddit-engage", () => ({
-  getRedditLikePrompt: vi.fn(() => "reddit-like-prompt"),
-  getRedditFollowPrompt: vi.fn(() => "reddit-follow-prompt"),
-}))
+// Phase 17.7: Reddit prompt builders deleted; Reddit path now dispatches
+// directly to the deterministic Stagehand executors mocked above.
 vi.mock("@/lib/computer-use/actions/linkedin-connect", () => ({
   getLinkedInConnectPrompt: vi.fn(() => "linkedin-connect-prompt"),
 }))
@@ -114,7 +161,7 @@ type SuParams = {
   account: {
     id: string
     platform: "reddit" | "linkedin"
-    gologin_profile_id: string
+    browser_profile_id: string | null
     warmup_day: number
     timezone: string
     active_hours_start: number
@@ -229,6 +276,10 @@ describe("worker LinkedIn followup_dm dispatch (LNKD-05)", () => {
   beforeEach(async () => {
     sendLinkedInDMMock.mockReset()
     executeCUActionMock.mockReset()
+    sendRedditDMMock.mockReset()
+    commentRedditPostMock.mockReset()
+    likeRedditPostMock.mockReset()
+    followRedditProfileMock.mockReset()
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://x.supabase.co"
     process.env.SUPABASE_SERVICE_ROLE_KEY = "test-key"
 
@@ -264,7 +315,7 @@ describe("worker LinkedIn followup_dm dispatch (LNKD-05)", () => {
       account: {
         id: "acct-1",
         platform: "linkedin",
-        gologin_profile_id: "gp-1",
+        browser_profile_id: "bp-1",
         warmup_day: 10,
         timezone: "UTC",
         active_hours_start: 0,
@@ -288,7 +339,8 @@ describe("worker LinkedIn followup_dm dispatch (LNKD-05)", () => {
     // Worker passes the stashed linkedinProfileHandle ("alice") if present;
     // sendLinkedInDM's extractLinkedInSlug normalizes both full URL and slug.
     expect(sendLinkedInDMMock).toHaveBeenCalledWith(
-      expect.anything(),
+      expect.anything(), // page
+      expect.anything(), // stagehand
       expect.stringMatching(/alice/),
       "hi there from follow-up",
     )
@@ -322,7 +374,7 @@ describe("worker LinkedIn followup_dm dispatch (LNKD-05)", () => {
       account: {
         id: "acct-1",
         platform: "linkedin",
-        gologin_profile_id: "gp-1",
+        browser_profile_id: "bp-1",
         warmup_day: 10,
         timezone: "UTC",
         active_hours_start: 0,
@@ -363,12 +415,17 @@ describe("worker LinkedIn followup_dm dispatch (LNKD-05)", () => {
     expect(log.metadata.failure_mode).toBe("not_connected")
   })
 
-  it("Reddit followup_dm regression → executeCUAction called, sendLinkedInDM NOT called", async () => {
+  it("Reddit followup_dm regression → sendRedditDM called, NO Haiku CU call, sendLinkedInDM NOT called (BPRX-12)", async () => {
+    // Phase 17.7: the CU loop is removed from the Reddit action path; this
+    // regression test asserts the deterministic Stagehand executor receives
+    // the dispatch, that no Haiku CU call is made for the action itself
+    // (noise injection is mocked off here), and that LinkedIn executors are
+    // never invoked on a Reddit account.
     currentSu = buildSupabase({
       account: {
         id: "acct-2",
         platform: "reddit",
-        gologin_profile_id: "gp-2",
+        browser_profile_id: "bp-2",
         warmup_day: 10,
         timezone: "UTC",
         active_hours_start: 0,
@@ -382,19 +439,24 @@ describe("worker LinkedIn followup_dm dispatch (LNKD-05)", () => {
     })
 
     await primeClaim("followup_dm")
-    executeCUActionMock.mockResolvedValue({
-      success: true,
-      steps: 3,
-      screenshots: ["shot-1"],
-      stepLog: [],
-    })
+    sendRedditDMMock.mockResolvedValue({ success: true })
 
     const { executeAction } = await import("../worker")
     const result = await executeAction("action-1", "corr-3")
 
     expect(result.success).toBe(true)
-    expect(executeCUActionMock).toHaveBeenCalledTimes(1)
-    // LinkedIn executor must NOT be reached on Reddit accounts
+    expect(sendRedditDMMock).toHaveBeenCalledTimes(1)
+    // extractRedditHandle("u/charlie") → "charlie"; verify the executor
+    // received the canonical handle, not the raw "u/charlie" prefix form.
+    expect(sendRedditDMMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      "u/charlie",
+      expect.any(String),
+    )
+    // Goal-backward invariant: zero Haiku CU calls in the Reddit action path.
+    expect(executeCUActionMock).not.toHaveBeenCalled()
+    // LinkedIn executor must NOT be reached on Reddit accounts.
     expect(sendLinkedInDMMock).not.toHaveBeenCalled()
   })
 })

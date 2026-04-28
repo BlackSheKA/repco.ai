@@ -1,4 +1,22 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import type { BrowserProfile } from "@/features/accounts/lib/types"
+
+const mockBrowserProfile = (
+  overrides: Partial<BrowserProfile> = {},
+): BrowserProfile => ({
+  id: "bp-1",
+  browserbase_context_id: "ctx-1",
+  country_code: "PL",
+  timezone: "Europe/Warsaw",
+  locale: "pl-PL",
+  display_name: null,
+  ...overrides,
+})
+
+vi.mock("@/features/browser-profiles/lib/get-browser-profile", () => ({
+  getBrowserProfileForAccount: vi.fn(async () => mockBrowserProfile()),
+  getBrowserProfileById: vi.fn(async () => mockBrowserProfile()),
+}))
 
 /**
  * Integration test for the check-replies cron route.
@@ -13,7 +31,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
  *              verified manually per 07-VALIDATION.md)
  *   - RPLY-03  sendReplyAlert called with ('user@example.com','u/alice','Reddit')
  *
- * Mocks all external integrations (Sentry, Axiom, Anthropic, GoLogin,
+ * Mocks all external integrations (Sentry, Axiom, Anthropic, Browserbase,
  * screenshot, Resend) but exercises the REAL matchReplyToProspect +
  * handleReplyDetected so the mid-layer glue is under test.
  */
@@ -32,18 +50,32 @@ vi.mock("@sentry/nextjs", () => ({
   ),
 }))
 
-// Mock GoLogin adapter — return a fake browser+page so the route proceeds
-vi.mock("@/lib/gologin/adapter", () => ({
-  connectToProfile: vi.fn(async () => ({
-    browser: { close: vi.fn() },
-    page: {
-      goto: vi.fn(async () => undefined),
-      screenshot: vi.fn(async () => Buffer.from("fake")),
-    },
-    profileId: "test-profile",
+// Mock Browserbase client + playwright-core so the route proceeds without real net.
+vi.mock("@/lib/browserbase/client", () => ({
+  createSession: vi.fn(async () => ({
+    id: "sess_test",
+    connectUrl: "wss://test",
   })),
-  disconnectProfile: vi.fn(async () => undefined),
-  releaseProfile: vi.fn(async () => undefined),
+  releaseSession: vi.fn(async () => undefined),
+}))
+
+vi.mock("playwright-core", () => ({
+  chromium: {
+    connectOverCDP: vi.fn(async () => ({
+      contexts: () => [
+        {
+          pages: () => [
+            {
+              goto: vi.fn(async () => undefined),
+              screenshot: vi.fn(async () => Buffer.from("fake")),
+            },
+          ],
+          newPage: vi.fn(),
+        },
+      ],
+      close: vi.fn(async () => undefined),
+    })),
+  },
 }))
 
 // Mock screenshot util — Haiku only needs a non-empty base64 string
@@ -129,7 +161,7 @@ function buildRouteSupabase() {
                         id: "acct-1",
                         user_id: "user-1",
                         handle: "u/myaccount",
-                        gologin_profile_id: "gp-1",
+                        browser_profile_id: "bp-1",
                         consecutive_inbox_failures: 0,
                       },
                     ],

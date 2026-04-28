@@ -13,6 +13,18 @@ export type HealthStatus =
   | "warning"
   | "cooldown"
   | "banned"
+  | "needs_reconnect"
+  | "captcha_required"
+
+export interface BrowserProfile {
+  id: string
+  /** Phase 17.5: Browserbase context id (Browserbase persistent context). */
+  browserbase_context_id: string
+  country_code: string
+  timezone: string
+  locale: string
+  display_name: string | null
+}
 
 export interface SocialAccount {
   id: string
@@ -20,8 +32,7 @@ export interface SocialAccount {
   platform: "reddit" | "linkedin"
   handle: string | null
   profile_url: string | null
-  gologin_profile_id: string | null
-  proxy_id: string | null
+  browser_profile_id: string | null
   health_status: HealthStatus
   warmup_day: number
   warmup_completed_at: string | null
@@ -34,7 +45,14 @@ export interface SocialAccount {
   active_hours_end: number
   active: boolean
   session_verified_at: string | null
+  /** Phase 18: preflight cache (1h TTL) — written by runRedditPreflight. */
+  last_preflight_at: string | null
+  last_preflight_status: "ok" | "banned" | "transient" | null
   created_at: string
+}
+
+export type SocialAccountWithProfile = SocialAccount & {
+  browser_profiles: BrowserProfile | null
 }
 
 export interface AccountDailyUsage {

@@ -86,7 +86,7 @@ describe("linkedin-adapter", () => {
         "utf8",
       ),
     )
-    expect(source).toContain("apimaestro~linkedin-post-search-scraper")
+    expect(source).toContain("harvestapi~linkedin-post-search")
   })
 
   it("throws with status and run id when actor run does not succeed", async () => {

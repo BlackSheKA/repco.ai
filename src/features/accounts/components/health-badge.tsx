@@ -37,6 +37,18 @@ const HEALTH_STYLES: Record<
     text: "#DC2626",
     border: "rgba(220, 38, 38, 0.3)",
   },
+  needs_reconnect: {
+    label: "Needs reconnect",
+    bg: "rgba(59, 130, 246, 0.15)",
+    text: "#3B82F6",
+    border: "rgba(59, 130, 246, 0.3)",
+  },
+  captcha_required: {
+    label: "Captcha needed",
+    bg: "rgba(139, 92, 246, 0.15)",
+    text: "#8B5CF6",
+    border: "rgba(139, 92, 246, 0.3)",
+  },
 }
 
 interface HealthBadgeProps {

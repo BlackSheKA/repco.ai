@@ -1,305 +1,364 @@
 # Roadmap: repco.ai
 
-## Overview
+## Milestones
 
-repco.ai is built in six phases that follow the strict dependency chain from research: Foundation enables everything, Reddit Monitoring proves the core loop, the Action Engine delivers the Computer Use moat, Sequences + Reply Detection closes the outreach loop, Billing + Onboarding + Growth productizes the system, and LinkedIn extends it to the second platform. The critical path is Schema → Reddit → Action Engine. Everything else is additive.
+- ✅ **v1.0 Foundation** — Phases 1–12 (shipped 2026-04-21)
+- ✅ **v1.1 LinkedIn Action Expansion** — Phases 13–14 (shipped 2026-04-27)
+- 🚧 **v1.2 Survival + Foundation** — Phases 15–22 (in progress, started 2026-04-27)
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+<details>
+<summary>✅ v1.0 Foundation (Phases 1–12) — SHIPPED 2026-04-21</summary>
 
-Decimal phases appear between their surrounding integers in numeric order.
+See `.planning/milestones/v1.0-ROADMAP.md` for full phase details.
 
-- [ ] **Phase 1: Foundation** - Supabase schema + RLS + Auth, Next.js 15 shell, observability infrastructure
-- [x] **Phase 2: Reddit Monitoring + Intent Feed** - snoowrap ingestion, hybrid signal classification, real-time intent feed, dashboard shell, agent persona (completed 2026-04-17)
-- [ ] **Phase 3: Action Engine** - GoLogin + Playwright + Haiku CU action execution, approval queue, anti-ban system, account management
-- [ ] **Phase 4: Sequences + Reply Detection** - 3-touch follow-up sequences, inbox reply detection, email notifications
-- [x] **Phase 5: Billing + Onboarding + Growth** - Stripe subscription + credit economy, 3-question onboarding, landing hook, /live page, prospect pipeline
-- [x] **Phase 6: LinkedIn** - Apify LinkedIn integration (additive after Reddit proven end-to-end)
-- [x] **Phase 7: Reply Detection Fix** (GAP CLOSURE) - Handle normalization bug unblocking RPLY-02/03/04 + FLLW-04 cascade
-- [x] **Phase 8: Public Stats + Duplicate Digest Cleanup** (GAP CLOSURE) - live_stats write path (GROW-01), remove duplicate daily digest cron (completed 2026-04-21)
-- [x] **Phase 9: Cross-Platform Approval + Action Audit Trail** (GAP CLOSURE) - Platform-aware approval card + worker.ts job_logs column fix (completed 2026-04-21)
-- [x] **Phase 10: LinkedIn Outreach Execution** (GAP CLOSURE) - ONBR-05 GoLogin LinkedIn connection + connection_request executor arm (completed 2026-04-21)
-- [x] **Phase 11: Nyquist Validation Compliance** (GAP CLOSURE) - Complete 6 VALIDATION.md files + retroactive Phase 6 VERIFICATION.md (completed 2026-04-21)
-- [x] **Phase 12: Trial Auto-Activation + Expiry Reconciliation** (GAP CLOSURE) - BILL-01 auto-trial + ACTN-10 expiry spec reconciliation (completed 2026-04-21)
-- [x] **Phase 13: LinkedIn Action Expansion** (v1.1) - Port deterministic DOM flow to DM/Follow/Like/Comment + LinkedIn followup_dm + pre-screening queue (completed 2026-04-23)
-- [ ] **Phase 14: LinkedIn Account Quarantine Enforcement** (v1.1, GAP CLOSURE) - Read-side enforcement of social_accounts.health_status / cooldown_until in worker.ts + claim_action RPC so flagged accounts stop executing approved actions
+- [x] Phase 1: Foundation
+- [x] Phase 2: Reddit Monitoring + Intent Feed (completed 2026-04-17)
+- [x] Phase 3: Action Engine
+- [x] Phase 4: Sequences + Reply Detection
+- [x] Phase 5: Billing + Onboarding + Growth
+- [x] Phase 6: LinkedIn (completed 2026-04-21)
+- [x] Phase 7: Reply Detection Fix (GAP)
+- [x] Phase 8: Public Stats + Duplicate Digest (GAP) (completed 2026-04-21)
+- [x] Phase 9: Cross-Platform Approval + Audit Trail (GAP) (completed 2026-04-21)
+- [x] Phase 10: LinkedIn Outreach Execution (GAP) (completed 2026-04-21)
+- [x] Phase 11: Nyquist Validation Compliance (GAP) (completed 2026-04-21)
+- [x] Phase 12: Trial Auto-Activation + Expiry (GAP) (completed 2026-04-21)
+
+</details>
+
+<details>
+<summary>✅ v1.1 LinkedIn Action Expansion (Phases 13–14) — SHIPPED 2026-04-27</summary>
+
+See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
+
+- [x] Phase 13: LinkedIn Action Expansion (5/5 plans, completed 2026-04-23) — DM, Follow, Like+Comment, followup_dm, prescreen
+- [x] Phase 14: LinkedIn Account Quarantine Enforcement (1/1 plan, completed 2026-04-25) — gap closure: worker guard + claim_action RPC join
+
+</details>
+
+### 🚧 v1.2 — Survival + Foundation (In Progress)
+
+- [x] **Phase 15: Browser Profile Schema Foundation** — `browser_profiles` table + `social_accounts` rewrite (1 profile = N accounts max 1/platform)
+ (completed 2026-04-27)
+- [ ] **Phase 16: Mechanism Cost Engine Schema** — `mechanism_costs` table seeded with 32 signal + 28 outbound rows; `monitoring_signals` schema rewrite; DB-driven burn engine
+- [~] **Phase 17: Residential Proxy + GoLogin Profile Allocator** — _ABANDONED 2026-04-27, pivoted to Browserbase (see Phase 17.5). GoLogin parallel-launch quota and per-slot pricing don't fit our SaaS scale. Lessons preserved in `.planning/research/browserbase-vs-gologin.md`._
+- [x] **Phase 17.5: Browser Profile Allocator (Browserbase)** — Replaces Phase 17. Persistent context per account + per-session residential proxy with country geo-targeting via Browserbase. Drops BPRX-04 fingerprint patch (auto-handled by Browserbase). Iframe-embeddable live view replaces external viewer.
+- [?] **Phase 17.6: Sticky Residential Proxy IP per Browser Profile (CONDITIONAL)** — DO NOT plan/execute by default. Triggered only when Phase 18 ban-detector flagging rate >5% over 7-day window, OR a paying customer reports correlated security-checkpoint incidents, OR enterprise SLA demands per-account sticky IP. Pre-launch we ship BB's residential pool. Switches to external sticky-session provider (Bright Data / IPRoyal / Oxylabs) per `browser_profile.id` only when real-world data justifies the +$1–3/user/month proxy spend and added vendor risk.
+- [ ] **Phase 17.7: Reddit Executors Pivot from Computer Use to Stagehand** — Replace the screenshot-loop Computer Use pipeline for Reddit DM/Engage with deterministic Playwright + Stagehand `act()` (same architecture as 5 LinkedIn executors landed in 17.5-03). Drops per-action Haiku CU cost (~10× cheaper, 3-5× faster, deterministic). Trust boundary preserved (T-17.5-02 — message text never crosses into LLM args, only `keyboard.type`). Full description below.
+- [ ] **Phase 17.8: Account Identity Hygiene** — Edit handle UI + per-platform Zod validation at connect (Reddit `^[A-Za-z0-9_]{3,20}$`, LinkedIn slug `^[a-z0-9-]+$`) + post-login LinkedIn handle auto-extract via Stagehand. Closes the gap surfaced by 17.5 UAT where invalid Reddit handles slip through input and there's no UI to fix them after, and where LinkedIn permanently retains the `linkedin-${userId.slice(0,8)}` placeholder.
+- [ ] **Phase 17.9: Real Session Verification + Auto-Degrade** — Replace the `verifyAccountSession` sham (writes `session_verified_at = now()` and returns `verified: true` UNCONDITIONALLY — never opens a BB session, never checks `li_at`/`reddit_session`) with a real server-side probe + periodic re-check cron that auto-flips `health_status='needs_reconnect'` when the platform auth cookie disappears. Surfaces prominent Re-login CTA on the AccountCard when degraded. Surfaced in Phase 17.5 Plan 04 UAT (Findings #5 + #6). Full description below.
+- [ ] **Phase 18: Cookies Persistence + Preflight + Ban Detection** — cookies_jar save/restore, Reddit `about.json` preflight, Haiku CU post-action ban detector
+- [ ] **Phase 19: Free + Pro Plan ENUMs + Signup Flow** — create `subscription_plan` (`free`|`pro`) + `billing_cycle` (`monthly`|`annual`); `handle_new_user` rewrite (250 cr free signup, no trial); `(email_normalized, ip)` anti-abuse via `signup_audit`
+- [ ] **Phase 20: Pre-Launch User Wipe** — destructive `auth.users` reset behind explicit confirmation gate; cascading FK cleanup
+- [ ] **Phase 21: Free Tier Enforcement + Monthly Grant + Stripe Refresh** — hard caps (1 account / 2 mechanisms / ≥4h / 0 outbound), mechanism whitelist, monthly-credit-grant cron, Stripe products refreshed, top-up pack lockdown
+- [ ] **Phase 22: Signals UI Redesign + Free Tier Copy** — 27 mechanism cards with toggle/config/locked badges, no burn math anywhere, `/pricing` Free column + signup CTA refresh
 
 ## Phase Details
 
-### Phase 1: Foundation
-**Goal**: The project skeleton exists and is deployable — auth works, schema is live, errors are tracked, and nothing can be built wrong due to missing infrastructure
-**Depends on**: Nothing (first phase)
-**Requirements**: OBSV-01, OBSV-02, OBSV-03, OBSV-04
+### Phase 15: Browser Profile Schema Foundation
+**Goal**: A new schema layer exists where one residential proxy maps to one GoLogin profile, which in turn owns multiple social accounts (max one per platform). All existing code reads accounts through this new layer.
+**Depends on**: Nothing (first v1.2 phase, schema foundation)
+**Requirements**: BPRX-01, BPRX-02
 **Success Criteria** (what must be TRUE):
-  1. A user can sign up, log in, and log out via Supabase Auth on the deployed Next.js 15 app
-  2. The Supabase schema (signals, actions, prospects, job_logs, credits, accounts) is live with RLS policies enforced
-  3. Any unhandled error in production appears in Sentry with structured context visible in Axiom
-  4. A zombie recovery cron runs every 5 minutes and resets stale "executing" actions
-  5. The app is deployed to Vercel Pro and accessible at its production URL
-**Plans:** 6 plans
+  1. A `browser_profiles` table exists with `(user_id, gologin_profile_id, gologin_proxy_id, country_code, timezone, locale, display_name, created_at)` and RLS enabled
+  2. `social_accounts` references `browser_profile_id` (FK) and a unique `(browser_profile_id, platform)` constraint prevents two same-platform accounts on one profile
+  3. Legacy `social_accounts.gologin_profile_id` and `social_accounts.proxy_id` columns are removed (or deprecated and unread by code)
+  4. `worker.ts` and account server actions read GoLogin profile/proxy via JOIN through `browser_profiles` — no direct legacy column reads remain
+**Plans**: 2 plans
+  - [x] 15-01-PLAN.md — Schema migration + helper module + types (Wave 1, BPRX-01)
+  - [x] 15-02-PLAN.md — Refactor 9 reader sites + tests (Wave 2, BPRX-02)
 
-Plans:
-- [ ] 01-01-PLAN.md — Project scaffold: Next.js 15, shadcn/ui preset, brand theming, Supabase client utilities
-- [ ] 01-02-PLAN.md — Database schema: all 11 PRD tables, ENUMs, indexes, RLS policies, auth trigger
-- [ ] 01-03-PLAN.md — Auth flow + app shell: login page, middleware, sidebar, header, theme toggle
-- [ ] 01-04-PLAN.md — Observability: Sentry, Axiom, structured logger, zombie recovery cron
-- [ ] 01-05-PLAN.md — Gap closure: OBSV-04 threshold alerting via Sentry (action success rate + timeout rate checks)
-- [ ] 01-06-PLAN.md — UAT gap closure: fix theme toggle, mobile sidebar, sign-out dialog (React 19 compatibility)
-
-### Phase 2: Reddit Monitoring + Intent Feed
-**Goal**: The system monitors Reddit every 15 minutes, classifies intent signals using structural matching + Claude Sonnet, and surfaces them in a real-time dashboard with agent persona
-**Depends on**: Phase 1
-**Requirements**: MNTR-01, MNTR-03, MNTR-04, MNTR-05, MNTR-06, MNTR-07, FEED-01, FEED-02, FEED-03, FEED-04, FEED-05, AGNT-01, AGNT-02, AGNT-03, DASH-01, DASH-02, DASH-03
+### Phase 16: Mechanism Cost Engine Schema
+**Goal**: A single source-of-truth cost table drives every monitoring/outbound credit calculation. The legacy `MONITORING_COSTS` constants are gone; `monitoring_signals` is restructured around mechanism IDs and per-mechanism config.
+**Depends on**: Nothing (parallelizable with Phase 15 — independent schema track)
+**Requirements**: PRIC-01, PRIC-02, PRIC-03
 **Success Criteria** (what must be TRUE):
-  1. Reddit is scanned every 15 minutes and new signals appear in the database with deduplication enforced
-  2. Posts matching keywords by structural rules are classified without AI cost; only ambiguous ~10-20% hit Claude Sonnet
-  3. Each signal in the feed shows platform, subreddit, author, time ago, post excerpt, and intent strength bar (1-10)
-  4. User can filter signals by minimum intent strength and dismiss or initiate contact on any signal
-  5. The terminal header shows the last 5 agent actions in real-time, and the agent card shows repco's current emotional state
-  6. Dashboard updates in real-time via Supabase Realtime without page refresh
+  1. `mechanism_costs` table exists and is seeded with all 32 signal + 28 outbound rows matching `PRICING.md` §5/§6 (`mechanism_id` PK, `cr_per_scan`/`cr_per_action`, `mechanism_kind`, `premium`, `requires_gologin`, `free_tier_allowed`)
+  2. `monitoring_signals` has `frequency` (interval, default 6h), `mechanism_id` (FK), and `config jsonb`; legacy `signal_type` ENUM column dropped
+  3. Server-side credit-burn engine computes `daily_burn = cr_per_scan × scans_per_day(cadence) × num_sources` from DB lookup via cached `getMechanismCost()` helper
+  4. `MONITORING_COSTS` constants in `src/features/billing/lib/credit-burn.ts` are removed; no other module references them
 **Plans**: TBD
 
-Plans:
-- [ ] 02-01: snoowrap adapter, keyword/subreddit config storage, 15-minute Vercel Cron ingestion
-- [ ] 02-02: Structural signal processor + Claude Sonnet classification pipeline + deduplication
-- [ ] 02-03: Intent feed UI, signal cards, filter controls, Supabase Realtime subscription
-- [ ] 02-04: Agent persona card, terminal header, emotional state machine, dashboard shell layout
+### Phase 17: Residential Proxy + GoLogin Profile Allocator
+**Status**: ABANDONED 2026-04-27 — pivoted to Phase 17.5 (Browserbase).
+**Why**: GoLogin Professional plan caps `maxParallelCloudLaunches` at 1; counter got stuck after profile-delete-mid-session, blocking all UAT. Per-slot + per-cloud-hour pricing doesn't scale to SaaS-style provisioning (50 users → ~$300+/mo Enterprise plan + slot quota fights). Browserbase: 25 concurrent on $20/mo Developer plan, persistent contexts native, iframe-embeddable live view, official MCP server.
+**Lessons learned**: see `.planning/research/browserbase-vs-gologin.md`.
+**Disposition of artifacts**:
+  - `country-map.ts` (BPRX-05) — keep as-is (Browserbase uses identical ISO country codes)
+  - `client.ts` GoLogin wrappers — to be deleted in Phase 17.5
+  - `allocator.ts` GoLogin orchestrator — to be rewritten in Phase 17.5 (algorithm preserved, vendor calls swapped)
+  - `connectAccount` refactor + UI copy — preserved as-is (no GoLogin coupling at that layer)
+  - 17-01-SUMMARY.md, 17-02-SUMMARY.md — kept as historical record
+**Plans**:
+  - [x] 17-01-foundation-PLAN.md — completed; country-map preserved, REST wrappers superseded by Phase 17.5
+  - [~] 17-02-allocator-PLAN.md — paused at human-verify checkpoint; allocator code superseded by Phase 17.5
 
-### Phase 3: Action Engine
-**Goal**: Approved DMs and engage actions execute end-to-end via GoLogin + Playwright CDP + Haiku Computer Use, with anti-ban protections and account health tracking in place before any outreach happens
-**Depends on**: Phase 2
-**Requirements**: ACTN-01, ACTN-02, ACTN-03, ACTN-04, ACTN-05, ACTN-06, ACTN-07, ACTN-08, ACTN-09, ACTN-10, APRV-01, APRV-02, APRV-03, APRV-04, ABAN-01, ABAN-02, ABAN-03, ABAN-04, ABAN-05, ABAN-06, ABAN-07, ACCT-01, ACCT-02, ACCT-03, ACCT-04
+### Phase 17.5: Browser Profile Allocator (Browserbase)
+**Goal**: When a user adds an account, the system creates a Browserbase persistent context for that account and starts sessions with a country-matched residential proxy on demand. Cross-platform reuse rule (D-02) preserved — same user + same country + no platform conflict reuses the existing context. Live view URL is iframe-embeddable so login happens inside our app.
+**Depends on**: Phase 15 (browser_profiles schema), Phase 17 (country-map.ts retained from 17-01)
+**Requirements**: BPRX-03, BPRX-05, BPRX-06 (BPRX-04 dropped — Browserbase auto-randomizes fingerprint per session, no manual patch needed)
 **Success Criteria** (what must be TRUE):
-  1. User can view a pending DM draft in the approval queue with original post context, intent score, and suggested angle — and approve, edit, or reject it with one click
-  2. An approved DM action executes via DB Webhook → Vercel Function → GoLogin Cloud → Playwright CDP → Haiku CU and a screenshot is stored as verification
-  3. Like and follow actions auto-execute without approval, subject to daily limits (DM: 8, engage: 20, public reply: 5 per account)
-  4. No account can contact a prospect already contacted by another account (target isolation enforced)
-  5. Each connected social account has a dedicated GoLogin Cloud profile and completes the 7-day progressive warmup before DMs are enabled
-  6. User can view warmup progress, health status (healthy/warning/cooldown/banned), and remaining daily capacity for each account
-**Plans:** 10 plans (6 original + 4 gap closure)
-
-Plans:
-- [ ] 03-01-PLAN.md — DB migration (expired enum, claim RPC, limit RPC, target isolation), GoLogin REST client + CDP adapter, shared types
-- [ ] 03-02-PLAN.md — DM generation (Claude Sonnet 4.6, 3-sentence limit, QC rules) with TDD
-- [ ] 03-03-PLAN.md — Haiku CU executor (15-step cap, stuck detection), action worker pipeline, webhook handler, daily limits, expiry cron
-- [ ] 03-04-PLAN.md — Anti-ban system: random delays, behavioral noise, timezone timing, target isolation, health state machine, warmup cron
-- [ ] 03-05-PLAN.md — Approval queue UI (stacked cards, inline edit, approve/reject/regenerate), Realtime updates, contact-to-action flow
-- [ ] 03-06-PLAN.md — Account management page (/accounts), health badges, warmup progress, daily limits, connection flow, sidebar update
-- [ ] 03-07-PLAN.md — Gap closure (BLOCKER): apply migration 00006 to project cmkifdwjunojgigrqwnr via Supabase Management API
-- [ ] 03-08-PLAN.md — Gap closure (MAJOR): sidebar account-alert notification dot — wire hasAccountAlerts in (app)/layout.tsx + AppShell
-- [ ] 03-09-PLAN.md — Gap closure (MAJOR): DM expiry 4h → 12h in create-actions.ts + expiry.ts
-- [ ] 03-10-PLAN.md — Gap closure (MINOR): Save button in ApprovalCard + saveEdits server action
-
-### Phase 4: Sequences + Reply Detection
-**Goal**: Prospects who don't reply receive structured follow-ups at day 3, 7, and 14; replies are detected automatically and stop all follow-ups; users are notified by email for replies, account alerts, and daily digests
-**Depends on**: Phase 3
-**Requirements**: FLLW-01, FLLW-02, FLLW-03, FLLW-04, FLLW-05, RPLY-01, RPLY-02, RPLY-03, RPLY-04, NTFY-01, NTFY-02, NTFY-03
-**Success Criteria** (what must be TRUE):
-  1. After a DM is sent, follow-ups at day 3, 7, and 14 appear in the approval queue automatically (if no reply detected)
-  2. When a prospect replies, all pending follow-ups are cancelled immediately and the prospect's pipeline status updates to "replied"
-  3. The DM inbox is checked every 2 hours via GoLogin + Playwright + Haiku CU and new replies are matched to prospect records
-  4. User receives an email notification within 10 minutes of a reply being detected
-  5. User receives a daily email digest at 8:00 local time with signal count, top signal, and count of DMs pending approval
-  6. User receives an email alert when any connected account is flagged as warning or banned
-**Plans:** 2/5 plans executed
-
-Plans:
-- [x] 04-01-PLAN.md — DB migration (cancelled enum, sequence columns, user timezone), shared types, follow-up scheduling logic + stop-on-reply with TDD
-- [x] 04-02-PLAN.md — Resend + React Email setup, 3 branded email templates (reply alert, daily digest, account warning), send functions with TDD
-- [ ] 04-03-PLAN.md — Follow-up scheduler cron (4h cadence, DM generation), daily digest cron (timezone-aware), auto-send toggle on settings page
-- [ ] 04-04-PLAN.md — Reply detection cron (2h, GoLogin + Haiku CU inbox check), reply matching, consecutive failure tracking
-- [ ] 04-05-PLAN.md — Dashboard UI: Replies section, reply cards, sequence timeline, inbox warning banner, terminal header events
-
-### Phase 5: Billing + Onboarding + Growth
-**Goal**: A new user can sign up, complete 3-question onboarding, connect accounts, see live intent signals, manage their prospect pipeline, pay via Stripe, and share repco's results — making the product sellable and self-promoting
-**Depends on**: Phase 4
-**Requirements**: BILL-01, BILL-02, BILL-03, BILL-04, BILL-05, BILL-06, BILL-07, BILL-08, BILL-09, ONBR-01, ONBR-02, ONBR-03, ONBR-04, ONBR-05, ONBR-06, ONBR-07, GROW-01, GROW-02, GROW-03, GROW-04, GROW-05, GROW-06, PRSP-01, PRSP-02, PRSP-03, PRSP-04, PRSP-05, PRSP-06, DASH-04
-**Success Criteria** (what must be TRUE):
-  1. User can answer 3 questions (product, customer, competitors) and get auto-generated keywords + subreddits, then watch live signals appear during onboarding before landing on the dashboard
-  2. User can start a 3-day free trial (500 credits, no card), subscribe to a plan, or buy a credit pack via Stripe Checkout
-  3. Dashboard shows live credit burn rate, remaining balance, per-action costs, and contextual upgrade prompts when credits run low
-  4. User can view all prospects in a kanban pipeline, add notes/tags, export CSV, and see estimated revenue from conversions
-  5. The /live page shows a public real-time feed of anonymized signals with aggregate stats — no login required
-  6. The "Scan my product" landing hook returns real Reddit results in under 5 seconds without requiring signup
-  7. User can share a weekly results card (1200x630 image) with their stats
-**Plans:** 7 plans
-
-Plans:
-- [x] 05-01-PLAN.md — DB migration (deduct_credits/add_credits RPC, onboarding + billing columns), billing types + credit cost/burn logic (TDD), prospect pipeline types + stage transitions (TDD)
-- [x] 05-02-PLAN.md — 3-question onboarding wizard, Claude keyword generation, scanning animation, dashboard checklist card, middleware onboarding gate
-- [x] 05-03-PLAN.md — Stripe billing: checkout actions, webhook handler, /billing page with plans, credit packs, history, subscription management
-- [x] 05-04-PLAN.md — Credit economy runtime: daily burn cron, sidebar credit balance widget, dashboard credit card, upgrade prompts (banner + contextual)
-- [x] 05-05-PLAN.md — Prospect pipeline: kanban board (@dnd-kit/react), prospect detail page, notes/tags, CSV export, dashboard stats + revenue counter
-- [x] 05-06-PLAN.md — /live public page (10s polling, anonymized feed, aggregate stats), "Scan my product" API + form with rate limiting
-- [x] 05-07-PLAN.md — Weekly results card (next/og 1200x630 PNG), share buttons (X/LinkedIn), daily email digest cron
-
-### Phase 6: LinkedIn
-**Goal**: The system monitors LinkedIn every 2-4 hours via Apify and surfaces LinkedIn signals alongside Reddit signals in the same intent feed — extending repco's cross-platform advantage
-**Depends on**: Phase 5
-**Requirements**: MNTR-02
-**Success Criteria** (what must be TRUE):
-  1. LinkedIn posts matching user's keywords appear in the intent feed with correct platform badge and Apify source attribution
-  2. LinkedIn monitoring runs every 2-4 hours and logs run status (including Apify silent failure detection via smoke test)
-  3. LinkedIn signals trigger the same action engine flow — DM drafts appear in the approval queue and execute via GoLogin + Haiku CU
-**Plans**: TBD
-
-Plans:
-- [x] 06-01: Apify actor integration, LinkedIn signal ingestion, staleness alerting, feed integration
-
-### Phase 7: Reply Detection Fix
-**Goal**: Reply detection actually matches inbox senders to prospect records so RPLY-02/03/04 fire end-to-end and FLLW-04 stops pending follow-ups on reply
-**Depends on**: Phase 4
-**Requirements**: RPLY-02, RPLY-03, RPLY-04
-**Gap Closure**: Closes audit gap — handle normalization mismatch (`u/username` stored vs `username` normalized during matching) causes `matchReplyToProspect` to always return null, cascading to RPLY-03 email alerts, RPLY-04 Realtime push, and FLLW-04 follow-up cancellation
-**Success Criteria** (what must be TRUE):
-  1. Inbox sender handles are compared against `prospects.handle` in the same normalized form (either both prefixed with `u/` or both stripped) and matches succeed
-  2. When a reply is matched, `prospect.pipeline_status` transitions to `replied` and all pending follow-up actions cancel
-  3. Reply alert email (RPLY-03) dispatches within 10 minutes of reply detection
-  4. Realtime reply push (RPLY-04) fires on the `use-realtime-replies` subscription
-  5. Reply-matching unit tests use production-shaped handle fixtures (`u/` prefix) so the bug cannot regress silently
-**Plans:** 1 plan
-
-Plans:
-- [x] 07-01: normalizeHandle util + symmetric matchReplyToProspect + cron cascade integration test (RPLY-02/03/04 + FLLW-04 unblocked)
-
-### Phase 8: Public Stats + Duplicate Digest Cleanup
-**Goal**: `/live` aggregate stats show real numbers (not zeros) and users receive exactly one daily digest email per day
-**Depends on**: Phase 5
-**Requirements**: GROW-01, GROW-02, NTFY-01, GROW-05
-**Gap Closure**: Closes audit gaps — `live_stats` table has no write path so all 6 aggregate metrics display 0; both `/api/cron/daily-digest` (Phase 4) and `/api/cron/digest` (Phase 5) run hourly and send duplicate emails
-**Success Criteria** (what must be TRUE):
-  1. `live_stats` row(s) are written by a cron, trigger, or signal/action event handler on a defined cadence
-  2. All 6 aggregate stats on `/live` (signals last hour, 24h, active users, DMs sent, replies, conversion rate) display non-zero when underlying activity exists
-  3. Only `/api/cron/digest` remains registered in `vercel.json`; `/api/cron/daily-digest` is removed (or consolidated)
-  4. Users with local hour=8 receive exactly one daily digest email per day
-**Plans:** 4/4 plans complete
-
-Plans:
-- [ ] 08-01-PLAN.md — Migration 00012 (live_stats seed row) + phase-08-validate.mjs script
-- [ ] 08-02-PLAN.md — refresh-live-stats cron route (6 aggregates, UPSERT, job_logs) + vercel.json registration
-- [ ] 08-03-PLAN.md — Consolidate digests: port sendDailyDigest + replyCount + top-3 signals into digest/route.ts; delete daily-digest; update vercel.json
-- [ ] 08-04-PLAN.md — Idempotency guard: migration 00013 (last_digest_sent_at), per-user guard in digest/route.ts, finalize VALIDATION.md
-
-### Phase 9: Cross-Platform Approval + Action Audit Trail
-**Goal**: Approval queue renders correct platform badge for LinkedIn actions and action worker audit trail is written to `job_logs` correctly
-**Depends on**: Phase 6
-**Requirements**: APRV-01, OBSV-01
-**Gap Closure**: Closes audit gaps — `approval-card.tsx` hardcodes Reddit badge + `r/{subreddit}` for all platforms (LinkedIn shows `r/null`); `worker.ts` inserts non-existent `details`/`correlation_id` columns into `job_logs` and PostgREST silently drops them
-**Success Criteria** (what must be TRUE):
-  1. Approval card renders the correct platform badge (Reddit vs LinkedIn) and source label based on `action.platform` — no `r/null` regressions
-  2. `worker.ts` writes to `job_logs` using schema-valid column names only; every action execution produces a `job_logs` row with duration, status, and correlation context
-  3. Integration test or manual verification confirms action executions appear in `job_logs` queries
-**Plans:** 2/2 plans complete
-
-Plans:
-- [ ] 09-01-PLAN.md — Platform-aware approval card: LinkedIn badge (#0A66C2), no subreddit span, no u/ prefix
-- [ ] 09-02-PLAN.md — Worker audit trail: try/finally pipeline, schema-valid job_logs insert, 5 early-failure paths covered
-
-### Phase 10: LinkedIn Outreach Execution
-**Goal**: A user can connect their LinkedIn account via GoLogin and approved `connection_request` actions execute end-to-end through the action worker
-**Depends on**: Phase 6, Phase 9
-**Requirements**: ONBR-05, MNTR-02, ACTN-01, ACTN-05
-**Gap Closure**: Closes audit gap ONBR-05 (never built) + integration gap `connection_request — executor arm missing` (warmup gate blocks + no executor case arm) + resolves `TODO-phase6-connection-request.md` + Phase 6 tech debt (ActionType TS union, SQL credit cost)
-**Success Criteria** (what must be TRUE):
-  1. User can connect a LinkedIn account through the `/accounts` connection flow (GoLogin profile provisioned, session cookies captured, account reaches `healthy` state after warmup)
-  2. `worker.ts` executor has a `connection_request` arm that runs via GoLogin + Playwright + Haiku CU and stores verification screenshot
-  3. Warmup gate `allowedActions` includes `connection_request` on the appropriate warmup day
-  4. `ActionType` TypeScript union includes `connection_request` (compile-time safety)
-  5. `get_action_credit_cost` SQL returns the documented credit cost for `connection_request`
-  6. End-to-end: approved LinkedIn `connection_request` action transitions from `pending_approval` → `sent` with `job_logs` audit trail
+  1. `browser_profiles` schema migrated: `gologin_profile_id` + `gologin_proxy_id` columns dropped, `browserbase_context_id` (UNIQUE NOT NULL) added; existing test rows wiped (`project_users_are_test_data`)
+  2. New account allocation: `POST /v1/contexts` creates a persistent context, INSERT `browser_profiles` row with `browserbase_context_id`, INSERT `social_accounts` row, return success — does NOT auto-start a cloud session (BPRX-03 proxy attaches at session-start, not at context-create)
+  3. `startAccountBrowser(accountId)` creates a Browserbase session with `proxies:[{type:"browserbase", geolocation:{country: <profile.country>}}]` and `browserSettings.context.{id, persist:true}`, returns `connectUrl` + iframe-embeddable `debuggerFullscreenUrl` from `GET /v1/sessions/{id}/debug`
+  4. Reuse rule (D-02 from Phase 17 CONTEXT) preserved: cross-platform same-user same-country accounts share a single `browser_profiles` row; same-platform second account creates a new context
+  5. Phase 13 LinkedIn executors (DM/Connect/Follow/Like/Comment/Prescreen) and Phase 4 P04 Reddit inbox CU connect to Browserbase via `chromium.connectOverCDP(connectUrl)` instead of GoLogin — selectors and action logic unchanged
+  6. All `mode: "gologin"` references and `gologin_*` env vars removed from `src/`; `.env.local` and Vercel env have `BROWSERBASE_API_KEY` + `BROWSERBASE_PROJECT_ID` set
 **Plans**: 4 plans
+  - [x] 17.5-01-schema-migration-PLAN.md — migration 00025_browserbase_columns.sql (TRUNCATE CASCADE + drop gologin_*, add browserbase_context_id), apply to dev branch
+  - [x] 17.5-02-client-allocator-connectflow-PLAN.md — Browserbase client.ts + allocator rewrite (D-02 + D-10 preserved) + account-actions refit + ConnectionFlow iframe per UI-SPEC
+  - [x] 17.5-03-executor-refit-stagehand-PLAN.md — worker.ts session swap + 5 LinkedIn executors via Stagehand + Reddit CU CDP swap + delete src/lib/gologin/
+  - [x] 17.5-04-uat-and-cleanup-PLAN.md — 7 UAT scenarios automated + Stagehand pipeline check + Vercel prod env updated + Phase 17 SUMMARYs annotated; surfaced 2 production bug fixes (BB SDK delete, Stagehand v3 model format) + Phase 17.9 spec for verifyAccountSession sham
+**UI hint**: yes (iframe live-view replaces external viewer)
 
-Plans:
-- [ ] 10-01-PLAN.md — TypeScript type extensions: ActionType, ActionCreditType, CREDIT_COSTS, WarmupState
-- [ ] 10-02-PLAN.md — Migration 00014: daily_connection_limit + connection_count columns + updated check_and_increment_limit
-- [ ] 10-03-PLAN.md — LinkedIn connection flow UX: platform-aware copy + 2FA guidance
-- [ ] 10-04-PLAN.md — Worker executor arm: linkedin-connect.ts CU prompt + connection_request case in worker.ts
+### Phase 17.6: Sticky Residential Proxy IP per Browser Profile (CONDITIONAL)
+**Status**: **Conditional backlog** — surfaced during Phase 17.5 UAT (2026-04-28). **DO NOT plan or execute by default.** Triggered only by the conditions below. Pre-launch we ship Phase 17.5's BB-managed residential pool as-is.
 
-### Phase 11: Nyquist Validation Compliance
-**Goal**: All 6 milestone phases have production-ready VALIDATION.md (`status: final`, `nyquist_compliant: true`) and Phase 6 has a retroactive VERIFICATION.md
-**Depends on**: Phases 1–6 complete
-**Requirements**: none directly (process/test coverage)
-**Gap Closure**: Closes tech debt — all 6 VALIDATION.md files are `status: draft`, `nyquist_compliant: false`; Phase 6 has no VERIFICATION.md (UAT passed 7/7 but process gap)
+**Why this is conditional, not mandatory** (decision recorded 2026-04-28):
+  - BB's built-in pool already gives us **residential** IPs (not datacenter) — that's the first and biggest anti-ban barrier already cleared.
+  - BB rotates the exit IP per session within that pool, but rotation across residential IPs is a **legitimate user pattern** (mobile carriers, ISP DHCP cycles, VPN users) — Reddit/LinkedIn tolerate it up to a threshold.
+  - Persistent context (Phase 17.5) keeps the account "remembered" via cookies regardless of IP — login-IP only matters for the single login session, not for ongoing actions.
+  - Bigger ban vectors are already mitigated: device fingerprint (BB native), cookies (persistent context), action cadence (Phase 14 quarantine + per-day caps), captcha/suspension banners (Phase 18-03 detector).
+  - **Free tier (Phases 19/21) does ZERO outbound** — no logins, no DMs, no comments. Only `about.json` direct-fetch preflight (no browser at all). IP rotation is irrelevant on free tier.
+  - **Pro tier outbound is low-volume**: ~1 login + 5–10 DMs/day per account. That cadence with rotating residential IPs is within Reddit/LinkedIn tolerance for the vast majority of cases.
+  - Cost of switching: external residential proxy (Bright Data ~$8.50/GB, IPRoyal ~$1.40/GB) ≈ **$1–3/user/month proxy spend** + integration + fallback infra + monitoring. Not free; needs evidence to justify.
+
+**Trigger conditions — execute Phase 17.6 ONLY IF any of these become true post-launch:**
+  1. **Phase 18 ban-detector flagging rate exceeds 5% across all accounts over a rolling 7-day window** (per-platform, separately tracked). Query: `SELECT count(*) FILTER (WHERE health_status IN ('banned','captcha_required')) / count(*)::float FROM social_accounts WHERE last_action_at > now() - interval '7 days'`.
+  2. **A specific paying customer reports repeated Reddit/LinkedIn security checkpoints** in their session logs that correlate with IP changes between login and action (>3 incidents in 30 days).
+  3. **A reproducible repro shows that Reddit's "we noticed unusual activity" page appears after BB pool gives an IP from a different geo-cluster than the login session** (geo-cluster mismatch, not just any IP change).
+  4. **Compliance / enterprise sales demand**: a deal explicitly requires per-account sticky IP guarantees in the SLA.
+
+**Why this matters now (vs later)**: We don't ship the proxy provider integration eagerly because it adds vendor risk (provider outage = our outage), recurring cost, and complexity to debug ban incidents (now we have to triage "is it our code, BB pool, or the proxy provider?"). Triggering on observed ban data keeps the architecture lean and lets real-world signal drive the decision.
+
+**Goal (when triggered)**: A given `browser_profile` always egresses from the same residential IP across all sessions for the lifetime of the profile (within provider's session-id TTL — 10–30 min reusable, longer with rebind). Achieved by switching from BB's pool to an external residential provider with sticky-session credentials, keyed on `browser_profile.id`.
+
+**Depends on**: Phase 17.5 (browser_profiles schema with `browserbase_context_id` already lives; this phase adds sibling proxy-binding columns), Phase 18-03 (the ban-detector data is what justifies starting this phase).
+
+**Requirements**: BPRX-10 (NEW — sticky exit IP per profile, **CONDITIONAL on trigger**), BPRX-11 (NEW — proxy provider credential rotation/lifecycle, **CONDITIONAL on trigger**).
+
+**Success Criteria** (what must be TRUE if/when this phase runs):
+  1. The triggering condition is documented in the phase CONTEXT.md with the exact query result / customer report / repro that justified starting (no "let's just do it" runs).
+  2. `browser_profiles` has `proxy_session_id` (UNIQUE NOT NULL — derived from `browser_profile.id` or random UUID at create time) and `proxy_provider` (`brightdata`|`iproyal`|`oxylabs` ENUM) columns; migration backfills existing rows.
+  3. `createSession` in `src/lib/browserbase/client.ts` accepts `proxy: { type: "external", server, username, password }` and BB forwards traffic through the external proxy; per-profile credentials assembled by `assembleProxyCredentials(profile)` helper that injects sticky session id into the username string per provider's docs (e.g. `customer-X-session-${id}` for Bright Data).
+  4. `BROWSERBASE_PROXY_PROVIDER`, `BROWSERBASE_PROXY_USER`, `BROWSERBASE_PROXY_PASS` env vars added to `.env.example` + Vercel; one provider configured for prod (decision deferred to phase planning — research doc compares Bright Data vs IPRoyal vs Oxylabs on price, country coverage, sticky TTL).
+  5. UAT: two consecutive sessions for the same `browser_profile` egress from the SAME IP (verified via `https://api.ipify.org` from inside the BB session) — but two profiles get different IPs.
+  6. UAT: deleting a profile (`deleteAccount` refcount-zero path) releases the provider sticky session id (or lets it TTL — provider-dependent; documented in SUMMARY).
+  7. **Post-rollout**: ban-detector flagging rate (the trigger metric) drops below 2% within 14 days; if not, root-cause it before declaring this phase complete (the proxy may not have been the actual cause — could have been cadence, fingerprint drift, or content patterns).
+
+**Plans**: TBD during phase planning **at trigger time**. Sketch: 17.6-01 schema + provider research, 17.6-02 client refit + allocator hookup, 17.6-03 UAT against live providers, 17.6-04 post-rollout 14-day ban-rate monitor.
+
+**UI hint**: no (transparent infrastructure change)
+
+**Until trigger fires**: this row stays at the top of the conditional backlog. Re-evaluate at each milestone close. If we close 2 milestones with ban rate < 2% and no customer complaints, retire the phase entry as "not needed" and remove from active roadmap.
+
+### Phase 17.7: Reddit Executors Pivot from Computer Use to Stagehand
+**Status**: Backlog — surfaced during Phase 17.5 UAT (2026-04-28).
+**Why**: Phase 17.5-03 swapped LinkedIn executors (5 actions: DM, Connect, Follow, Like, Comment) to **deterministic Playwright + Stagehand** running on Browserbase sessions, but kept Reddit executors (DM, Engage/comment) on the **Anthropic Computer Use loop** they inherited from Phase 4 P04 / Phase 11–12. The CU loop:
+  - Takes a screenshot of the current page
+  - Sends it + a hand-written prompt (`reddit-dm.ts`, `reddit-engage.ts`) to Haiku
+  - Haiku returns a tool call ("click @ x,y" / "type X")
+  - Playwright executes; loop until prompt completes or error
+  
+  This costs an LLM call per action step (~5–10 calls per DM), is slow (~30–60s per DM end-to-end), and drifts when Reddit's UI shifts (the prompt encodes positional reasoning that breaks on layout changes). LinkedIn — running Stagehand `act()` — is ~10× cheaper and 3–5× faster on the same workload.
+
+**Goal**: Reddit executors run on the same architecture as LinkedIn — deterministic Playwright clicks/typing where DOM is stable, Stagehand `act()` only for the high-churn surfaces. The Computer Use loop is removed from the action path entirely (CU stays only as the post-action ban-state classifier from Phase 18-03 — that's a one-shot screenshot classifier, not a loop). Result: cheaper, faster, more reliable, and the trust boundary T-17.5-02 (user-supplied message text never crosses into LLM arguments — only `keyboard.type`) extends to Reddit.
+
+**Depends on**: 
+  - Phase 17.5 (worker.ts already creates Browserbase sessions and instantiates Stagehand for LinkedIn — the same `stagehand` handle plumbs through to Reddit executors).
+  - Phase 18-03 (Haiku ban detector — keep as-is; this phase doesn't touch the post-action classifier).
+
+**Requirements**: BPRX-12 (NEW — Reddit executors deterministic, no per-step LLM), BPRX-13 (NEW — same trust boundary T-17.5-02 applied: prospect message text typed via `keyboard.type`, never inlined into `act()` args).
+
 **Success Criteria** (what must be TRUE):
-  1. Each of phases 01–06 has a VALIDATION.md with `status: final` and `nyquist_compliant: true` after running `/gsd:validate-phase N`
-  2. All identified Nyquist test coverage gaps have tests committed and passing
-  3. Phase 6 has a VERIFICATION.md summarizing goal-backward verification of MNTR-02 delivery
+  1. `src/lib/computer-use/actions/reddit-dm.ts` and `reddit-engage.ts` (currently prompt strings) are **deleted** in favour of `src/lib/action-worker/actions/reddit-dm-executor.ts` and `reddit-engage-executor.ts` mirroring the shape of `linkedin-dm-executor.ts` (returns `{ success, failureMode, reasoning }`).
+  2. `src/lib/action-worker/worker.ts` dispatches Reddit `dm` and `engage` actions to the new deterministic executors; `executeCUAction(page, prompt)` is **NOT** called from the action path. (`executeCUAction` itself stays in the codebase only if used by ban-detector or other non-action callers — otherwise it's removed too.)
+  3. Reddit DM executor flow:
+     - `await page.goto("https://www.reddit.com/")` (already authenticated via persistent context)
+     - `await page.act("click the chat icon in the top navigation")` → opens chat panel
+     - `await page.act("click the new message button")` → opens compose
+     - `await page.act("type ${recipientHandle} into the recipient field")` → recipient only — handle is server-trusted
+     - **`await page.keyboard.type(message, { delay: 30 })`** in the message body — deterministic, T-17.5-02 (message bytes never sent to LLM)
+     - `await page.act("click send")` → fire-and-forget
+     - Verify with `stagehand.extract("did the message-sent confirmation appear?")` → boolean → on false return `failureMode: "send_button_missing"`
+  4. Reddit Engage (top-level comment + reply) executor uses the same shape: navigate to post URL → `page.act("click the reply button")` → `page.keyboard.type(commentText)` → `page.act("click submit")`.
+  5. Failure-mode taxonomy parity with LinkedIn: `dialog_never_opened`, `recipient_not_found`, `weekly_limit_reached`, `account_suspended`, `captcha_required`, `unknown` — surfaced in `job_logs.metadata.failure_mode` and consumed by Phase 18 ban-detector + Phase 14 quarantine.
+  6. Cost regression test: dry-run a Reddit DM through both old (CU) and new (Stagehand) paths against a recorded fixture session; assert new path issues 0 Haiku calls (or only 1 — the post-action ban detector, which is the existing Phase 18 contract). Old path's per-step Haiku calls are gone.
+  7. UAT: send a real DM and a real comment from a warmup-skipped Reddit account end-to-end; both succeed; `mechanism_costs` burn matches the deterministic-action row (no surprise CU cost).
+  8. Memory rule `project_linkedin_cu_improvements` (LinkedIn DOM-hybrid + pre-screening backlog) gets a sibling note for Reddit captured during this phase if any failure-modes don't yield to Stagehand `act()` and need DOM hooks.
+
+**Plans:** 5 plans
+Plans:
+- [ ] 17.7-01-reddit-dm-executor-PLAN.md — sendRedditDM + shared reddit-utils.ts + reddit-authwall.ts + unit tests (Wave 1)
+- [ ] 17.7-02-reddit-comment-executor-PLAN.md — commentRedditPost (handles comment + public_reply) + unit tests (Wave 2; depends on 01)
+- [ ] 17.7-03-reddit-like-and-follow-executors-PLAN.md — likeRedditPost + followRedditProfile + unit tests (Wave 2; depends on 01)
+- [ ] 17.7-04-worker-rewire-and-mechanism-costs-PLAN.md — worker.ts dispatch refactor, delete CU prompt files, mechanism_costs migration 00028 (Wave 3; depends on 01/02/03)
+- [ ] 17.7-05-uat-PLAN.md — end-to-end UAT against warmed Reddit account; zero-CU-call invariant; cost regression evidence (Wave 4; depends on 04; manual)
+
+**Trade-offs / risks to capture in CONTEXT during planning**:
+  - Stagehand `act()` is more brittle on Reddit than LinkedIn because Reddit's chat UI is a React-heavy iframe-within-iframe in places; some failure modes may require DOM-aware fallback (Memory rule `feedback_supabase_mocked_tests_mask_column_drift` analogue: if Stagehand silently no-ops we won't catch it without explicit post-action assertions).
+  - Reddit's "new message" UX changed twice in the last 12 months — recipe cache should be invalidated per-Stagehand-version, not held forever.
+  - Verification step (`stagehand.extract`) DOES count as 1 LLM call per action — still ~10× cheaper than current CU loop, but not free. Document the cost row in `mechanism_costs` so burn engine reflects it.
+
+**UI hint**: no (action-engine change, no user-visible surface)
+
+### Phase 17.8: Account Identity Hygiene
+**Status**: Backlog — surfaced during Phase 17.5/18 UAT (2026-04-28).
+
+**Why**: Three handle-quality gaps surfaced when testing the connect flow + Phase 18 reconnect path:
+  1. **No input validation at connect time.** A Reddit handle of `"main repco acc"` (with spaces, exceeds 20 chars, not even a real username pattern) was accepted by `connectAccount("reddit", handle)` and persisted to `social_accounts.handle`. Reddit's actual username constraint is `^[A-Za-z0-9_]{3,20}$`. The invalid handle later broke `attemptReconnect`'s preflight call to `https://www.reddit.com/user/{handle}/about.json` (404 → mapped to `banned` defensively), which is correct error-handling but masks the real issue: the row should never have been writable.
+  2. **No UI to edit a handle after connect.** AccountCard exposes `Re-login` / `Reconnect` / `Delete` only. If the user typed a typo at connect time, the only recovery is `Delete` (which loses the warmup history + cookies) and reconnect from scratch. Should be a single Edit affordance with the same Zod validation as input.
+  3. **LinkedIn placeholder handle never gets resolved.** `connectAccount("linkedin", "")` writes `linkedin-${user.id.slice(0,8)}` as the handle. This placeholder is currently never replaced with the real LinkedIn slug — even after a successful login + verify. The placeholder shows in AccountCard, in approval queue rows, in DM logs, and in the Phase 18 degraded banner ("u/main repco acc" or "linkedin-a855c3ab" instead of `linkedin.com/in/their-real-slug`).
+
+**Goal**: Handles are always valid for their platform, always editable post-connect, and LinkedIn handles always reflect the real account identity (extracted from the session after login, not the user-id-derived placeholder).
+
+**Depends on**: Phase 17.5 (Stagehand handle is plumbed end-to-end and reachable from server actions; needed for the LinkedIn extract step).
+
+**Requirements**: BPRX-14 (NEW — handle validation Zod schemas per platform), BPRX-15 (NEW — UI Edit affordance on AccountCard with the same schemas), BPRX-16 (NEW — LinkedIn handle auto-resolved post-login via Stagehand `extract`).
+
+**Success Criteria** (what must be TRUE):
+  1. `src/features/accounts/lib/handle-schemas.ts` exports `redditHandleSchema` (`/^[A-Za-z0-9_]{3,20}$/`, no leading/trailing whitespace, no `u/` prefix) and `linkedinSlugSchema` (`/^[a-z0-9-]+$/`, 3–60 chars, no leading/trailing dash). Both with `safeParse` + user-facing error messages, used at all input boundaries.
+  2. `connectAccount` server action validates handle with the platform-specific schema **before** calling `allocateBrowserProfile` and returns the schema's error message on failure. Reddit input form surfaces the inline validation error live (not just on submit).
+  3. AccountCard renders an `Edit` button next to the handle (pencil icon, ghost variant) that opens a modal with the same Zod-validated input. New server action `updateAccountHandle(accountId, newHandle)` updates `social_accounts.handle` after re-validation, calls `revalidatePath("/accounts")`, and toasts success.
+  4. After a LinkedIn `verifyAccountSession` returns `verified: true`, a follow-up server action `resolveLinkedInHandle(accountId)` connects to the BB session via Stagehand, runs `stagehand.extract({ schema: z.object({ linkedin_slug: z.string() }), prompt: "extract the slug from the user's profile URL on linkedin.com/in/" })`, and writes the result to `social_accounts.handle` if it differs from the placeholder. Failure leaves the placeholder in place + logs a warning (no UAT regression).
+  5. UAT: typing `"main repco acc"` into the Reddit connect form shows an inline validation error and submit stays disabled. Typing `kamil_wandtke` succeeds. Editing the saved handle via the Edit affordance updates the card, the banner deeplink, and the preflight call atomically.
+  6. UAT: connecting a LinkedIn account with an empty handle and completing the login flow produces a card whose handle is the real `linkedin.com/in/{slug}` slug, not `linkedin-${user_id_prefix}`.
+
+**Plans**: TBD during phase planning. Sketch:
+  - 17.8-01-handle-schemas-PLAN.md — `handle-schemas.ts` + Zod usage in `connectAccount` + Reddit input live-validation
+  - 17.8-02-edit-handle-ui-PLAN.md — AccountCard Edit affordance + `updateAccountHandle` server action + tests
+  - 17.8-03-linkedin-extract-PLAN.md — `resolveLinkedInHandle` post-verify hook + Stagehand extract integration + fallback to placeholder on failure
+
+**UI hint**: yes (handle input validation, Edit affordance, modal)
+
+### Phase 17.9: Real Session Verification + Auto-Degrade
+**Status**: Backlog — surfaced during Phase 17.5 Plan 04 UAT (2026-04-28).
+
+**Why**: Phase 17.5 UAT discovered two coupled UX/correctness bugs around the "Session active" badge:
+
+  1. **`verifyAccountSession` is a sham** (`src/features/accounts/actions/account-actions.ts:346-372`). The function writes `session_verified_at = now()` and returns `{ success: true, verified: true }` UNCONDITIONALLY. It never opens a Browserbase session, never navigates anywhere, never inspects cookies, never confirms the user is actually logged in to the platform. Every "I've logged in" click in ConnectionFlow yields the green "Account connected" step 3 + "Session active" badge — even if the user never typed credentials, even if LinkedIn issued a security challenge they never solved.
+
+  2. **No auto-degrade**. After `verifyAccountSession` succeeds, no code path ever flips `health_status` to `needs_reconnect` based on cookie expiry. The only path that sets `needs_reconnect` is `attemptReconnect`'s reddit preflight (`about.json` 404 → `banned`) and the worker's auth-wall detection — but the worker silently failed for every LinkedIn action up until the Phase 17.5 Plan 04 Stagehand-init fix. So in production the green badge stays lit while the BB context is effectively logged out.
+
+**Concrete failure observed (2026-04-28)**:
+  - User connected LinkedIn at 05:57 UTC, clicked "I've logged in", saw "Account connected" — green badge.
+  - At 10:39 UTC (4h 42m later), automated diag probe against the same BB context: `linkedin.com/feed/` redirects to `/login`, `/in/williamhgates/` redirects to `/authwall`, `li_at` cookie absent. BB context still has 12 other LinkedIn cookies (`bcookie`, `bscookie`, `lidc`, `JSESSIONID`, etc.) — persistence works; LinkedIn just revoked `li_at` server-side (or set it as a session-only cookie because the user didn't tick "Keep me signed in").
+  - UI still showed "Session active" green badge throughout. No auto-detect, no nudge to reconnect.
+
+**Goal**: A user only sees "Session active" when the platform actually treats the account as authenticated. When LinkedIn/Reddit revokes the auth cookie, the UI degrades within 30 minutes and surfaces a prominent re-login CTA.
+
+**Depends on**: Phase 17.5 (Browserbase contexts in place, `client.ts` primitives — `createSession`, `releaseSession` — that the verifier will use)
+
+**Requirements**: BPRX-17 (NEW — server-side session probe is the source of truth for `verified: true`), BPRX-18 (NEW — periodic re-check cron flips `health_status='needs_reconnect'` when probe fails), BPRX-19 (NEW — prominent UI degradation surfaces Re-login CTA above the fold instead of the current ghost-icon button)
+
+**Success Criteria** (what must be TRUE):
+  1. `verifyAccountSession` (rewritten) opens a fresh BB session against the saved context, navigates to a platform-specific authenticated probe URL (LinkedIn: `/feed/`; Reddit: `/api/v1/me`), asserts the response is the authenticated form (no `/login` or `/authwall` redirect; for Reddit, JSON body has `data.name`), AND that `li_at` (LinkedIn) or `reddit_session` (Reddit) is present in the BB context cookie jar. ONLY then writes `session_verified_at = now()` and returns `verified: true`. Any failure mode returns `{ success: true, verified: false, reason: "..." }` and updates `health_status='needs_reconnect'`.
+  2. New cron route `POST /api/cron/session-revalidate` (every 30 min) iterates over `social_accounts WHERE health_status IN ('warmup','active') AND session_verified_at < now() - interval '30 minutes'`, runs the same probe, and updates `health_status` + `session_verified_at` accordingly. Bounded by `LIMIT 50` per run with `ORDER BY session_verified_at ASC` so the lowest-priority sessions get checked first; rate-limited per BB-account-pair to avoid hammering BB session creation. New `vercel.json` cron entry: `*/30 * * * *`.
+  3. AccountCard renders a prominent **"Re-login"** primary button (not ghost variant) when `health_status='needs_reconnect'`, replacing the existing "Last action: Xh ago" text with red `"Session expired — re-login required"`. The HealthBadge already supports `needs_reconnect` styling (Phase 18-04); we lift the same red surface up next to the platform name.
+  4. The "Session active" green pill (`account-card.tsx:186-194`) gates strictly on `account.health_status === 'warmup' || account.health_status === 'active'` AND `session_verified_at !== null` AND `session_verified_at > now() - interval '24 hours'` (a stale verify is no verify). Same interval the cron uses to re-check + a buffer.
+  5. New columns: `social_accounts.last_revalidate_attempt_at TIMESTAMPTZ`, `social_accounts.last_revalidate_status TEXT NULL` (`'authenticated' | 'auth_wall' | 'no_cookie' | 'platform_error' | 'context_unreachable'`). Used by the cron for visibility + debouncing.
+  6. UAT: complete the LinkedIn connect flow → wait for the cron to run once → confirm `last_revalidate_status='authenticated'`. Then revoke the `li_at` cookie via the BB SDK (or wait for natural expiry) → next cron run flips `health_status='needs_reconnect'` and the UI degrades within 30 min. Click "Re-login" → ConnectionFlow modal opens → log in again → badge returns to green.
+  7. Memory note added: "BB context persists what the platform gives us — if LinkedIn issues `li_at` as session-only or revokes it later, our context faithfully holds the now-stale cookie. Auth-cookie freshness must be probed server-side, not assumed."
+
+**Threat model carry-over**: T-17.5-01 (BB API key) unchanged. T-17.5-03 (debugger URL exposure) — the cron probe never surfaces a debug URL to the client; uses raw CDP only.
+
+**Plans**: TBD during phase planning. Sketch:
+  - 17.9-01-schema-migration-PLAN.md — `social_accounts.last_revalidate_*` columns + `vercel.json` cron entry (Wave 1)
+  - 17.9-02-real-verify-PLAN.md — rewrite `verifyAccountSession` server-side probe with platform-specific authenticated-URL checks; tests against logged-in + logged-out + auth-wall fixtures (Wave 2)
+  - 17.9-03-revalidate-cron-PLAN.md — `/api/cron/session-revalidate` route + worker handler + per-account rate limiting + `health_status` flip logic (Wave 3)
+  - 17.9-04-ui-degrade-PLAN.md — AccountCard prominent Re-login CTA + HealthBadge surfacing + 24h staleness gate on green pill + UAT runbook with cookie-revoke scenario (Wave 4)
+
+**UI hint**: yes (Re-login CTA promotion + "Session expired" red-state copy)
+
+### Phase 18: Cookies Persistence + Preflight + Ban Detection
+**Goal**: Sessions reuse cookies instead of re-logging-in every time, banned/suspended Reddit accounts are detected before any browser spin-up, and any rule/captcha/suspension modal that appears mid-action immediately quarantines the account.
+**Depends on**: Phase 15 (browser_profiles schema), Phase 17.5 (Browserbase contexts allocated; persistent context auto-saves cookies, simplifying BPRX-07 substantially)
+**Requirements**: BPRX-07, BPRX-08, BPRX-09
+**Success Criteria** (what must be TRUE):
+  1. After every session, the worker writes the GoLogin browser cookie jar to `browser_profiles.cookies_jar JSONB`; the next session restores them before navigating, and the browser idles 30–60s before shutdown
+  2. Before a Reddit action runs, the system fetches `https://www.reddit.com/user/{username}/about.json` through the account's proxy and aborts with `health_status='banned'` on suspension / total_karma < 5 / 404 / shadowban heuristic — no GoLogin spin-up occurs in that case
+  3. After every action, a Haiku CU `detect_ban_state` pass inspects the screenshot for "rule broken" / captcha / "account suspended" / rate-limit modals; any positive flips `health_status='banned'`, halts further actions for that account, and dispatches a user alert
+  4. A user whose Reddit account was banned externally sees the system quarantine it on the next attempted action without ever opening the GoLogin browser
+**Plans**: 4 plans
+  - [ ] 18-01-schema-migration-PLAN.md — Migration 00025 (cookies_jar + last_preflight_* + ENUM extensions) + dev-branch apply (Wave 1, BPRX-07, BPRX-08)
+  - [ ] 18-02-cookies-preflight-worker-PLAN.md — GoLogin cookies API + reddit-preflight + worker insertions (Wave 2, BPRX-07, BPRX-08)
+  - [ ] 18-03-detector-alerts-ui-PLAN.md — Haiku detect-ban-state + worker post-CU splice + email alert (Wave 3, BPRX-07, BPRX-09)
+  - [ ] 18-04-ui-banner-reconnect-PLAN.md — shadcn Alert + HealthBadge tints + dashboard banner + account-card Reconnect button + attemptReconnect server action (Wave 3, BPRX-09)
+
+### Phase 19: Free Tier ENUM + Signup Flow
+**Goal**: New users land on a `free` subscription tier with 250 credits and no trial countdown. The signup path also blocks abusive duplicate-account creation by tracking email + IP combinations.
+**Depends on**: Phase 16 (mechanism_costs must exist before tier semantics meaningfully apply, and `users.credits_balance_cap` / `credits_included_monthly` are defined here)
+**Requirements**: PRIC-04, PRIC-05, PRIC-14
+**Success Criteria** (what must be TRUE):
+  1. New ENUMs created: `subscription_plan` (`free`|`pro`) and `billing_cycle` (`monthly`|`annual`). Quarterly tier dropped per PRICING.md §11. No `subscription_tier` ENUM exists in the live schema (never created); legacy `billing_period` column kept in place — Phase 21 owns the drop.
+  2. `users.subscription_plan` (NOT NULL DEFAULT `'free'`), `users.billing_cycle` (nullable; CHECK enforces NOT NULL when `subscription_plan='pro'`)
+  3. A new signup atomically receives `subscription_plan='free'` + 250 cr balance + a `credit_transactions` ledger row + a `signup_audit` row, with no `trial_ends_at` set. Confirmed no `startFreeTrial` server action exists in the codebase.
+  4. `users.credits_balance_cap` and `users.credits_included_monthly` columns are populated correctly per plan on signup and on subscription change (Free: 500 cap / 250 grant, Pro: 4 000 cap / 2 000 grant)
+  5. A second signup from the same `(email_normalized, ip)` combination is flagged via `signup_audit.duplicate_flag = true` (audit-only — no hard reject; `public.normalize_email()` handles Gmail dot+plus normalization, mirrored by `src/features/auth/lib/normalize-email.ts`)
 **Plans**: TBD
 
-### Phase 12: Trial Auto-Activation + Expiry Reconciliation
-**Goal**: New users automatically get a 3-day free trial activated at signup, and DM expiry is reconciled between spec and code
-**Depends on**: Phase 5
-**Requirements**: BILL-01, ACTN-10
-**Gap Closure**: Closes tech debt — `startFreeTrial` exists but only runs if user manually visits `/billing`, so `trial_ends_at` is never set for most signups and credit-burn cron ignores them; ACTN-10 spec says 4h expiry but code uses 12h consistently
+### Phase 20: Pre-Launch User Wipe
+**Goal**: All existing test data in `auth.users` is destroyed in a single, explicit, audited operation so the new schema (browser_profiles, mechanism_costs, free tier) goes live with a clean slate before Stripe products are refreshed.
+**Depends on**: Phase 15 (browser_profiles schema in place), Phase 16 (mechanism_costs schema in place), Phase 19 (free-tier signup path ready to receive the next generation of users post-wipe)
+**Requirements**: BPRX-10
 **Success Criteria** (what must be TRUE):
-  1. New user signup automatically sets `trial_ends_at` = signup + 3 days (via DB trigger, signup server action, or signup hook) without requiring a `/billing` visit
-  2. Credit-burn cron applies to trial users from day 1 and trial expiration transitions work correctly
-  3. ACTN-10 expiry is reconciled — either spec updated to 12h (current code behavior) or code reduced to 4h (original spec); decision documented and requirement checkbox state matches reality
-**Plans**: 3 plans
+  1. The wipe is gated behind an explicit confirmation prompt that requires typing a confirmation token before any DELETE runs (no silent execution path)
+  2. After the wipe, `auth.users` is empty and all dependent rows (`public.users`, `social_accounts`, `browser_profiles`, `monitoring_signals`, `prospects`, `actions`, `action_counts`, `credit_transactions`, `job_logs` for those users) are gone via cascading FKs
+  3. The next user that signs up afterward lands on the new free-tier path (Phase 19) without any leftover legacy data conflicting
+  4. The wipe is auditable — its commit message records the row counts deleted and the schema version at the time of execution
+**Plans**: TBD
 
-Plans:
-- [ ] 12-01-PLAN.md — Migration 00015: auto-trial trigger (handle_new_user + credit_transactions) + backfill existing users
-- [ ] 12-02-PLAN.md — ACTN-10 reconciliation: spec update to 12h + 12h boundary tests + audit row closure
-- [ ] 12-03-PLAN.md — Billing UI cleanup: delete startFreeTrial action, remove canStartTrial CTA from billing page
-
-### Phase 13: LinkedIn Action Expansion
-**Goal**: Reach outreach parity with Reddit on LinkedIn by porting the deterministic DOM flow (proven in v1.0 Phase 10 + commit 042e842) to every remaining LinkedIn action type, plus pre-screen prospects whose Connect path LinkedIn structurally blocks
-**Depends on**: Phase 10 (connection_request executor + GoLogin session infrastructure), Phase 4 (follow-up cron + check-replies)
-**Requirements**: LNKD-01, LNKD-02, LNKD-03, LNKD-04, LNKD-05, LNKD-06
-**Milestone**: v1.1 — LinkedIn Action Expansion
-**Rationale**: v1.0 proved that LinkedIn's anti-bot gate (`isTrusted: false` rejection of CDP-dispatched clicks) can be bypassed by navigating directly to the action's underlying URL. The same pattern scales to Message, Follow, React, and Comment. Without this phase, LinkedIn prospects who accept a Connect invite have no follow-up path and the approval queue fills with unsendable actions whenever the account hits a LinkedIn-side restriction.
+### Phase 21: Free Tier Enforcement + Monthly Grant + Stripe Refresh
+**Goal**: The free tier becomes a real, hard-bounded product: caps + mechanism whitelist + paywall modals + monthly credit grants + clean Stripe products that match the new contract. Top-up packs are gated to paid users only.
+**Depends on**: Phase 16 (mechanism_costs.free_tier_allowed flag), Phase 19 (free tier ENUM + balance_cap columns), Phase 20 (Stripe refresh runs against a clean user table — no orphan test customers)
+**Requirements**: PRIC-06, PRIC-07, PRIC-08, PRIC-09, PRIC-10
 **Success Criteria** (what must be TRUE):
-  1. All four new LinkedIn action types (dm, follow, like, comment) reach `status=completed` in a real E2E test against a live target, with prospect `pipeline_status` transitioning correctly (contacted / engaged)
-  2. Every action-executor reports a typed `failure_mode` per structural blocker (message_disabled, follow_premium_gated, post_unreachable, comment_disabled, weekly_limit_reached, session_expired) that ends up in `job_logs.metadata` for ops slicing
-  3. LinkedIn `followup_dm` actions created by the day 3/7/14 cron execute through the new LinkedIn DM path without regressing Reddit follow-ups (existing 290 tests stay green)
-  4. Pre-screening cron marks prospects as `unreachable` before they can enter the approval queue, producing a measurable drop in `no_connect_available` failures on approved actions (telemetry visible in job_logs)
-  5. Typecheck + full test suite green; new action types covered by unit tests for failure-mode branches
-**Plans:** 5/5 plans complete
+  1. A free-tier user cannot exceed 1 social account, 2 active mechanisms, or cadence shorter than 4h; UI controls below 4h are disabled, and the limits are enforced server-side
+  2. A free-tier user attempting any DM, public reply, LinkedIn connection, comment, or post sees a paywall modal "Upgrade to start outreach" and the action is not created
+  3. The `/signals` configuration only allows free-tier users to select R1, R3, R4, L1, L7, T1, T2; gologin-required mechanisms (R7, R8, L6, L10, L11, T3) and heavy mechanisms (L2-L5, T4) display a locked-with-Upgrade badge
+  4. The `monthly-credit-grant` cron runs `0 0 1 * *` UTC and applies `balance = min(balance + monthly_grant, balance_cap)` per active plan (Free cap 500, Pro cap 4 000)
+  5. Stripe products in the live account match: 2 subscription prices (`STRIPE_PRICE_PRO_MONTHLY` = $49/m / 2 000 cr; `STRIPE_PRICE_PRO_ANNUAL` = $468/yr ≈ $39/m effective / 2 000 cr / save 20%); credit packs unchanged (Starter 500/$29, Growth 1500/$59, Scale 5000/$149, Agency 15000/$399); old test prices archived; webhook matches Stripe price ID → `(subscription_plan, billing_cycle)` and updates `credits_included_monthly` + `credits_balance_cap`
+  6. A free-tier user attempting to buy a top-up credit pack is blocked in both checkout server action and the pricing page UI, with a forced-upgrade prompt
+**Plans**: TBD
+**UI hint**: yes
 
-Plans:
-- [x] 13-01-PLAN.md — LinkedIn DM executor (deterministic DOM flow for 1st-degree targets) (completed 2026-04-23)
-- [x] 13-02-PLAN.md — LinkedIn Follow executor (profile-level Follow button, Premium-gate detection) (completed 2026-04-23)
-- [x] 13-03-PLAN.md — LinkedIn React (Like) + Comment executor (unified post-interaction module)
-- [x] 13-04-PLAN.md — Followup DM sequences for LinkedIn (wire day 3/7/14 cron → new executor)
-- [x] 13-05-PLAN.md — Prospect pre-screening job (detect unreachable Connect path, mark pipeline_status)
-
-### Phase 14: LinkedIn Account Quarantine Enforcement
-**Goal**: Make `social_accounts.health_status` and `cooldown_until` actually gate execution — flagged accounts must stop dispatching approved actions until manually remediated, preventing session burn after a checkpoint or weekly-limit event
-**Depends on**: Phase 13 (writes the `health_status='warning'` / `cooldown_until` flags this phase will read)
-**Requirements**: LNKD-02, LNKD-06 (read-path enforcement of write-side contracts already shipped in Phase 13)
-**Milestone**: v1.1 — gap closure from `/gsd-audit-milestone` (integration finding: write paths wired, read gate absent)
-**Rationale**: Phase 13's audit found that `worker.ts:614` (security_checkpoint / session_expired) and `worker.ts:629` (weekly_limit_reached), plus the prescreen cron, all write `health_status='warning'` / `cooldown_until` correctly — but no execution gate reads them. An approved action on a warning-flagged account continues to execute through to the GoLogin connect step, risking the session-burn outcome that the quarantine was designed to prevent. `claim_action` RPC (migration 00006) does not join `social_accounts` either.
+### Phase 22: Signals UI Redesign + Free Tier Copy
+**Goal**: The `/signals` page becomes the new control surface — 27 mechanism cards instead of 5 signal types, with per-mechanism config and clear locked-state messaging. Burn math disappears from the entire app, and the public/landing copy reflects the free-tier contract.
+**Depends on**: Phase 16 (27 mechanism rows seeded), Phase 21 (free tier enforcement + paywall behavior must exist for UI to reflect it)
+**Requirements**: PRIC-11, PRIC-12, PRIC-13
 **Success Criteria** (what must be TRUE):
-  1. `executeAction` in `worker.ts` fails fast with typed `failure_mode='account_quarantined'` when `social_accounts.health_status in ('warning','banned')` or `cooldown_until > now()`
-  2. `claim_action` RPC (new migration 00018) joins `social_accounts` and skips rows whose account is quarantined — defense-in-depth so a stale webhook cannot bypass the worker guard
-  3. Both Reddit and LinkedIn paths covered (the guard is platform-agnostic)
-  4. Unit tests cover all three quarantine triggers (warning, banned, future cooldown_until) and the green-path
-  5. Typecheck + full test suite green (no regression of the 355 existing tests)
-
-Plans:
-- [ ] 14-01-PLAN.md — worker.ts quarantine guard + claim_action RPC join + tests
+  1. `/signals` renders 27 mechanism cards, each with its own toggle, configuration form, **static unit-cost label** ("1 credit per scan, per source"), upgrade badge for locked mechanisms, and a status footer showing `last_scan_at` + `signals_24h`
+  2. No page in the app (dashboard, signals, billing, account, anywhere) displays `cr/day`, `cr/month`, a live burn ticker, "wystarczy na X dni", or any daily-burn breakdown — only the credit balance and per-action unit costs are shown
+  3. `/pricing` includes a Free column (250 cr/m, 1 account, monitor only) alongside the paid tiers; landing/dashboard CTAs read "Sign up free" and route into the free-tier path; "Start free trial" copy is gone
+**Plans**: TBD
+**UI hint**: yes
 
 ## Progress
 
-**Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Foundation | 5/6 | Gap closure | - |
-| 2. Reddit Monitoring + Intent Feed | 4/4 | Complete   | 2026-04-17 |
-| 3. Action Engine | 3/6 | In Progress|  |
-| 4. Sequences + Reply Detection | 2/5 | In Progress|  |
-| 5. Billing + Onboarding + Growth | 5/7 | In Progress | - |
-| 6. LinkedIn | 1/1 | Complete | 2026-04-21 |
-| 7. Reply Detection Fix (GAP) | 0/1 | Pending | - |
-| 8. Public Stats + Duplicate Digest (GAP) | 4/4 | Complete   | 2026-04-21 |
-| 9. Cross-Platform Approval + Audit Trail (GAP) | 2/2 | Complete   | 2026-04-21 |
-| 10. LinkedIn Outreach Execution (GAP) | 4/4 | Complete    | 2026-04-21 |
-| 11. Nyquist Validation Compliance (GAP) | 0/0 | Complete    | 2026-04-21 |
-| 12. Trial Auto-Activation + Expiry (GAP) | 3/3 | Complete    | 2026-04-21 |
-| 13. LinkedIn Action Expansion (v1.1) | 5/5 | Complete    | 2026-04-23 |
-| 14. LinkedIn Account Quarantine Enforcement (v1.1, GAP) | 0/1 | Pending | - |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Foundation | v1.0 | 6/6 | Complete | 2026-04-21 |
+| 2. Reddit Monitoring + Intent Feed | v1.0 | 4/4 | Complete | 2026-04-17 |
+| 3. Action Engine | v1.0 | 10/10 | Complete | 2026-04-21 |
+| 4. Sequences + Reply Detection | v1.0 | 5/5 | Complete | 2026-04-21 |
+| 5. Billing + Onboarding + Growth | v1.0 | 7/7 | Complete | 2026-04-21 |
+| 6. LinkedIn | v1.0 | 1/1 | Complete | 2026-04-21 |
+| 7. Reply Detection Fix (GAP) | v1.0 | 1/1 | Complete | 2026-04-21 |
+| 8. Public Stats + Duplicate Digest (GAP) | v1.0 | 4/4 | Complete | 2026-04-21 |
+| 9. Cross-Platform Approval + Audit Trail (GAP) | v1.0 | 2/2 | Complete | 2026-04-21 |
+| 10. LinkedIn Outreach Execution (GAP) | v1.0 | 4/4 | Complete | 2026-04-21 |
+| 11. Nyquist Validation Compliance (GAP) | v1.0 | 0/0 | Complete | 2026-04-21 |
+| 12. Trial Auto-Activation + Expiry (GAP) | v1.0 | 3/3 | Complete | 2026-04-21 |
+| 13. LinkedIn Action Expansion | v1.1 | 5/5 | Complete | 2026-04-23 |
+| 14. LinkedIn Account Quarantine Enforcement (GAP) | v1.1 | 1/1 | Complete | 2026-04-25 |
+| 15. Browser Profile Schema Foundation | v1.2 | 3/3 | Complete    | 2026-04-27 |
+| 16. Mechanism Cost Engine Schema | v1.2 | 0/0 | Not started | - |
+| 17. Residential Proxy + GoLogin Profile Allocator | v1.2 | 1/2 | Abandoned | 2026-04-27 |
+| 17.5. Browser Profile Allocator (Browserbase) | v1.2 | 0/4 | Planned     | |
+| 18. Cookies Persistence + Preflight + Ban Detection | v1.2 | 0/0 | Not started | - |
+| 19. Free Tier ENUM + Signup Flow | v1.2 | 0/0 | Not started | - |
+| 20. Pre-Launch User Wipe | v1.2 | 0/0 | Not started | - |
+| 21. Free Tier Enforcement + Monthly Grant + Stripe Refresh | v1.2 | 0/0 | Not started | - |
+| 22. Signals UI Redesign + Free Tier Copy | v1.2 | 0/0 | Not started | - |

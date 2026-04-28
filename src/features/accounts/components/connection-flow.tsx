@@ -1,18 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import {
-  AlertTriangle,
-  CheckCircle,
-  Copy,
-  ExternalLink,
-  Loader2,
-} from "lucide-react"
-import { toast } from "sonner"
+import { useEffect, useRef, useState } from "react"
+import { AlertTriangle, CheckCircle, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
+  getSessionAliveStatus,
   startAccountBrowser,
   stopAccountBrowser,
   verifyAccountSession,
@@ -20,13 +14,17 @@ import {
 
 interface ConnectionFlowProps {
   accountId: string
-  profileId: string
+  profileId: string | null
   platform: "reddit" | "linkedin"
   onComplete: () => void
   onCancel: () => void
 }
 
 type FlowStep = 1 | 2 | 3
+
+// D-11 user-facing copy (locked). Never render the server `error` field.
+const D11_COPY =
+  "Could not set up the account right now — please try again in a moment."
 
 export function ConnectionFlow({
   accountId,
@@ -37,35 +35,102 @@ export function ConnectionFlow({
   const platformLabel = platform === "linkedin" ? "LinkedIn" : "Reddit"
   const [step, setStep] = useState<FlowStep>(1)
   const [verified, setVerified] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [browserUrl, setBrowserUrl] = useState<string | null>(null)
-  const [loginUrl, setLoginUrl] = useState<string | null>(null)
+  const [hasError, setHasError] = useState(false)
+  const [debuggerFullscreenUrl, setDebuggerFullscreenUrl] = useState<
+    string | null
+  >(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
   const [startingBrowser, setStartingBrowser] = useState(true)
+  const [iframeLoaded, setIframeLoaded] = useState(false)
+  const loggedInButtonRef = useRef<HTMLButtonElement | null>(null)
+
+  const [startNonce, setStartNonce] = useState(0)
+  const startedKeyRef = useRef<string | null>(null)
 
   useEffect(() => {
-    let cancelled = false
+    // React 19 dev StrictMode double-invokes effects. Guard against double
+    // server-action call — each call creates a real (billable) Browserbase
+    // session. Key on accountId+startNonce so retry() still works.
+    //
+    // We deliberately do NOT use a `cancelled` flag in cleanup, because the
+    // cleanup function fires on the StrictMode unmount before the in-flight
+    // server action returns — that would silently drop the first response
+    // and leave the UI stuck on "starting…". Instead the ref tracks the
+    // current desired key; state writes are gated by ref equality.
+    const key = `${accountId}:${startNonce}`
+    if (startedKeyRef.current === key) return
+    startedKeyRef.current = key
 
-    async function start() {
-      setStartingBrowser(true)
-      setError(null)
+    void (async () => {
       const result = await startAccountBrowser(accountId)
-      if (cancelled) return
-
+      // If retry() bumped startNonce while we were in flight, abandon this
+      // result. Otherwise apply it regardless of mount/unmount churn.
+      if (startedKeyRef.current !== key) return
       setStartingBrowser(false)
-      if (result.success && result.url) {
-        setBrowserUrl(result.url)
-        setLoginUrl(result.loginUrl ?? null)
+      if (result.success && result.debuggerFullscreenUrl) {
+        setDebuggerFullscreenUrl(result.debuggerFullscreenUrl)
+        setSessionId(result.sessionId ?? null)
       } else {
-        setError(result.error ?? "Could not start the remote browser")
+        setHasError(true)
       }
-    }
+    })()
+  }, [accountId, startNonce])
 
-    start()
+  // Intentionally NOT auto-scrolling when the iframe arrives — that pushed
+  // the instructions above the viewport. Trust the user's existing scroll
+  // position; iframe slots in below the instructions in document flow.
 
+  // Poll BB session.retrieve for liveness while the iframe is mounted. If
+  // the user walks away and BB times the session out, the iframe stays
+  // visible but any login attempt would fail silently — instead we flip to
+  // the error state so the user can click Retry.
+  //
+  // 30s cadence. We require TWO consecutive non-RUNNING reads before
+  // flipping (BB's status briefly reports COMPLETED/CLOSING during normal
+  // operation; one stray read shouldn't kill the flow).
+  useEffect(() => {
+    if (!debuggerFullscreenUrl || !sessionId || hasError) return
+    let cancelled = false
+    let strikes = 0
+    const interval = setInterval(async () => {
+      const { alive } = await getSessionAliveStatus(sessionId)
+      if (cancelled) return
+      if (alive) {
+        strikes = 0
+        return
+      }
+      strikes += 1
+      if (strikes >= 2) {
+        setHasError(true)
+        setDebuggerFullscreenUrl(null)
+        setIframeLoaded(false)
+      }
+    }, 30000)
     return () => {
       cancelled = true
+      clearInterval(interval)
     }
-  }, [accountId])
+  }, [sessionId, debuggerFullscreenUrl, hasError])
+
+  function retry() {
+    setStartingBrowser(true)
+    setHasError(false)
+    setIframeLoaded(false)
+    setDebuggerFullscreenUrl(null)
+    setSessionId(null)
+    setStartNonce((n) => n + 1)
+  }
+
+  // Focus the primary CTA once the iframe is ready (a11y per UI-SPEC).
+  // preventScroll: focus() defaults to scrollIntoView and the CTA sits below
+  // the iframe → that pushes the instructions off the top of the viewport.
+  useEffect(() => {
+    if (!iframeLoaded) return
+    const raf = requestAnimationFrame(() => {
+      loggedInButtonRef.current?.focus({ preventScroll: true })
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [iframeLoaded])
 
   async function handleCancel() {
     await stopAccountBrowser(accountId)
@@ -74,7 +139,7 @@ export function ConnectionFlow({
 
   async function handleVerify() {
     setStep(2)
-    setError(null)
+    setHasError(false)
 
     try {
       const result = await verifyAccountSession(accountId)
@@ -85,12 +150,12 @@ export function ConnectionFlow({
         setTimeout(() => onComplete(), 2000)
       } else {
         setVerified(false)
-        setError(result.error ?? "Could not verify login")
+        setHasError(true)
       }
     } catch {
       setStep(3)
       setVerified(false)
-      setError("Verification failed unexpectedly")
+      setHasError(true)
     }
   }
 
@@ -106,33 +171,22 @@ export function ConnectionFlow({
             {startingBrowser && (
               <div className="flex items-center gap-2 text-base">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                <span>Starting a remote browser for this account...</span>
+                <span>Starting a remote browser for this account…</span>
               </div>
             )}
 
-            {!startingBrowser && error && (
+            {!startingBrowser && hasError && (
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-base text-destructive">
                   <AlertTriangle className="h-4 w-4" />
-                  <span>Could not start remote browser</span>
+                  <span>Remote browser session expired</span>
                 </div>
-                <p className="text-sm text-muted-foreground">{error}</p>
+                <p className="text-sm text-muted-foreground">
+                  The remote browser has timed out. Click Retry to start a
+                  fresh session.
+                </p>
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setError(null)
-                      setStartingBrowser(true)
-                      startAccountBrowser(accountId).then((r) => {
-                        setStartingBrowser(false)
-                        if (r.success && r.url) setBrowserUrl(r.url)
-                        else
-                          setError(
-                            r.error ?? "Could not start the remote browser",
-                          )
-                      })
-                    }}
-                  >
+                  <Button variant="outline" onClick={retry}>
                     Retry
                   </Button>
                   <Button variant="ghost" onClick={handleCancel}>
@@ -142,68 +196,64 @@ export function ConnectionFlow({
               </div>
             )}
 
-            {!startingBrowser && browserUrl && (
+            {!startingBrowser && !hasError && debuggerFullscreenUrl && (
               <>
                 <ol className="flex flex-col gap-2 pl-4 text-base [list-style:decimal]">
                   <li>
-                    Click{" "}
+                    Log into your {platformLabel} account in the browser below.
+                  </li>
+                  <li>
                     <span className="font-semibold">
-                      Open remote browser
+                      Tick &quot;Keep me signed in&quot;
                     </span>{" "}
-                    below — a new tab opens with the GoLogin cloud browser.
-                  </li>
-                  <li>
-                    Paste this URL into that browser&apos;s address bar and
-                    press Enter:
-                    {loginUrl && (
-                      <div className="mt-2 flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-2">
-                        <code className="flex-1 break-all text-sm">
-                          {loginUrl}
-                        </code>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={async () => {
-                            await navigator.clipboard.writeText(loginUrl)
-                            toast.success("Copied")
-                          }}
-                          aria-label="Copy login URL"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </li>
-                  <li>
-                    Log into your account. repco never sees your password.
+                    on the {platformLabel} login screen. Without it,{" "}
+                    {platformLabel} drops the auth cookie when this browser
+                    closes and you&apos;ll have to log in again next time.
                   </li>
                   {platform === "linkedin" && (
                     <li>
                       If LinkedIn asks for 2FA or email verification, complete
-                      it in the remote browser before clicking below.
+                      it here before clicking below.
                     </li>
                   )}
                   <li>
-                    Come back here and click{" "}
-                    <span className="font-semibold">
-                      I&apos;ve logged in
-                    </span>
-                    .
+                    Once you see your home feed, click{" "}
+                    <span className="font-semibold">I&apos;ve logged in</span>.
                   </li>
                 </ol>
-                <div className="flex flex-wrap gap-2">
-                  <Button asChild>
-                    <a
-                      href={browserUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                <p className="text-sm text-muted-foreground">
+                  repco never sees your password.
+                </p>
+
+                <div className="relative">
+                  <iframe
+                    src={debuggerFullscreenUrl}
+                    sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+                    allow="clipboard-read; clipboard-write"
+                    className="h-[480px] w-full rounded-md border bg-muted/30"
+                    title={`${platformLabel} login session`}
+                    onLoad={() => setIframeLoaded(true)}
+                  />
+                  {!iframeLoaded && (
+                    <div
+                      role="status"
+                      aria-live="polite"
+                      className="absolute inset-0 flex items-center justify-center rounded-md bg-muted/50 backdrop-blur-sm"
                     >
-                      <ExternalLink className="mr-2 h-4 w-4" />
-                      Open remote browser
-                    </a>
-                  </Button>
-                  <Button variant="outline" onClick={handleVerify}>
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                      <span className="sr-only">Loading login screen…</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-8 flex flex-wrap gap-2">
+                  <Button
+                    ref={loggedInButtonRef}
+                    variant="default"
+                    disabled={!iframeLoaded}
+                    aria-disabled={!iframeLoaded}
+                    onClick={handleVerify}
+                  >
                     I&apos;ve logged in
                   </Button>
                   <Button variant="ghost" onClick={handleCancel}>
@@ -218,7 +268,7 @@ export function ConnectionFlow({
         {step === 2 && (
           <div className="flex flex-col items-center gap-3 py-4">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            <p className="text-base">Verifying your session...</p>
+            <p className="text-base">Verifying your session…</p>
             <p className="text-sm text-muted-foreground">
               Checking {platformLabel} login status
             </p>
@@ -235,17 +285,14 @@ export function ConnectionFlow({
         {step === 3 && !verified && (
           <div className="flex flex-col items-center gap-3 py-4">
             <AlertTriangle className="h-8 w-8 text-amber-500" />
-            <p className="text-base font-semibold">
-              Could not verify login
-            </p>
-            {error && (
-              <p className="text-sm text-muted-foreground">{error}</p>
-            )}
+            <p className="text-base font-semibold">Could not verify login</p>
+            <p className="text-sm text-muted-foreground">{D11_COPY}</p>
             <Button
               variant="outline"
               onClick={() => {
                 setStep(1)
-                setError(null)
+                setHasError(false)
+                retry()
               }}
             >
               Try logging in again

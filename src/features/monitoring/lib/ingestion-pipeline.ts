@@ -13,44 +13,34 @@ function truncate(text: string, maxLength: number): string {
   return text.slice(0, maxLength - 3) + "..."
 }
 
-export async function runIngestionForUser(
-  config: MonitoringConfig,
+/**
+ * Dedupe + freshness filter + upsert of pre-fetched Reddit posts.
+ * Both the sync ingestion path and the async webhook handler call this.
+ */
+export async function ingestRedditPosts(
+  posts: RedditPost[],
+  userId: string,
   supabaseAdmin: SupabaseClient,
 ): Promise<{ signalCount: number; skippedCount: number }> {
-  const allPosts: RedditPost[] = []
-
-  // Search for each keyword across all subreddits
-  for (const keyword of config.keywords) {
-    const posts = await searchAll(config.subreddits, keyword)
-    allPosts.push(...posts)
-  }
-
-  // Deduplicate by post permalink (same post may match multiple keywords)
   const uniquePosts = new Map<string, RedditPost>()
-  for (const post of allPosts) {
+  for (const post of posts) {
     const key = post.permalink
     if (!uniquePosts.has(key)) {
       uniquePosts.set(key, post)
     }
   }
 
-  // Filter out posts older than 48 hours
   const freshPosts = Array.from(uniquePosts.values()).filter(isFresh)
   const skippedCount = uniquePosts.size - freshPosts.length
-
   if (freshPosts.length === 0) {
     return { signalCount: 0, skippedCount }
   }
 
-  // Build signal rows for upsert
   const signals = freshPosts.map((post) => ({
-    user_id: config.userId,
+    user_id: userId,
     platform: "reddit" as const,
     post_url: `https://reddit.com${post.permalink}`,
-    post_content: truncate(
-      `${post.title}\n\n${post.selftext}`,
-      500,
-    ),
+    post_content: truncate(`${post.title}\n\n${post.selftext}`, 500),
     subreddit: `r/${post.subreddit.display_name}`,
     author_handle: `u/${post.author.name}`,
     author_profile_url: `https://reddit.com/u/${post.author.name}`,
@@ -62,7 +52,6 @@ export async function runIngestionForUser(
     detected_at: new Date(post.created_utc * 1000).toISOString(),
   }))
 
-  // Upsert with deduplication by post_url (UNIQUE constraint)
   const { data, error } = await supabaseAdmin
     .from("intent_signals")
     .upsert(signals, { onConflict: "post_url", ignoreDuplicates: true })
@@ -71,8 +60,18 @@ export async function runIngestionForUser(
   if (error) {
     throw new Error(`Failed to upsert signals: ${error.message}`)
   }
+  return { signalCount: data?.length ?? 0, skippedCount }
+}
 
-  const signalCount = data?.length ?? 0
-
-  return { signalCount, skippedCount }
+export async function runIngestionForUser(
+  config: MonitoringConfig,
+  supabaseAdmin: SupabaseClient,
+): Promise<{ signalCount: number; skippedCount: number }> {
+  // Apify Reddit actor accepts a batch of keywords per subreddit, so we make
+  // one call per subreddit instead of per (keyword, subreddit) combo.
+  const allPosts: RedditPost[] = await searchAll(
+    config.subreddits,
+    config.keywords,
+  )
+  return ingestRedditPosts(allPosts, config.userId, supabaseAdmin)
 }

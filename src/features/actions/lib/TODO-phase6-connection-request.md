@@ -7,7 +7,7 @@
 
 **Status:** Stub placeholder. Phase 6 writes `connection_request` rows to the
 `actions` table with `status='pending_approval'`, but the actual execution
-(GoLogin -> Playwright CDP -> Haiku CU click-through) is deferred to Phase 3.
+(Browserbase -> Playwright CDP -> Haiku CU click-through) is deferred to Phase 3.
 
 ## What's done (Phase 6)
 
@@ -25,7 +25,7 @@ There is no `execute-action.ts` switch statement yet. When Phase 3 adds one,
 it must include a `case "connection_request"` arm that:
 
 1. Loads the prospect's LinkedIn profile URL.
-2. Launches Playwright via GoLogin Cloud profile for the LinkedIn account.
+2. Launches Playwright via Browserbase session for the LinkedIn account.
 3. Uses Haiku computer-use to:
    - Navigate to the prospect's profile page.
    - Click the "Connect" button.

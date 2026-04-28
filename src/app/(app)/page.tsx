@@ -10,7 +10,7 @@ import type { ReplyData } from "@/features/sequences/lib/use-realtime-replies"
 import { CreditCard } from "@/features/billing/components/credit-card"
 import { UpgradeBanner } from "@/features/billing/components/upgrade-banner"
 import { ProspectStatsCard } from "@/features/prospects/components/prospect-stats-card"
-import { ResultsCard } from "@/features/growth/components/results-card"
+import { WeeklyStatsCard } from "@/features/growth/components/results-card"
 import { createClient } from "@/lib/supabase/server"
 import { fetchPendingActions } from "@/features/actions/actions/approval-actions"
 
@@ -135,9 +135,8 @@ export default async function DashboardPage() {
   const creditBalance = (userRow?.credits_balance as number | null) ?? 0
   const avgDealValue = (userRow?.avg_deal_value as number | null) ?? null
 
-  // Weekly results card stats (7-day rolling window)
+  // Weekly stats (7-day rolling window)
   const weeklyStats = {
-    scanned: weeklySignalsCount ?? 0,
     signals: weeklySignalsCount ?? 0,
     dms: weeklyDmsCount ?? 0,
     replies: weeklyRepliesCount ?? 0,
@@ -149,13 +148,6 @@ export default async function DashboardPage() {
         : 0,
     conversions: weeklyConversionsCount ?? 0,
   }
-  const resultsCardImageUrl =
-    `/api/og/results-card?scanned=${weeklyStats.scanned}` +
-    `&signals=${weeklyStats.signals}` +
-    `&dms=${weeklyStats.dms}` +
-    `&replies=${weeklyStats.replies}` +
-    `&replyRate=${weeklyStats.replyRate}` +
-    `&conversions=${weeklyStats.conversions}`
 
   // Build ApprovalCardData[] by fetching signal data for each pending action
   const approvalCards: ApprovalCardData[] = []
@@ -254,7 +246,7 @@ export default async function DashboardPage() {
         converted={prospectsConverted ?? 0}
         avgDealValue={avgDealValue}
       />
-      <ResultsCard stats={weeklyStats} imageUrl={resultsCardImageUrl} />
+      <WeeklyStatsCard stats={weeklyStats} />
       <SignalFeed
         initialSignals={initialSignals ?? []}
         userId={user.id}

@@ -2,12 +2,30 @@
  * Main action execution pipeline orchestrator with anti-ban wiring.
  *
  * Pipeline: webhook -> claim -> target isolation -> warmup gate ->
- * active hours -> limits -> delay -> noise -> GoLogin connect ->
- * CU execute -> screenshot upload -> status update -> job log
+ * active hours -> limits -> delay -> Browserbase session ->
+ * (LinkedIn: Stagehand) | (Reddit: raw CDP page) ->
+ * CU/Stagehand execute -> screenshot upload -> status update -> job log
+ *
+ * Phase 17.5 plan-03: predecessor vendor replaced with Browserbase. LinkedIn executors
+ * receive a Stagehand instance for selector resilience (D17.5-06); Reddit
+ * keeps raw Haiku CU on a Playwright page from `chromium.connectOverCDP`.
  */
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
-import { connectToProfile, releaseProfile } from "@/lib/gologin/adapter"
+import { Stagehand } from "@browserbasehq/stagehand"
+import {
+  chromium,
+  type Browser,
+  type Page,
+} from "playwright-core"
+import {
+  createSession,
+  releaseSession,
+} from "@/lib/browserbase/client"
+import { runRedditPreflight } from "@/features/accounts/lib/reddit-preflight"
+import { getBrowserProfileForAccount } from "@/features/browser-profiles/lib/get-browser-profile"
+import { detectBanState } from "@/lib/computer-use/detect-ban-state"
+import { sendAccountWarning } from "@/features/notifications/lib/send-account-warning"
 import { executeCUAction } from "@/lib/computer-use/executor"
 import { sendLinkedInConnection } from "@/lib/action-worker/actions/linkedin-connect-executor"
 import { sendLinkedInDM } from "@/lib/action-worker/actions/linkedin-dm-executor"
@@ -16,11 +34,10 @@ import { likeLinkedInPost } from "@/lib/action-worker/actions/linkedin-like-exec
 import { commentLinkedInPost } from "@/lib/action-worker/actions/linkedin-comment-executor"
 import { captureScreenshot } from "@/lib/computer-use/screenshot"
 import { uploadScreenshot } from "@/lib/computer-use/screenshot"
-import { getRedditDMPrompt } from "@/lib/computer-use/actions/reddit-dm"
-import {
-  getRedditLikePrompt,
-  getRedditFollowPrompt,
-} from "@/lib/computer-use/actions/reddit-engage"
+import { sendRedditDM } from "@/lib/action-worker/actions/reddit-dm-executor"
+import { commentRedditPost } from "@/lib/action-worker/actions/reddit-comment-executor"
+import { likeRedditPost } from "@/lib/action-worker/actions/reddit-like-executor"
+import { followRedditProfile } from "@/lib/action-worker/actions/reddit-follow-executor"
 import { getLinkedInConnectPrompt } from "@/lib/computer-use/actions/linkedin-connect"
 import { claimAction } from "./claim"
 import { checkAndIncrementLimit } from "./limits"
@@ -30,6 +47,7 @@ import { shouldInjectNoise, generateNoiseActions } from "./noise"
 import { getWarmupState } from "@/features/accounts/lib/types"
 import { logger } from "@/lib/logger"
 import type { SocialAccount } from "@/features/accounts/lib/types"
+import type { SupportedCountry } from "@/features/browser-profiles/lib/country-map"
 import { getActionCreditCost } from "@/features/billing/lib/credit-costs"
 import type { ActionCreditType } from "@/features/billing/lib/types"
 
@@ -65,8 +83,10 @@ export async function executeAction(
   const runUserId: string | null = action.user_id as string | null
   const runActionId: string | null = actionId
 
-  // Connection must be declared before try so finally can access it
-  let connection: Awaited<ReturnType<typeof connectToProfile>> | undefined
+  // Browserbase session + Playwright/Stagehand handles declared before try so finally can release them.
+  let sessionId: string | undefined
+  let browser: Browser | undefined
+  let stagehand: Stagehand | undefined
 
   // 2. Get social account
   const { data: account } = await supabase
@@ -75,60 +95,181 @@ export async function executeAction(
     .eq("id", action.account_id)
     .single<SocialAccount>()
 
-  // 3. Check GoLogin profile — must exist before active-hours check (both are pre-try)
-  if (!account?.gologin_profile_id) {
-    // This is a configuration error — log it in job_logs via the try/finally below
-    // by falling through to the try block with earlyReturn set
+  // Phase 14: account-quarantine guard (LNKD-02, LNKD-06).
+  if (account) {
+    // Phase 18: extend Phase 14 quarantine guard with two new ENUM values
+    // (D-04 + D-18). L-5: BOTH 'needs_reconnect' AND 'captcha_required' must
+    // appear; forgetting one is a silent escape.
+    const isQuarantined =
+      account.health_status === "warning" ||
+      account.health_status === "banned" ||
+      account.health_status === "needs_reconnect" ||
+      account.health_status === "captcha_required" ||
+      (account.cooldown_until !== null &&
+        account.cooldown_until !== undefined &&
+        new Date(account.cooldown_until).getTime() > Date.now())
+    if (isQuarantined) {
+      runError = "account_quarantined"
+      runStatus = "failed"
+      runPlatform = account.platform as string
+      await updateActionStatus(supabase, actionId, "failed", "account_quarantined")
+      await supabase.from("job_logs").insert({
+        job_type: "action" as const,
+        status: "failed",
+        user_id: runUserId,
+        action_id: runActionId,
+        started_at: new Date(startMs).toISOString(),
+        finished_at: new Date().toISOString(),
+        duration_ms: Date.now() - startMs,
+        error: "account_quarantined",
+        metadata: {
+          correlation_id: correlationId,
+          platform: runPlatform,
+          action_type: runActionType,
+          failure_mode: "account_quarantined",
+        },
+      })
+      logger.warn("Action blocked: account quarantined", {
+        actionId,
+        correlationId,
+        accountId: account.id,
+        healthStatus: account.health_status,
+        cooldownUntil: account.cooldown_until,
+      })
+      await logger.flush()
+      return { success: false, error: "account_quarantined" }
+    }
+
+    // Phase 18 (BPRX-08, D-13): Reddit-only preflight gate.
+    // Runs BEFORE Browserbase session creation. Definitive ban signals flip
+    // health_status='banned' without ever creating a Browserbase session
+    // (no credit burn, no concurrent-slot consumption). Cached 1h via
+    // social_accounts.last_preflight_at + last_preflight_status.
+    if (account.platform === "reddit" && account.handle) {
+      const preflight = await runRedditPreflight({
+        handle: account.handle,
+        supabase,
+        accountId: account.id,
+      })
+      if (preflight.kind === "banned") {
+        await supabase
+          .from("social_accounts")
+          .update({ health_status: "banned" })
+          .eq("id", account.id)
+
+        runStatus = "failed"
+        runError = `preflight_${preflight.reason}`
+        runPlatform = "reddit"
+        await updateActionStatus(
+          supabase,
+          actionId,
+          "failed",
+          `preflight_${preflight.reason}`,
+        )
+        await supabase.from("job_logs").insert({
+          job_type: "action" as const,
+          status: "failed",
+          user_id: runUserId,
+          action_id: runActionId,
+          started_at: new Date(startMs).toISOString(),
+          finished_at: new Date().toISOString(),
+          duration_ms: Date.now() - startMs,
+          error: runError,
+          metadata: {
+            correlation_id: correlationId,
+            platform: "reddit",
+            action_type: runActionType,
+            failure_mode: "preflight_banned",
+            preflight_reason: preflight.reason,
+          },
+        })
+        logger.warn("Action blocked: preflight banned", {
+          actionId,
+          correlationId,
+          accountId: account.id,
+          preflightReason: preflight.reason,
+        })
+        await logger.flush()
+        return { success: false, error: "account_quarantined" }
+      }
+      if (preflight.kind === "transient") {
+        runStatus = "failed"
+        runError = "preflight_transient"
+        runPlatform = "reddit"
+        await updateActionStatus(
+          supabase,
+          actionId,
+          "failed",
+          "preflight_transient",
+        )
+        await supabase.from("job_logs").insert({
+          job_type: "action" as const,
+          status: "failed",
+          user_id: runUserId,
+          action_id: runActionId,
+          started_at: new Date(startMs).toISOString(),
+          finished_at: new Date().toISOString(),
+          duration_ms: Date.now() - startMs,
+          error: runError,
+          metadata: {
+            correlation_id: correlationId,
+            platform: "reddit",
+            action_type: runActionType,
+            failure_mode: "preflight_transient",
+            preflight_error: preflight.error,
+          },
+        })
+        await logger.flush()
+        return { success: false, error: "preflight_transient" }
+      }
+      // preflight.kind === 'ok' → fall through.
+    }
   }
 
-  // 4. ANTI-BAN: Check active hours (ABAN-05) — re-queue path does NOT log to job_logs.
-  //    Only check if account exists and has a profile (otherwise fall to try block for logging).
-  if (account?.gologin_profile_id) {
+  // 3. Resolve browser profile via Phase 15 helper.
+  const browserProfile = account
+    ? await getBrowserProfileForAccount(account.id, supabase)
+    : null
+
+  // 4. ANTI-BAN: Check active hours (ABAN-05).
+  if (browserProfile) {
     if (
       !isWithinActiveHours(
-        account.timezone ?? "UTC",
-        account.active_hours_start ?? 8,
-        account.active_hours_end ?? 22,
+        account!.timezone ?? "UTC",
+        account!.active_hours_start ?? 8,
+        account!.active_hours_end ?? 22,
       )
     ) {
       await updateActionStatus(supabase, actionId, "approved", null) // Re-queue
       logger.info("Action deferred: outside active hours", {
         actionId,
         correlationId,
-        timezone: account.timezone,
+        timezone: account!.timezone,
       })
       return { success: false, error: "Outside active hours -- re-queued" }
     }
   }
 
   try {
-    // Early-return flag: set to non-null to short-circuit remaining pipeline steps
     let earlyReturn: { success: boolean; error?: string } | null = null
-    // LinkedIn profile handle stashed from step 10 navigation (for use in step 12)
     let linkedinProfileHandle: string | null = null
 
-    // 5. Check GoLogin profile (failed accounts log via finally block)
-    if (!account?.gologin_profile_id) {
-      runError = "No GoLogin profile"
+    // 5. Check browser profile.
+    if (!browserProfile) {
+      runError = "No browser profile"
       runStatus = "failed"
       await updateActionStatus(supabase, actionId, "failed", runError)
       earlyReturn = { success: false, error: runError }
     }
 
     if (!earlyReturn) {
-      // Set platform now that we know account is valid
       runPlatform = account!.platform as string
 
-      // 5. ANTI-BAN: Check warmup gate (ABAN-02)
-      //    Platform-aware progression per 13-CONTEXT.md §Warmup gates.
       const warmup = getWarmupState(
         account!.warmup_day,
         account!.warmup_completed_at,
         account!.platform as "reddit" | "linkedin",
       )
-      // H-05: followup_dm is not in WarmupState.allowedActions — treat it as
-      // the same gate as `dm`. Without this mapping, a warmed day-7+ LinkedIn
-      // account would never be allowed to send a follow-up DM.
       const gateType =
         action.action_type === "followup_dm" ? "dm" : action.action_type
       if (
@@ -157,7 +298,6 @@ export async function executeAction(
     }
 
     if (!earlyReturn) {
-      // 6. ANTI-BAN: Target isolation (ABAN-06)
       const target = await checkAndAssignTarget(
         supabase,
         action.prospect_id,
@@ -166,18 +306,12 @@ export async function executeAction(
       if (!target.allowed) {
         runError = target.error ?? "Target isolation blocked"
         runStatus = "failed"
-        await updateActionStatus(
-          supabase,
-          actionId,
-          "failed",
-          runError,
-        )
+        await updateActionStatus(supabase, actionId, "failed", runError)
         earlyReturn = { success: false, error: runError }
       }
     }
 
     if (!earlyReturn) {
-      // 7. Check daily limits
       const withinLimits = await checkAndIncrementLimit(
         supabase,
         action.account_id!,
@@ -204,25 +338,62 @@ export async function executeAction(
     })
     await sleep(delay)
 
-    // 9. Connect GoLogin profile
+    // 9. Open Browserbase session and attach Playwright (+ Stagehand for LinkedIn).
+    let page: Page
     try {
-      connection = await connectToProfile(account!.gologin_profile_id!)
+      const session = await createSession({
+        contextId: browserProfile!.browserbase_context_id,
+        country: browserProfile!.country_code as SupportedCountry,
+        // D17.5-07: per-action default 300s.
+        timeoutSeconds: 300,
+        keepAlive: false,
+        // Identity tags surfaced in the BB dashboard so we can correlate
+        // sessions back to action / account / user without DB lookup.
+        userMetadata: {
+          kind: "action",
+          actionId: action.id as string,
+          actionType: runActionType ?? "unknown",
+          accountId: account!.id as string,
+          handle: ((account!.handle as string) ?? "").slice(0, 64),
+          platform: (account!.platform as string) ?? "unknown",
+          userId: (account!.user_id as string) ?? "",
+        },
+      })
+      sessionId = session.id
+
+      browser = await chromium.connectOverCDP(session.connectUrl)
+      const context = browser.contexts()[0] ?? (await browser.newContext())
+      page = context.pages()[0] ?? (await context.newPage())
+
+      // Phase 17.7: Stagehand is bound for BOTH LinkedIn and Reddit. The Reddit
+      // executors landed in 17.7-01..03 use Stagehand observe()/act()/extract()
+      // as a deterministic-DOM fallback only — same pattern as LinkedIn. Bind
+      // it once here so either platform branch can reuse the same instance.
+      stagehand = new Stagehand({
+        env: "BROWSERBASE",
+        apiKey: process.env.BROWSERBASE_API_KEY!,
+        projectId: process.env.BROWSERBASE_PROJECT_ID!,
+        browserbaseSessionID: session.id,
+        model: {
+          // Stagehand v3+ requires "provider/model" format. Bare model
+          // names throw UnsupportedModelError at init(), which the outer
+          // try/catch masks as a generic "Browserbase connection failed",
+          // silently failing every action.
+          modelName: "anthropic/claude-haiku-4-5-20251001",
+          apiKey: process.env.ANTHROPIC_API_KEY!,
+        },
+        verbose: 0,
+      })
+      await stagehand.init()
     } catch (err) {
-      runError = `GoLogin connection failed: ${err}`
+      runError = `Browserbase connection failed: ${err instanceof Error ? err.message : String(err)}`
       runStatus = "failed"
-      await updateActionStatus(
-        supabase,
-        actionId,
-        "failed",
-        runError,
-      )
-      return { success: false, error: "GoLogin connection failed" }
+      await updateActionStatus(supabase, actionId, "failed", runError)
+      return { success: false, error: "Browserbase connection failed" }
     }
 
     // 10. Navigate to starting URL (platform-specific)
     if (account!.platform === "linkedin") {
-      // For LinkedIn connections, navigate directly to the prospect's profile.
-      // profile_url is stored from Apify ingestion in Phase 6.
       const { data: prospectData } = await supabase
         .from("prospects")
         .select("handle, profile_url")
@@ -236,19 +407,15 @@ export async function executeAction(
         await updateActionStatus(supabase, actionId, "failed", runError)
         return { success: false, error: runError }
       }
-      // Match Claude CU's declared display dimensions so clicks at the
-      // model's coordinates hit the right DOM elements. Without this, the
-      // page may render at the GoLogin profile's default resolution
-      // (1920x1080) and click coordinates are miscalibrated.
-      await connection.page.setViewportSize({ width: 1280, height: 900 })
-      await connection.page.goto(profileUrl, {
+      // Match Claude CU's declared display dimensions for click-coordinate calibration.
+      await page.setViewportSize({ width: 1280, height: 900 })
+      await page.goto(profileUrl, {
         waitUntil: "domcontentloaded",
         timeout: 30000,
       })
-      // Stash for prompt building in step 12
       linkedinProfileHandle = (prospectData?.handle as string | null) ?? null
     } else {
-      await connection.page.goto("https://www.reddit.com", {
+      await page.goto("https://www.reddit.com", {
         waitUntil: "domcontentloaded",
         timeout: 30000,
       })
@@ -258,14 +425,14 @@ export async function executeAction(
     if (shouldInjectNoise()) {
       const noisePrompts = generateNoiseActions()
       for (const noisePrompt of noisePrompts) {
-        await executeCUAction(connection.page, noisePrompt)
+        await executeCUAction(page, noisePrompt)
         await sleep(randomDelay(30, 15, 10))
       }
     }
 
-    // 12. Build CU prompt — ONLY for Reddit. LinkedIn uses deterministic
-    //     Playwright executors (per 13-CONTEXT.md §Enum strategy - public_reply
-    //     is Reddit-reply AND LinkedIn-comment; dispatch by account.platform).
+    // 12. Build CU prompt — Phase 17.7 only LinkedIn connection_request still
+    // uses a CU prompt; Reddit dispatches directly to deterministic Stagehand
+    // executors below (no prompt-build needed).
     let prompt: string | null = null
     const prospect = await supabase
       .from("prospects")
@@ -274,29 +441,10 @@ export async function executeAction(
       .single()
     const handle = (prospect.data?.handle as string) ?? ""
 
-    if (account!.platform !== "linkedin") {
-      if (
-        action.action_type === "dm" ||
-        action.action_type === "followup_dm"
-      ) {
-        prompt = getRedditDMPrompt(
-          handle,
-          action.final_content ?? action.drafted_content ?? "",
-        )
-      } else if (action.action_type === "like") {
-        const { data: signal } = await supabase
-          .from("intent_signals")
-          .select("post_url")
-          .eq("id", action.prospect_id)
-          .maybeSingle()
-        prompt = getRedditLikePrompt((signal?.post_url as string) ?? "")
-      } else if (action.action_type === "follow") {
-        prompt = getRedditFollowPrompt(handle)
-      } else {
-        prompt = `Perform a public reply action for ${handle}`
-      }
-    } else if (action.action_type === "connection_request") {
-      // LinkedIn connection: prompt is informational only (executor is Playwright).
+    if (
+      account!.platform === "linkedin" &&
+      action.action_type === "connection_request"
+    ) {
       const slug = linkedinProfileHandle ?? handle
       prompt = getLinkedInConnectPrompt(
         slug,
@@ -305,11 +453,6 @@ export async function executeAction(
     }
 
     // 13. Execute the action.
-    //     Dispatch is by account.platform (per 13-CONTEXT.md §Enum strategy):
-    //     - LinkedIn: deterministic Playwright executors per action_type.
-    //       (connection_request shipped in Phase 10; dm/follow/like/public_reply
-    //        land in Plans 13-01 / 13-02 / 13-03 of the Phase 13 wave.)
-    //     - Reddit: Claude Haiku CU drives the browser via prompt.
     let result: {
       success: boolean
       steps: number
@@ -318,6 +461,8 @@ export async function executeAction(
       error?: string
     }
     if (account!.platform === "linkedin") {
+      // Stagehand is guaranteed defined here (instantiated in linkedin branch above).
+      const sh = stagehand!
       if (action.action_type === "connection_request") {
         const profileUrl =
           linkedinProfileHandle ??
@@ -328,11 +473,12 @@ export async function executeAction(
             .maybeSingle()
             .then((r) => (r.data?.profile_url as string | null) ?? handle))
         const connectResult = await sendLinkedInConnection(
-          connection.page,
+          page,
+          sh,
           profileUrl as string,
           action.final_content ?? action.drafted_content ?? "",
         )
-        const finalScreenshot = await captureScreenshot(connection.page)
+        const finalScreenshot = await captureScreenshot(page)
         result = {
           success: connectResult.success,
           steps: 1,
@@ -344,9 +490,6 @@ export async function executeAction(
         action.action_type === "dm" ||
         action.action_type === "followup_dm"
       ) {
-        // LNKD-01: deterministic LinkedIn DM executor (1st-degree only).
-        // No auto-swap on not_connected — user re-approves as connection_request
-        // per 13-CONTEXT.md §Non-1st-degree DM handling.
         const profileUrl =
           linkedinProfileHandle ??
           (await supabase
@@ -357,11 +500,12 @@ export async function executeAction(
             .then((r) => (r.data?.profile_url as string | null) ?? handle))
         const body = action.final_content ?? action.drafted_content ?? ""
         const dmResult = await sendLinkedInDM(
-          connection.page,
+          page,
+          sh,
           profileUrl as string,
           body,
         )
-        const finalScreenshot = await captureScreenshot(connection.page)
+        const finalScreenshot = await captureScreenshot(page)
         result = {
           success: dmResult.success,
           steps: 1,
@@ -370,7 +514,6 @@ export async function executeAction(
           error: dmResult.failureMode,
         }
       } else if (action.action_type === "follow") {
-        // LNKD-02: deterministic LinkedIn Follow (primary CTA + overflow fallback).
         const profileUrl =
           linkedinProfileHandle ??
           (await supabase
@@ -380,10 +523,11 @@ export async function executeAction(
             .maybeSingle()
             .then((r) => (r.data?.profile_url as string | null) ?? handle))
         const followResult = await followLinkedInProfile(
-          connection.page,
+          page,
+          sh,
           profileUrl as string,
         )
-        const finalScreenshot = await captureScreenshot(connection.page)
+        const finalScreenshot = await captureScreenshot(page)
         result = {
           success: followResult.success,
           steps: 1,
@@ -392,8 +536,6 @@ export async function executeAction(
           error: followResult.failureMode,
         }
       } else if (action.action_type === "like") {
-        // LNKD-03 (like): deterministic DOM React-Like scoped to main post.
-        // Resolve post_url via prospect.intent_signal_id -> intent_signals.
         const { data: prospectWithSignal } = await supabase
           .from("prospects")
           .select("intent_signal_id, profile_url")
@@ -417,8 +559,8 @@ export async function executeAction(
           await updateActionStatus(supabase, actionId, "failed", runError)
           return { success: false, error: runError }
         }
-        const likeResult = await likeLinkedInPost(connection.page, postUrl)
-        const finalScreenshot = await captureScreenshot(connection.page)
+        const likeResult = await likeLinkedInPost(page, sh, postUrl)
+        const finalScreenshot = await captureScreenshot(page)
         result = {
           success: likeResult.success,
           steps: 1,
@@ -427,9 +569,6 @@ export async function executeAction(
           error: likeResult.failureMode,
         }
       } else if (action.action_type === "public_reply") {
-        // LNKD-03 / LNKD-04 (comment): deterministic Quill composer fill.
-        // public_reply on linkedin = Comment (CONTEXT §Enum strategy — same
-        // action_type covers Reddit reply AND LinkedIn comment).
         const { data: prospectWithSignal } = await supabase
           .from("prospects")
           .select("intent_signal_id, profile_url")
@@ -455,11 +594,12 @@ export async function executeAction(
         }
         const body = action.final_content ?? action.drafted_content ?? ""
         const commentResult = await commentLinkedInPost(
-          connection.page,
+          page,
+          sh,
           postUrl,
           body,
         )
-        const finalScreenshot = await captureScreenshot(connection.page)
+        const finalScreenshot = await captureScreenshot(page)
         result = {
           success: commentResult.success,
           steps: 1,
@@ -472,15 +612,114 @@ export async function executeAction(
           `LinkedIn ${action.action_type} executor not implemented`,
         )
       }
+    } else if (account!.platform === "reddit") {
+      // Phase 17.7: deterministic Stagehand dispatch — zero Haiku CU calls.
+      const sh = stagehand!
+
+      if (
+        action.action_type === "dm" ||
+        action.action_type === "followup_dm"
+      ) {
+        const body = action.final_content ?? action.drafted_content ?? ""
+        const dmResult = await sendRedditDM(page, sh, handle, body)
+        const finalScreenshot = await captureScreenshot(page)
+        result = {
+          success: dmResult.success,
+          steps: 1,
+          screenshots: [finalScreenshot],
+          stepLog: [],
+          error: dmResult.failureMode,
+        }
+      } else if (action.action_type === "public_reply") {
+        const { data: prospectWithSignal } = await supabase
+          .from("prospects")
+          .select("intent_signal_id")
+          .eq("id", action.prospect_id)
+          .single()
+        let postUrl: string | null = null
+        if (prospectWithSignal?.intent_signal_id) {
+          const { data: signal } = await supabase
+            .from("intent_signals")
+            .select("post_url")
+            .eq("id", prospectWithSignal.intent_signal_id)
+            .maybeSingle()
+          postUrl = (signal?.post_url as string | null) ?? null
+        }
+        if (!postUrl) {
+          runError = "No post_url for Reddit comment"
+          runStatus = "failed"
+          await updateActionStatus(supabase, actionId, "failed", runError)
+          return { success: false, error: runError }
+        }
+        const body = action.final_content ?? action.drafted_content ?? ""
+        // intent_signals has no comment_id column today (verified Phase 17.7-04
+        // pre-deletion audit). public_reply currently posts as a top-level
+        // reply on the parent post; nested-reply targeting is deferred until
+        // an `intent_signals.comment_id` column lands.
+        const commentResult = await commentRedditPost(
+          page,
+          sh,
+          postUrl,
+          body,
+          undefined,
+        )
+        const finalScreenshot = await captureScreenshot(page)
+        result = {
+          success: commentResult.success,
+          steps: 1,
+          screenshots: [finalScreenshot],
+          stepLog: [],
+          error: commentResult.failureMode,
+        }
+      } else if (action.action_type === "like") {
+        const { data: prospectWithSignal } = await supabase
+          .from("prospects")
+          .select("intent_signal_id")
+          .eq("id", action.prospect_id)
+          .single()
+        let postUrl: string | null = null
+        if (prospectWithSignal?.intent_signal_id) {
+          const { data: signal } = await supabase
+            .from("intent_signals")
+            .select("post_url")
+            .eq("id", prospectWithSignal.intent_signal_id)
+            .maybeSingle()
+          postUrl = (signal?.post_url as string | null) ?? null
+        }
+        if (!postUrl) {
+          runError = "No post_url for Reddit like"
+          runStatus = "failed"
+          await updateActionStatus(supabase, actionId, "failed", runError)
+          return { success: false, error: runError }
+        }
+        const likeResult = await likeRedditPost(page, sh, postUrl)
+        const finalScreenshot = await captureScreenshot(page)
+        result = {
+          success: likeResult.success,
+          steps: 1,
+          screenshots: [finalScreenshot],
+          stepLog: [],
+          error: likeResult.failureMode,
+        }
+      } else if (action.action_type === "follow") {
+        const followResult = await followRedditProfile(page, sh, handle)
+        const finalScreenshot = await captureScreenshot(page)
+        result = {
+          success: followResult.success,
+          steps: 1,
+          screenshots: [finalScreenshot],
+          stepLog: [],
+          error: followResult.failureMode,
+        }
+      } else {
+        throw new Error(
+          `Reddit ${action.action_type} executor not implemented`,
+        )
+      }
     } else {
-      result = await executeCUAction(
-        connection.page,
-        prompt ?? `Perform a ${action.action_type} action for ${handle}`,
-        "claude-haiku-4-5-20251001",
-      )
+      throw new Error(`Unsupported platform: ${account!.platform}`)
     }
 
-    // Capture telemetry for metadata
     cuSteps = result.steps
     screenshotCount = result.screenshots.length
     cuStepLog = result.stepLog
@@ -503,9 +742,37 @@ export async function executeAction(
       runError = null
       await updateActionStatus(supabase, actionId, "completed", null)
 
-      // Deduct action credits on successful completion.
-      // Credit deduction must NOT block action completion -- the action already
-      // succeeded; a failed deduction is logged as a warning only.
+      // Phase 18 (BPRX-07 adapted for Browserbase): best-effort cookie jar
+      // dump to browser_profiles.cookies_jar for backup/audit. Browserbase
+      // contexts auto-persist cookies via browserSettings.context.persist=true,
+      // so this is purely a backup snapshot — never throws out of the worker.
+      try {
+        const ctx = browser?.contexts()[0]
+        if (ctx && browserProfile?.id) {
+          const jar = await ctx.cookies()
+          const { error: cookieErr } = await supabase
+            .from("browser_profiles")
+            .update({ cookies_jar: jar })
+            .eq("id", browserProfile.id)
+          if (cookieErr) {
+            logger.warn("cookies_jar backup write failed (non-fatal)", {
+              actionId,
+              correlationId,
+              error: cookieErr.message,
+            })
+          }
+        }
+      } catch (cookieDumpErr) {
+        logger.warn("cookies_jar backup dump threw (non-fatal)", {
+          actionId,
+          correlationId,
+          error:
+            cookieDumpErr instanceof Error
+              ? cookieDumpErr.message
+              : String(cookieDumpErr),
+        })
+      }
+
       try {
         const creditCost = getActionCreditCost(
           action.action_type as ActionCreditType,
@@ -570,8 +837,6 @@ export async function executeAction(
           .update({ pipeline_status: "engaged" })
           .eq("id", action.prospect_id)
       } else if (action.action_type === "public_reply") {
-        // 13-03 per 13-RESEARCH.md §5 Open Question 2 — public_reply → engaged
-        // for both platforms (Reddit reply AND LinkedIn comment).
         await supabase
           .from("prospects")
           .update({ pipeline_status: "engaged" })
@@ -585,30 +850,13 @@ export async function executeAction(
     } else {
       runStatus = "failed"
       runError = result.error ?? "CU action failed"
-      await updateActionStatus(
-        supabase,
-        actionId,
-        "failed",
-        runError,
-      )
+      await updateActionStatus(supabase, actionId, "failed", runError)
 
-      // LinkedIn-specific failure mode handling (all LinkedIn actions — Phase 13)
-      // Full taxonomy per 13-CONTEXT.md §Failure-mode taxonomy:
-      //   connection_request: session_expired, security_checkpoint, weekly_limit_reached,
-      //                       already_connected, profile_unreachable, dialog_never_opened,
-      //                       no_connect_available, send_button_missing
-      //   dm:                 not_connected, message_disabled, dialog_never_opened,
-      //                       weekly_limit_reached, session_expired, security_checkpoint
-      //   follow:             follow_premium_gated, profile_unreachable, session_expired, already_following
-      //   like:               post_unreachable, post_deleted, react_button_missing, session_expired
-      //   comment:            comment_disabled, post_unreachable, char_limit_exceeded,
-      //                       comment_post_failed, session_expired
       if (runPlatform === "linkedin" && runError) {
         if (
           runError === "security_checkpoint" ||
           runError === "session_expired"
         ) {
-          // Transition account to warning + log for NTFY-03 alert
           await supabase
             .from("social_accounts")
             .update({ health_status: "warning" })
@@ -620,7 +868,6 @@ export async function executeAction(
             failureMode: runError,
           })
         } else if (runError === "weekly_limit_reached") {
-          // Expected LinkedIn throttle — set cooldown_until = now + 24h, no health change
           const cooldownUntil = new Date(
             Date.now() + 24 * 60 * 60 * 1000,
           ).toISOString()
@@ -635,13 +882,111 @@ export async function executeAction(
             cooldownUntil,
           })
         } else if (runError === "already_connected") {
-          // Prospect is already a 1st-degree connection — mark pipeline accordingly
           await supabase
             .from("prospects")
             .update({ pipeline_status: "connected" })
             .eq("id", action.prospect_id)
         }
-        // profile_unreachable: no health change, failure is prospect-level
+      }
+    }
+
+    // Phase 18 (BPRX-09, D-14 + D-16): post-action ban-state detector pass.
+    // Runs against the final screenshot AFTER the CU loop returns (NOT a tool
+    // inside the executor). Per L-3 / D-23: detector failures return all-false
+    // and MUST NOT flip health_status.
+    if (result.screenshots.length > 0 && account) {
+      try {
+        const finalScreenshot = result.screenshots[result.screenshots.length - 1]
+        const verdict = await detectBanState(finalScreenshot)
+        logger.info("detect_ban_state verdict", {
+          actionId,
+          correlationId,
+          accountId: account.id,
+          verdict,
+        })
+
+      let userEmail: string | null = null
+      try {
+        const userResp = await supabase
+          .from("users")
+          .select("email")
+          .eq("id", account.user_id)
+          .single<{ email: string }>()
+        userEmail = userResp.data?.email ?? null
+      } catch {
+        // user lookup failure leaves userEmail null; email send is gated below
+      }
+      const platform = (account.platform as "reddit" | "linkedin") ?? "reddit"
+
+      if (verdict.banned || verdict.suspended) {
+        await supabase
+          .from("social_accounts")
+          .update({ health_status: "banned" })
+          .eq("id", account.id)
+        if (userEmail) {
+          try {
+            await sendAccountWarning(
+              userEmail,
+              account.handle ?? account.id,
+              "banned",
+              {
+                platform,
+                supabase,
+                userId: account.user_id,
+                accountId: account.id,
+              },
+            )
+          } catch (emailErr) {
+            logger.warn("sendAccountWarning(banned) failed", {
+              actionId,
+              correlationId,
+              accountId: account.id,
+              error:
+                emailErr instanceof Error ? emailErr.message : String(emailErr),
+            })
+          }
+        }
+      } else if (verdict.captcha) {
+        await supabase
+          .from("social_accounts")
+          .update({ health_status: "captcha_required" })
+          .eq("id", account.id)
+        if (userEmail) {
+          try {
+            await sendAccountWarning(
+              userEmail,
+              account.handle ?? account.id,
+              "captcha_required",
+              {
+                platform,
+                supabase,
+                userId: account.user_id,
+                accountId: account.id,
+              },
+            )
+          } catch (emailErr) {
+            logger.warn("sendAccountWarning(captcha_required) failed", {
+              actionId,
+              correlationId,
+              accountId: account.id,
+              error:
+                emailErr instanceof Error ? emailErr.message : String(emailErr),
+            })
+          }
+        }
+      }
+      // all-false → no status change. Action result stands.
+      } catch (detectorErr) {
+        // Per L-3 / D-23: detector failures must NOT flip health_status or
+        // break the action. Just log and let the original action result stand.
+        logger.warn("detect_ban_state pipeline failed", {
+          actionId,
+          correlationId,
+          error:
+            detectorErr instanceof Error
+              ? detectorErr.message
+              : String(detectorErr),
+        })
       }
     }
 
@@ -651,13 +996,18 @@ export async function executeAction(
     runStatus = "failed"
     return { success: false, error: runError }
   } finally {
-    // releaseProfile both closes the CDP connection AND calls GoLogin's
-    // stopCloudBrowser API to free the parallel-launch slot. Without
-    // the server-side stop, the cloud browser lingers until GoLogin's
-    // auto-close timeout and blocks subsequent runs with HTTP 403
-    // "max parallel cloud launches limit". Surfaced by Phase 13 UAT
-    // 2026-04-24.
-    await releaseProfile(connection)
+    // T-17.5-LIFECYCLE-01: release session unconditionally. browser.close()
+    // alone does NOT free the Browserbase concurrent slot — releaseSession
+    // (REQUEST_RELEASE) must run on every code path.
+    if (stagehand) {
+      await stagehand.close().catch(() => {})
+    }
+    if (browser) {
+      await browser.close().catch(() => {})
+    }
+    if (sessionId) {
+      await releaseSession(sessionId).catch(() => {})
+    }
     const finishMs = Date.now()
     await supabase.from("job_logs").insert({
       job_type: "action" as const,
@@ -677,7 +1027,6 @@ export async function executeAction(
           ? { screenshot_count: screenshotCount }
           : {}),
         ...(cuStepLog ? { cu_step_log: cuStepLog } : {}),
-        // Include failure_mode for any LinkedIn failure (Phase 13 taxonomy slicing)
         ...(runPlatform === "linkedin" && runError
           ? { failure_mode: runError }
           : {}),
