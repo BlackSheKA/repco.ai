@@ -48,6 +48,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 - [?] **Phase 17.6: Sticky Residential Proxy IP per Browser Profile (CONDITIONAL)** — DO NOT plan/execute by default. Triggered only when Phase 18 ban-detector flagging rate >5% over 7-day window, OR a paying customer reports correlated security-checkpoint incidents, OR enterprise SLA demands per-account sticky IP. Pre-launch we ship BB's residential pool. Switches to external sticky-session provider (Bright Data / IPRoyal / Oxylabs) per `browser_profile.id` only when real-world data justifies the +$1–3/user/month proxy spend and added vendor risk.
 - [ ] **Phase 17.7: Reddit Executors Pivot from Computer Use to Stagehand** — Replace the screenshot-loop Computer Use pipeline for Reddit DM/Engage with deterministic Playwright + Stagehand `act()` (same architecture as 5 LinkedIn executors landed in 17.5-03). Drops per-action Haiku CU cost (~10× cheaper, 3-5× faster, deterministic). Trust boundary preserved (T-17.5-02 — message text never crosses into LLM args, only `keyboard.type`). Full description below.
 - [ ] **Phase 17.8: Account Identity Hygiene** — Edit handle UI + per-platform Zod validation at connect (Reddit `^[A-Za-z0-9_]{3,20}$`, LinkedIn slug `^[a-z0-9-]+$`) + post-login LinkedIn handle auto-extract via Stagehand. Closes the gap surfaced by 17.5 UAT where invalid Reddit handles slip through input and there's no UI to fix them after, and where LinkedIn permanently retains the `linkedin-${userId.slice(0,8)}` placeholder.
+- [ ] **Phase 17.9: Real Session Verification + Auto-Degrade** — Replace the `verifyAccountSession` sham (writes `session_verified_at = now()` and returns `verified: true` UNCONDITIONALLY — never opens a BB session, never checks `li_at`/`reddit_session`) with a real server-side probe + periodic re-check cron that auto-flips `health_status='needs_reconnect'` when the platform auth cookie disappears. Surfaces prominent Re-login CTA on the AccountCard when degraded. Surfaced in Phase 17.5 Plan 04 UAT (Findings #5 + #6). Full description below.
 - [ ] **Phase 18: Cookies Persistence + Preflight + Ban Detection** — cookies_jar save/restore, Reddit `about.json` preflight, Haiku CU post-action ban detector
 - [ ] **Phase 19: Free + Pro Plan ENUMs + Signup Flow** — create `subscription_plan` (`free`|`pro`) + `billing_cycle` (`monthly`|`annual`); `handle_new_user` rewrite (250 cr free signup, no trial); `(email_normalized, ip)` anti-abuse via `signup_audit`
 - [ ] **Phase 20: Pre-Launch User Wipe** — destructive `auth.users` reset behind explicit confirmation gate; cascading FK cleanup
@@ -231,6 +232,45 @@ Plans:
   - 17.8-03-linkedin-extract-PLAN.md — `resolveLinkedInHandle` post-verify hook + Stagehand extract integration + fallback to placeholder on failure
 
 **UI hint**: yes (handle input validation, Edit affordance, modal)
+
+### Phase 17.9: Real Session Verification + Auto-Degrade
+**Status**: Backlog — surfaced during Phase 17.5 Plan 04 UAT (2026-04-28).
+
+**Why**: Phase 17.5 UAT discovered two coupled UX/correctness bugs around the "Session active" badge:
+
+  1. **`verifyAccountSession` is a sham** (`src/features/accounts/actions/account-actions.ts:346-372`). The function writes `session_verified_at = now()` and returns `{ success: true, verified: true }` UNCONDITIONALLY. It never opens a Browserbase session, never navigates anywhere, never inspects cookies, never confirms the user is actually logged in to the platform. Every "I've logged in" click in ConnectionFlow yields the green "Account connected" step 3 + "Session active" badge — even if the user never typed credentials, even if LinkedIn issued a security challenge they never solved.
+
+  2. **No auto-degrade**. After `verifyAccountSession` succeeds, no code path ever flips `health_status` to `needs_reconnect` based on cookie expiry. The only path that sets `needs_reconnect` is `attemptReconnect`'s reddit preflight (`about.json` 404 → `banned`) and the worker's auth-wall detection — but the worker silently failed for every LinkedIn action up until the Phase 17.5 Plan 04 Stagehand-init fix. So in production the green badge stays lit while the BB context is effectively logged out.
+
+**Concrete failure observed (2026-04-28)**:
+  - User connected LinkedIn at 05:57 UTC, clicked "I've logged in", saw "Account connected" — green badge.
+  - At 10:39 UTC (4h 42m later), automated diag probe against the same BB context: `linkedin.com/feed/` redirects to `/login`, `/in/williamhgates/` redirects to `/authwall`, `li_at` cookie absent. BB context still has 12 other LinkedIn cookies (`bcookie`, `bscookie`, `lidc`, `JSESSIONID`, etc.) — persistence works; LinkedIn just revoked `li_at` server-side (or set it as a session-only cookie because the user didn't tick "Keep me signed in").
+  - UI still showed "Session active" green badge throughout. No auto-detect, no nudge to reconnect.
+
+**Goal**: A user only sees "Session active" when the platform actually treats the account as authenticated. When LinkedIn/Reddit revokes the auth cookie, the UI degrades within 30 minutes and surfaces a prominent re-login CTA.
+
+**Depends on**: Phase 17.5 (Browserbase contexts in place, `client.ts` primitives — `createSession`, `releaseSession` — that the verifier will use)
+
+**Requirements**: BPRX-17 (NEW — server-side session probe is the source of truth for `verified: true`), BPRX-18 (NEW — periodic re-check cron flips `health_status='needs_reconnect'` when probe fails), BPRX-19 (NEW — prominent UI degradation surfaces Re-login CTA above the fold instead of the current ghost-icon button)
+
+**Success Criteria** (what must be TRUE):
+  1. `verifyAccountSession` (rewritten) opens a fresh BB session against the saved context, navigates to a platform-specific authenticated probe URL (LinkedIn: `/feed/`; Reddit: `/api/v1/me`), asserts the response is the authenticated form (no `/login` or `/authwall` redirect; for Reddit, JSON body has `data.name`), AND that `li_at` (LinkedIn) or `reddit_session` (Reddit) is present in the BB context cookie jar. ONLY then writes `session_verified_at = now()` and returns `verified: true`. Any failure mode returns `{ success: true, verified: false, reason: "..." }` and updates `health_status='needs_reconnect'`.
+  2. New cron route `POST /api/cron/session-revalidate` (every 30 min) iterates over `social_accounts WHERE health_status IN ('warmup','active') AND session_verified_at < now() - interval '30 minutes'`, runs the same probe, and updates `health_status` + `session_verified_at` accordingly. Bounded by `LIMIT 50` per run with `ORDER BY session_verified_at ASC` so the lowest-priority sessions get checked first; rate-limited per BB-account-pair to avoid hammering BB session creation. New `vercel.json` cron entry: `*/30 * * * *`.
+  3. AccountCard renders a prominent **"Re-login"** primary button (not ghost variant) when `health_status='needs_reconnect'`, replacing the existing "Last action: Xh ago" text with red `"Session expired — re-login required"`. The HealthBadge already supports `needs_reconnect` styling (Phase 18-04); we lift the same red surface up next to the platform name.
+  4. The "Session active" green pill (`account-card.tsx:186-194`) gates strictly on `account.health_status === 'warmup' || account.health_status === 'active'` AND `session_verified_at !== null` AND `session_verified_at > now() - interval '24 hours'` (a stale verify is no verify). Same interval the cron uses to re-check + a buffer.
+  5. New columns: `social_accounts.last_revalidate_attempt_at TIMESTAMPTZ`, `social_accounts.last_revalidate_status TEXT NULL` (`'authenticated' | 'auth_wall' | 'no_cookie' | 'platform_error' | 'context_unreachable'`). Used by the cron for visibility + debouncing.
+  6. UAT: complete the LinkedIn connect flow → wait for the cron to run once → confirm `last_revalidate_status='authenticated'`. Then revoke the `li_at` cookie via the BB SDK (or wait for natural expiry) → next cron run flips `health_status='needs_reconnect'` and the UI degrades within 30 min. Click "Re-login" → ConnectionFlow modal opens → log in again → badge returns to green.
+  7. Memory note added: "BB context persists what the platform gives us — if LinkedIn issues `li_at` as session-only or revokes it later, our context faithfully holds the now-stale cookie. Auth-cookie freshness must be probed server-side, not assumed."
+
+**Threat model carry-over**: T-17.5-01 (BB API key) unchanged. T-17.5-03 (debugger URL exposure) — the cron probe never surfaces a debug URL to the client; uses raw CDP only.
+
+**Plans**: TBD during phase planning. Sketch:
+  - 17.9-01-schema-migration-PLAN.md — `social_accounts.last_revalidate_*` columns + `vercel.json` cron entry (Wave 1)
+  - 17.9-02-real-verify-PLAN.md — rewrite `verifyAccountSession` server-side probe with platform-specific authenticated-URL checks; tests against logged-in + logged-out + auth-wall fixtures (Wave 2)
+  - 17.9-03-revalidate-cron-PLAN.md — `/api/cron/session-revalidate` route + worker handler + per-account rate limiting + `health_status` flip logic (Wave 3)
+  - 17.9-04-ui-degrade-PLAN.md — AccountCard prominent Re-login CTA + HealthBadge surfacing + 24h staleness gate on green pill + UAT runbook with cookie-revoke scenario (Wave 4)
+
+**UI hint**: yes (Re-login CTA promotion + "Session expired" red-state copy)
 
 ### Phase 18: Cookies Persistence + Preflight + Ban Detection
 **Goal**: Sessions reuse cookies instead of re-logging-in every time, banned/suspended Reddit accounts are detected before any browser spin-up, and any rule/captcha/suspension modal that appears mid-action immediately quarantines the account.
