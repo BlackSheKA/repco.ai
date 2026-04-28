@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Loader2, Plus } from "lucide-react"
 
@@ -31,6 +32,7 @@ export function AccountList({
   initialUsages,
   userId,
 }: AccountListProps) {
+  const router = useRouter()
   const { accounts } = useRealtimeAccounts(userId, initialAccounts)
   const [connecting, setConnecting] = useState(false)
   const [connectingPlatform, setConnectingPlatform] = useState<
@@ -213,6 +215,11 @@ export function AccountList({
             setNewAccountId(null)
             setNewProfileId(null)
             toast.success("Account connected successfully")
+            // Force a re-fetch from the server. Realtime INSERT events for
+            // server-action-driven inserts can race the channel subscription
+            // and miss the new row, leaving the just-connected account
+            // invisible until the next manual refresh.
+            router.refresh()
           }}
           onCancel={cancelConnect}
         />
