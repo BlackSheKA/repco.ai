@@ -202,6 +202,14 @@ export function ConnectionFlow({
                   <li>
                     Log into your {platformLabel} account in the browser below.
                   </li>
+                  <li>
+                    <span className="font-semibold">
+                      Tick &quot;Keep me signed in&quot;
+                    </span>{" "}
+                    on the {platformLabel} login screen. Without it,{" "}
+                    {platformLabel} drops the auth cookie when this browser
+                    closes and you&apos;ll have to log in again next time.
+                  </li>
                   {platform === "linkedin" && (
                     <li>
                       If LinkedIn asks for 2FA or email verification, complete
