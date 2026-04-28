@@ -4,14 +4,14 @@ milestone: v1.2
 milestone_name: — Survival + Foundation
 status: Executing Phase 17.7
 stopped_at: Phase 17.8 UI-SPEC approved
-last_updated: "2026-04-28T11:07:33.518Z"
+last_updated: "2026-04-28T13:00:00.000Z"
 last_activity: 2026-04-28
 progress:
-  total_phases: 12
-  completed_phases: 5
-  total_plans: 26
-  completed_plans: 23
-  percent: 88
+  total_phases: 13
+  completed_phases: 6
+  total_plans: 30
+  completed_plans: 24
+  percent: 80
 ---
 
 # Project State
@@ -133,6 +133,7 @@ Recent decisions affecting current work:
 - [Phase 03]: Account connection uses prompt() for username input (simplified MVP)
 - [Phase 03]: SupabaseClient type annotation on createServiceClient return to resolve generic param mismatch in supabase-js 2.103
 - [Phase 19][2026-04-27]: Migration 00027_free_tier_signup.sql applied to dev branch effppfiphrykllkpkdbv via Management API; Wave 0 harness `node scripts/test-trigger-19.mjs --quick` reports 7 OK lines (enums, columns, audit-table, normalize, signup, duplicate, plan-config); Plan 19-02 unblocked. Filename renumbered from 00025 to 00027 because 00025/00026 were taken by Phases 17.5/18.
+- [Phase 17.5][2026-04-28]: Phase 17.5 COMPLETE. Plan 17.5-04 closed: 7 UAT scenarios automated against dev BB project (geolocation 7/7, D-02 reuse 3/3, D-10 rollback, iframe + click + cookie persistence + Reddit challenge + Stagehand pipeline boot). 2 production bugs found and fixed mid-flight: (a) `@browserbasehq/sdk@2.10.0` `contexts.delete` returns 400 on body-less DELETE → leaks BB context per D-10 rollback in prod; replaced with raw fetch in `client.ts:deleteContext`. (b) `@browserbasehq/stagehand@3.3.0` rejects bare model names with `UnsupportedModelError` → silently masked as "Browserbase connection failed" by outer try/catch → every LinkedIn action + linkedin-prescreen cron failed silently in prod; fixed `worker.ts:379` + `linkedin-prescreen/route.ts:212` to `"anthropic/claude-haiku-4-5-20251001"`. UI: Connect buttons now use platform brand colors (Reddit `#FF4500`, LinkedIn `#0A66C2`) + connect-flow modal nudges user to tick "Keep me signed in" so `li_at` survives BB session boundaries. Vercel prod env updated (BROWSERBASE keys added, GOLOGIN removed). Phase 17 SUMMARY-y annotated `superseded_by: 17.5`. Surfaced `verifyAccountSession` sham (Finding #5) + no auto-degrade (Finding #6) — both spec'd as new Phase 17.9 in ROADMAP. BB Verified mode is Enterprise-only on Developer plan ($20/mo) — comment in `client.ts` for one-line flip when/if upgraded.
 - [Phase 04]: [Phase 04 P01]: Sequence state on prospects table (not separate); getNextFollowUpStep pure for unit testability; missed-step skip to next due step; idempotent handleReplyDetected
 - [Phase 04]: [Phase 04 P02]: No reply body in reply alert email (locked CONTEXT decision); createElement for send functions to keep .ts files and preserve React props for Vitest introspection
 - [Phase 04]: [Phase 04 P03]: Follow-up angle injected via suggestedAngle override (reuse QC pipeline); skip empty digests to avoid training users to ignore; yesterday TZ boundary via formatInTimeZone round-trip (date-fns-tz v3 dropped zonedTimeToUtc)

@@ -44,7 +44,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
  (completed 2026-04-27)
 - [ ] **Phase 16: Mechanism Cost Engine Schema** — `mechanism_costs` table seeded with 32 signal + 28 outbound rows; `monitoring_signals` schema rewrite; DB-driven burn engine
 - [~] **Phase 17: Residential Proxy + GoLogin Profile Allocator** — _ABANDONED 2026-04-27, pivoted to Browserbase (see Phase 17.5). GoLogin parallel-launch quota and per-slot pricing don't fit our SaaS scale. Lessons preserved in `.planning/research/browserbase-vs-gologin.md`._
-- [ ] **Phase 17.5: Browser Profile Allocator (Browserbase)** — Replaces Phase 17. Persistent context per account + per-session residential proxy with country geo-targeting via Browserbase. Drops BPRX-04 fingerprint patch (auto-handled by Browserbase). Iframe-embeddable live view replaces external viewer.
+- [x] **Phase 17.5: Browser Profile Allocator (Browserbase)** — Replaces Phase 17. Persistent context per account + per-session residential proxy with country geo-targeting via Browserbase. Drops BPRX-04 fingerprint patch (auto-handled by Browserbase). Iframe-embeddable live view replaces external viewer.
 - [?] **Phase 17.6: Sticky Residential Proxy IP per Browser Profile (CONDITIONAL)** — DO NOT plan/execute by default. Triggered only when Phase 18 ban-detector flagging rate >5% over 7-day window, OR a paying customer reports correlated security-checkpoint incidents, OR enterprise SLA demands per-account sticky IP. Pre-launch we ship BB's residential pool. Switches to external sticky-session provider (Bright Data / IPRoyal / Oxylabs) per `browser_profile.id` only when real-world data justifies the +$1–3/user/month proxy spend and added vendor risk.
 - [ ] **Phase 17.7: Reddit Executors Pivot from Computer Use to Stagehand** — Replace the screenshot-loop Computer Use pipeline for Reddit DM/Engage with deterministic Playwright + Stagehand `act()` (same architecture as 5 LinkedIn executors landed in 17.5-03). Drops per-action Haiku CU cost (~10× cheaper, 3-5× faster, deterministic). Trust boundary preserved (T-17.5-02 — message text never crosses into LLM args, only `keyboard.type`). Full description below.
 - [ ] **Phase 17.8: Account Identity Hygiene** — Edit handle UI + per-platform Zod validation at connect (Reddit `^[A-Za-z0-9_]{3,20}$`, LinkedIn slug `^[a-z0-9-]+$`) + post-login LinkedIn handle auto-extract via Stagehand. Closes the gap surfaced by 17.5 UAT where invalid Reddit handles slip through input and there's no UI to fix them after, and where LinkedIn permanently retains the `linkedin-${userId.slice(0,8)}` placeholder.
@@ -107,10 +107,10 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
   5. Phase 13 LinkedIn executors (DM/Connect/Follow/Like/Comment/Prescreen) and Phase 4 P04 Reddit inbox CU connect to Browserbase via `chromium.connectOverCDP(connectUrl)` instead of GoLogin — selectors and action logic unchanged
   6. All `mode: "gologin"` references and `gologin_*` env vars removed from `src/`; `.env.local` and Vercel env have `BROWSERBASE_API_KEY` + `BROWSERBASE_PROJECT_ID` set
 **Plans**: 4 plans
-  - [ ] 17.5-01-schema-migration-PLAN.md — migration 00025_browserbase_columns.sql (TRUNCATE CASCADE + drop gologin_*, add browserbase_context_id), apply to dev branch
-  - [ ] 17.5-02-client-allocator-connectflow-PLAN.md — Browserbase client.ts + allocator rewrite (D-02 + D-10 preserved) + account-actions refit + ConnectionFlow iframe per UI-SPEC
-  - [ ] 17.5-03-executor-refit-stagehand-PLAN.md — worker.ts session swap + 5 LinkedIn executors via Stagehand + Reddit CU CDP swap + delete src/lib/gologin/
-  - [ ] 17.5-04-uat-and-cleanup-PLAN.md — 6 UAT scenarios + Stagehand smoke run + Vercel env cleanup + Phase 17 SUMMARY supersede annotations
+  - [x] 17.5-01-schema-migration-PLAN.md — migration 00025_browserbase_columns.sql (TRUNCATE CASCADE + drop gologin_*, add browserbase_context_id), apply to dev branch
+  - [x] 17.5-02-client-allocator-connectflow-PLAN.md — Browserbase client.ts + allocator rewrite (D-02 + D-10 preserved) + account-actions refit + ConnectionFlow iframe per UI-SPEC
+  - [x] 17.5-03-executor-refit-stagehand-PLAN.md — worker.ts session swap + 5 LinkedIn executors via Stagehand + Reddit CU CDP swap + delete src/lib/gologin/
+  - [x] 17.5-04-uat-and-cleanup-PLAN.md — 7 UAT scenarios automated + Stagehand pipeline check + Vercel prod env updated + Phase 17 SUMMARYs annotated; surfaced 2 production bug fixes (BB SDK delete, Stagehand v3 model format) + Phase 17.9 spec for verifyAccountSession sham
 **UI hint**: yes (iframe live-view replaces external viewer)
 
 ### Phase 17.6: Sticky Residential Proxy IP per Browser Profile (CONDITIONAL)
