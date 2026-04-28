@@ -316,6 +316,13 @@ export async function GET(request: Request) {
                 userEmail,
                 account.handle ?? account.id,
                 "warning",
+                {
+                  platform:
+                    (account.platform as "reddit" | "linkedin") ?? "reddit",
+                  supabase,
+                  userId: account.user_id,
+                  accountId: account.id,
+                },
               )
             } catch (emailErr) {
               logger.warn("sendAccountWarning failed", {

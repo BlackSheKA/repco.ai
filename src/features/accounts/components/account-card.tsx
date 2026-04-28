@@ -102,7 +102,15 @@ export function AccountCard({
 }: AccountCardProps) {
   const username = account.handle ?? "unknown"
   const platformLabel = PLATFORM_LABEL[account.platform] ?? account.platform
-  const verified = account.session_verified_at !== null
+  // "Session active" badge only makes sense when the account is healthy/warming.
+  // When health_status is degraded (needs_reconnect / banned / captcha_required)
+  // the verified-at timestamp is stale by definition, so we hide the green
+  // pill to avoid contradicting the red "Needs reconnect" / "Banned" state.
+  const isDegraded =
+    account.health_status === "needs_reconnect" ||
+    account.health_status === "banned" ||
+    account.health_status === "captcha_required"
+  const verified = account.session_verified_at !== null && !isDegraded
   const verifiedAgo = verified
     ? formatTimeAgo(account.session_verified_at as string)
     : null
