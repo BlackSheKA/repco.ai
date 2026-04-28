@@ -50,6 +50,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.103.3
         version: 2.103.3(bufferutil@4.1.0)
+      '@types/ws':
+        specifier: ^8.18.1
+        version: 8.18.1
       apify-client:
         specifier: ^2.23.0
         version: 2.23.0
@@ -113,6 +116,9 @@ importers:
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
+      ws:
+        specifier: ^8.20.0
+        version: 8.20.0(bufferutil@4.1.0)
       zod:
         specifier: ^4.3.6
         version: 4.3.6

@@ -43,12 +43,27 @@ export function ConnectionFlow({
   const loggedInButtonRef = useRef<HTMLButtonElement | null>(null)
 
   const [startNonce, setStartNonce] = useState(0)
+  const startedKeyRef = useRef<string | null>(null)
 
   useEffect(() => {
-    let cancelled = false
+    // React 19 dev StrictMode double-invokes effects. Guard against double
+    // server-action call — each call creates a real (billable) Browserbase
+    // session. Key on accountId+startNonce so retry() still works.
+    //
+    // We deliberately do NOT use a `cancelled` flag in cleanup, because the
+    // cleanup function fires on the StrictMode unmount before the in-flight
+    // server action returns — that would silently drop the first response
+    // and leave the UI stuck on "starting…". Instead the ref tracks the
+    // current desired key; state writes are gated by ref equality.
+    const key = `${accountId}:${startNonce}`
+    if (startedKeyRef.current === key) return
+    startedKeyRef.current = key
+
     void (async () => {
       const result = await startAccountBrowser(accountId)
-      if (cancelled) return
+      // If retry() bumped startNonce while we were in flight, abandon this
+      // result. Otherwise apply it regardless of mount/unmount churn.
+      if (startedKeyRef.current !== key) return
       setStartingBrowser(false)
       if (result.success && result.debuggerFullscreenUrl) {
         setDebuggerFullscreenUrl(result.debuggerFullscreenUrl)
@@ -56,10 +71,11 @@ export function ConnectionFlow({
         setHasError(true)
       }
     })()
-    return () => {
-      cancelled = true
-    }
   }, [accountId, startNonce])
+
+  // Intentionally NOT auto-scrolling when the iframe arrives — that pushed
+  // the instructions above the viewport. Trust the user's existing scroll
+  // position; iframe slots in below the instructions in document flow.
 
   function retry() {
     setStartingBrowser(true)
@@ -165,7 +181,7 @@ export function ConnectionFlow({
                     src={debuggerFullscreenUrl}
                     sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
                     allow="clipboard-read; clipboard-write"
-                    className="h-[600px] w-full rounded-md border bg-muted/30"
+                    className="h-[480px] w-full rounded-md border bg-muted/30"
                     title={`${platformLabel} login session`}
                     onLoad={() => setIframeLoaded(true)}
                   />

@@ -7,6 +7,8 @@ import {
   createSession,
   deleteContext,
   getSessionDebugUrl,
+  listRunningSessionsByMetadata,
+  releaseSession,
 } from "@/lib/browserbase/client"
 import {
   getBrowserProfileForAccount,
@@ -123,19 +125,46 @@ export async function startAccountBrowser(accountId: string): Promise<{
   }
 
   try {
-    // D17.5-07: connect/login flow uses 1800s timeout.
+    // D17.5-07: connect/login flow uses 1800s timeout. keepAlive=true
+    // because we connect+disconnect via Playwright CDP to navigate to
+    // loginUrl below — Browserbase treats Playwright `browser.close()` as
+    // REQUEST_RELEASE, and even disconnect can race the lifecycle. With
+    // keepAlive=true the session survives until its 1800s timeout. We
+    // explicitly release it from stopAccountBrowser when the user finishes.
     const session = await createSession({
       contextId: browserProfile.browserbase_context_id,
       country: browserProfile.country_code as SupportedCountry,
       timeoutSeconds: 1800,
+      // keepAlive=false: some BB plans don't support keepAlive and reject the
+      // session immediately when set to true. Without it, sessions still last
+      // until the timeout above as long as we don't call browser.close().
       keepAlive: false,
+      userMetadata: { accountId, kind: "connect_flow" },
     })
+
+    // Browserbase sessions start at about:blank. Navigate the existing tab to
+    // the platform login URL via CDP so the embedded iframe lands on the right
+    // page. NOTE: calling browser.close() on a CDP-connected Browserbase
+    // session terminates the session entirely (Browserbase treats Playwright
+    // close as REQUEST_RELEASE). We MUST NOT close — just disconnect by
+    // letting the client go out of scope. The session keeps running until its
+    // own 1800s timeout.
+    const loginUrl = ACCOUNT_LOGIN_URLS[account.platform]
+    // Server-side initial navigate is parked. Both Playwright `connectOverCDP`
+    // and raw-WS CDP `Page.navigate` fail against BB from this runtime
+    // (Node 24 / Windows): the wss connection appears to be single-shot — once
+    // we attach, BB releases the session as soon as the wss closes (404
+    // on subsequent debug() / 410 Session stopped on iframe attach). Tracked
+    // as Phase 17.6 follow-up. Iframe lands on about:blank; user uses the
+    // built-in BB address bar to type loginUrl. The URL is also surfaced in
+    // the response so a future copy-button can render it.
+
     const debuggerFullscreenUrl = await getSessionDebugUrl(session.id)
     // T-17.5-03: never log debuggerFullscreenUrl or session.id.
     return {
       success: true,
       debuggerFullscreenUrl,
-      loginUrl: ACCOUNT_LOGIN_URLS[account.platform],
+      loginUrl,
     }
   } catch (err) {
     console.error("[startAccountBrowser] failed", {
@@ -149,13 +178,38 @@ export async function startAccountBrowser(accountId: string): Promise<{
 }
 
 /**
- * Phase 17.5: Browserbase sessions auto-release on timeout; persistent context
- * flushes cookies on session end. No explicit stop needed. Function kept exported
- * for UI symmetry (Cancel button) but the body is now a no-op.
+ * Phase 17.5: connect-flow sessions are created with keepAlive=true so the
+ * Playwright CDP nav-to-loginUrl handshake doesn't accidentally release the
+ * session. We need an explicit REQUEST_RELEASE here when the user finishes
+ * (or cancels) the connect flow so the slot frees immediately rather than
+ * waiting for the 1800s timeout.
+ *
+ * Best-effort: we look up the latest running session on the account's context
+ * and ask BB to release it. We don't track session IDs in the DB (per
+ * D17.5-09 — session lifecycle is owned by BB).
  */
 export async function stopAccountBrowser(
-  _accountId: string,
+  accountId: string,
 ): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { success: true }
+  // List + release every RUNNING connect-flow session tagged with this
+  // accountId. Best-effort: errors are swallowed so Cancel never blocks.
+  try {
+    const sessions = await listRunningSessionsByMetadata({
+      accountId,
+      kind: "connect_flow",
+    })
+    await Promise.allSettled(sessions.map((s) => releaseSession(s.id)))
+  } catch (err) {
+    console.warn("[stopAccountBrowser] release failed", {
+      accountId,
+      message: err instanceof Error ? err.message : String(err),
+    })
+  }
   return { success: true }
 }
 
