@@ -45,6 +45,8 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 - [ ] **Phase 16: Mechanism Cost Engine Schema** — `mechanism_costs` table seeded with 32 signal + 28 outbound rows; `monitoring_signals` schema rewrite; DB-driven burn engine
 - [~] **Phase 17: Residential Proxy + GoLogin Profile Allocator** — _ABANDONED 2026-04-27, pivoted to Browserbase (see Phase 17.5). GoLogin parallel-launch quota and per-slot pricing don't fit our SaaS scale. Lessons preserved in `.planning/research/browserbase-vs-gologin.md`._
 - [ ] **Phase 17.5: Browser Profile Allocator (Browserbase)** — Replaces Phase 17. Persistent context per account + per-session residential proxy with country geo-targeting via Browserbase. Drops BPRX-04 fingerprint patch (auto-handled by Browserbase). Iframe-embeddable live view replaces external viewer.
+- [ ] **Phase 17.6: Sticky Residential Proxy IP per Browser Profile** — Same `browser_profile` always sees the same exit IP across sessions (3rd-party residential proxy with sticky session id) instead of BB's pool that rotates per session. Eliminates "same user, different IP every time" → ban risk. New `browser_profiles.proxy_session_id` + provider creds (Bright Data / IPRoyal / Oxylabs); BB session uses `proxies:[{type:"external", server, username:`customer-XXX-session-${profile_session_id}`, password}]`.
+- [ ] **Phase 17.7: Reddit Executors Pivot from Computer Use to Stagehand** — Replace the screenshot-loop Computer Use pipeline for Reddit DM/Engage with deterministic Playwright + Stagehand `act()` (same architecture as 5 LinkedIn executors landed in 17.5-03). Drops per-action Haiku CU cost (~10× cheaper, 3-5× faster, deterministic). Trust boundary preserved (T-17.5-02 — message text never crosses into LLM args, only `keyboard.type`). Full description below.
 - [ ] **Phase 18: Cookies Persistence + Preflight + Ban Detection** — cookies_jar save/restore, Reddit `about.json` preflight, Haiku CU post-action ban detector
 - [ ] **Phase 19: Free + Pro Plan ENUMs + Signup Flow** — create `subscription_plan` (`free`|`pro`) + `billing_cycle` (`monthly`|`annual`); `handle_new_user` rewrite (250 cr free signup, no trial); `(email_normalized, ip)` anti-abuse via `signup_audit`
 - [ ] **Phase 20: Pre-Launch User Wipe** — destructive `auth.users` reset behind explicit confirmation gate; cascading FK cleanup
@@ -108,6 +110,69 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
   - [ ] 17.5-03-executor-refit-stagehand-PLAN.md — worker.ts session swap + 5 LinkedIn executors via Stagehand + Reddit CU CDP swap + delete src/lib/gologin/
   - [ ] 17.5-04-uat-and-cleanup-PLAN.md — 6 UAT scenarios + Stagehand smoke run + Vercel env cleanup + Phase 17 SUMMARY supersede annotations
 **UI hint**: yes (iframe live-view replaces external viewer)
+
+### Phase 17.6: Sticky Residential Proxy IP per Browser Profile
+**Status**: Backlog — surfaced during Phase 17.5 UAT (2026-04-28).
+**Why**: Phase 17.5 wires `proxies:[{type:"browserbase", geolocation:{country}}]`. Browserbase's built-in residential pool **rotates the exit IP per session**. That breaks the anti-ban architecture invariant from `project_anti_ban_architecture` ("1 konto = 1 sticky proxy IP"): every login flow / action burst on the same Reddit/LinkedIn account exits from a different residential IP, which Reddit/LinkedIn fingerprint as "user travelling" → flag → captcha → ban.
+**Goal**: A given `browser_profile` always egresses from the same residential IP across all sessions for the lifetime of the profile (within provider's session-id TTL — 10–30 min reusable, longer with rebind). Achieved by switching from BB's pool to an external residential provider with sticky-session credentials, keyed on `browser_profile.id`.
+**Depends on**: Phase 17.5 (browser_profiles schema with `browserbase_context_id` already lives; this phase adds sibling proxy-binding columns)
+**Requirements**: BPRX-10 (NEW — sticky exit IP per profile), BPRX-11 (NEW — proxy provider credential rotation/lifecycle)
+**Success Criteria** (what must be TRUE):
+  1. `browser_profiles` has `proxy_session_id` (UNIQUE NOT NULL — derived from `browser_profile.id` or random UUID at create time) and `proxy_provider` (`brightdata`|`iproyal`|`oxylabs` ENUM) columns; migration backfills existing rows
+  2. `createSession` in `src/lib/browserbase/client.ts` accepts `proxy: { type: "external", server, username, password }` and BB forwards traffic through the external proxy; per-profile credentials assembled by `assembleProxyCredentials(profile)` helper that injects sticky session id into the username string per provider's docs (e.g. `customer-X-session-${id}` for Bright Data)
+  3. `BROWSERBASE_PROXY_PROVIDER`, `BROWSERBASE_PROXY_USER`, `BROWSERBASE_PROXY_PASS` env vars added to `.env.example` + Vercel; one provider configured for prod (decision deferred to phase planning — research doc compares Bright Data vs IPRoyal vs Oxylabs on price, country coverage, sticky TTL)
+  4. UAT: two consecutive sessions for the same `browser_profile` egress from the SAME IP (verified via `https://api.ipify.org` from inside the BB session) — but two profiles get different IPs
+  5. UAT: deleting a profile (`deleteAccount` refcount-zero path) releases the provider sticky session id (or lets it TTL — provider-dependent; documented in SUMMARY)
+**Plans**: TBD during phase planning. Sketch: 17.6-01 schema + provider research, 17.6-02 client refit + allocator hookup, 17.6-03 UAT against live providers.
+**UI hint**: no (transparent infrastructure change)
+
+### Phase 17.7: Reddit Executors Pivot from Computer Use to Stagehand
+**Status**: Backlog — surfaced during Phase 17.5 UAT (2026-04-28).
+**Why**: Phase 17.5-03 swapped LinkedIn executors (5 actions: DM, Connect, Follow, Like, Comment) to **deterministic Playwright + Stagehand** running on Browserbase sessions, but kept Reddit executors (DM, Engage/comment) on the **Anthropic Computer Use loop** they inherited from Phase 4 P04 / Phase 11–12. The CU loop:
+  - Takes a screenshot of the current page
+  - Sends it + a hand-written prompt (`reddit-dm.ts`, `reddit-engage.ts`) to Haiku
+  - Haiku returns a tool call ("click @ x,y" / "type X")
+  - Playwright executes; loop until prompt completes or error
+  
+  This costs an LLM call per action step (~5–10 calls per DM), is slow (~30–60s per DM end-to-end), and drifts when Reddit's UI shifts (the prompt encodes positional reasoning that breaks on layout changes). LinkedIn — running Stagehand `act()` — is ~10× cheaper and 3–5× faster on the same workload.
+
+**Goal**: Reddit executors run on the same architecture as LinkedIn — deterministic Playwright clicks/typing where DOM is stable, Stagehand `act()` only for the high-churn surfaces. The Computer Use loop is removed from the action path entirely (CU stays only as the post-action ban-state classifier from Phase 18-03 — that's a one-shot screenshot classifier, not a loop). Result: cheaper, faster, more reliable, and the trust boundary T-17.5-02 (user-supplied message text never crosses into LLM arguments — only `keyboard.type`) extends to Reddit.
+
+**Depends on**: 
+  - Phase 17.5 (worker.ts already creates Browserbase sessions and instantiates Stagehand for LinkedIn — the same `stagehand` handle plumbs through to Reddit executors).
+  - Phase 18-03 (Haiku ban detector — keep as-is; this phase doesn't touch the post-action classifier).
+
+**Requirements**: BPRX-12 (NEW — Reddit executors deterministic, no per-step LLM), BPRX-13 (NEW — same trust boundary T-17.5-02 applied: prospect message text typed via `keyboard.type`, never inlined into `act()` args).
+
+**Success Criteria** (what must be TRUE):
+  1. `src/lib/computer-use/actions/reddit-dm.ts` and `reddit-engage.ts` (currently prompt strings) are **deleted** in favour of `src/lib/action-worker/actions/reddit-dm-executor.ts` and `reddit-engage-executor.ts` mirroring the shape of `linkedin-dm-executor.ts` (returns `{ success, failureMode, reasoning }`).
+  2. `src/lib/action-worker/worker.ts` dispatches Reddit `dm` and `engage` actions to the new deterministic executors; `executeCUAction(page, prompt)` is **NOT** called from the action path. (`executeCUAction` itself stays in the codebase only if used by ban-detector or other non-action callers — otherwise it's removed too.)
+  3. Reddit DM executor flow:
+     - `await page.goto("https://www.reddit.com/")` (already authenticated via persistent context)
+     - `await page.act("click the chat icon in the top navigation")` → opens chat panel
+     - `await page.act("click the new message button")` → opens compose
+     - `await page.act("type ${recipientHandle} into the recipient field")` → recipient only — handle is server-trusted
+     - **`await page.keyboard.type(message, { delay: 30 })`** in the message body — deterministic, T-17.5-02 (message bytes never sent to LLM)
+     - `await page.act("click send")` → fire-and-forget
+     - Verify with `stagehand.extract("did the message-sent confirmation appear?")` → boolean → on false return `failureMode: "send_button_missing"`
+  4. Reddit Engage (top-level comment + reply) executor uses the same shape: navigate to post URL → `page.act("click the reply button")` → `page.keyboard.type(commentText)` → `page.act("click submit")`.
+  5. Failure-mode taxonomy parity with LinkedIn: `dialog_never_opened`, `recipient_not_found`, `weekly_limit_reached`, `account_suspended`, `captcha_required`, `unknown` — surfaced in `job_logs.metadata.failure_mode` and consumed by Phase 18 ban-detector + Phase 14 quarantine.
+  6. Cost regression test: dry-run a Reddit DM through both old (CU) and new (Stagehand) paths against a recorded fixture session; assert new path issues 0 Haiku calls (or only 1 — the post-action ban detector, which is the existing Phase 18 contract). Old path's per-step Haiku calls are gone.
+  7. UAT: send a real DM and a real comment from a warmup-skipped Reddit account end-to-end; both succeed; `mechanism_costs` burn matches the deterministic-action row (no surprise CU cost).
+  8. Memory rule `project_linkedin_cu_improvements` (LinkedIn DOM-hybrid + pre-screening backlog) gets a sibling note for Reddit captured during this phase if any failure-modes don't yield to Stagehand `act()` and need DOM hooks.
+
+**Plans**: TBD during phase planning. Sketch:
+  - 17.7-01-reddit-dm-executor-PLAN.md — deterministic `reddit-dm-executor.ts`, vitest with mocked page+stagehand, integration test against a fixture session
+  - 17.7-02-reddit-engage-executor-PLAN.md — same shape for top-level comment + reply
+  - 17.7-03-worker-rewire-PLAN.md — worker.ts dispatch swap + delete of `src/lib/computer-use/actions/reddit-*.ts` + cleanup of `executeCUAction` import sites if no other callers remain
+  - 17.7-04-uat-PLAN.md — end-to-end DM + comment UAT against a real warmed account, cost regression assertion, ban-detector parity check
+
+**Trade-offs / risks to capture in CONTEXT during planning**:
+  - Stagehand `act()` is more brittle on Reddit than LinkedIn because Reddit's chat UI is a React-heavy iframe-within-iframe in places; some failure modes may require DOM-aware fallback (Memory rule `feedback_supabase_mocked_tests_mask_column_drift` analogue: if Stagehand silently no-ops we won't catch it without explicit post-action assertions).
+  - Reddit's "new message" UX changed twice in the last 12 months — recipe cache should be invalidated per-Stagehand-version, not held forever.
+  - Verification step (`stagehand.extract`) DOES count as 1 LLM call per action — still ~10× cheaper than current CU loop, but not free. Document the cost row in `mechanism_costs` so burn engine reflects it.
+
+**UI hint**: no (action-engine change, no user-visible surface)
 
 ### Phase 18: Cookies Persistence + Preflight + Ban Detection
 **Goal**: Sessions reuse cookies instead of re-logging-in every time, banned/suspended Reddit accounts are detected before any browser spin-up, and any rule/captcha/suspension modal that appears mid-action immediately quarantines the account.
