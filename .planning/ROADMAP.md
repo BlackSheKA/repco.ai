@@ -47,6 +47,7 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
 - [ ] **Phase 17.5: Browser Profile Allocator (Browserbase)** — Replaces Phase 17. Persistent context per account + per-session residential proxy with country geo-targeting via Browserbase. Drops BPRX-04 fingerprint patch (auto-handled by Browserbase). Iframe-embeddable live view replaces external viewer.
 - [?] **Phase 17.6: Sticky Residential Proxy IP per Browser Profile (CONDITIONAL)** — DO NOT plan/execute by default. Triggered only when Phase 18 ban-detector flagging rate >5% over 7-day window, OR a paying customer reports correlated security-checkpoint incidents, OR enterprise SLA demands per-account sticky IP. Pre-launch we ship BB's residential pool. Switches to external sticky-session provider (Bright Data / IPRoyal / Oxylabs) per `browser_profile.id` only when real-world data justifies the +$1–3/user/month proxy spend and added vendor risk.
 - [ ] **Phase 17.7: Reddit Executors Pivot from Computer Use to Stagehand** — Replace the screenshot-loop Computer Use pipeline for Reddit DM/Engage with deterministic Playwright + Stagehand `act()` (same architecture as 5 LinkedIn executors landed in 17.5-03). Drops per-action Haiku CU cost (~10× cheaper, 3-5× faster, deterministic). Trust boundary preserved (T-17.5-02 — message text never crosses into LLM args, only `keyboard.type`). Full description below.
+- [ ] **Phase 17.8: Account Identity Hygiene** — Edit handle UI + per-platform Zod validation at connect (Reddit `^[A-Za-z0-9_]{3,20}$`, LinkedIn slug `^[a-z0-9-]+$`) + post-login LinkedIn handle auto-extract via Stagehand. Closes the gap surfaced by 17.5 UAT where invalid Reddit handles slip through input and there's no UI to fix them after, and where LinkedIn permanently retains the `linkedin-${userId.slice(0,8)}` placeholder.
 - [ ] **Phase 18: Cookies Persistence + Preflight + Ban Detection** — cookies_jar save/restore, Reddit `about.json` preflight, Haiku CU post-action ban detector
 - [ ] **Phase 19: Free + Pro Plan ENUMs + Signup Flow** — create `subscription_plan` (`free`|`pro`) + `billing_cycle` (`monthly`|`annual`); `handle_new_user` rewrite (250 cr free signup, no trial); `(email_normalized, ip)` anti-abuse via `signup_audit`
 - [ ] **Phase 20: Pre-Launch User Wipe** — destructive `auth.users` reset behind explicit confirmation gate; cascading FK cleanup
@@ -199,6 +200,35 @@ See `.planning/milestones/v1.1-ROADMAP.md` for full phase details.
   - Verification step (`stagehand.extract`) DOES count as 1 LLM call per action — still ~10× cheaper than current CU loop, but not free. Document the cost row in `mechanism_costs` so burn engine reflects it.
 
 **UI hint**: no (action-engine change, no user-visible surface)
+
+### Phase 17.8: Account Identity Hygiene
+**Status**: Backlog — surfaced during Phase 17.5/18 UAT (2026-04-28).
+
+**Why**: Three handle-quality gaps surfaced when testing the connect flow + Phase 18 reconnect path:
+  1. **No input validation at connect time.** A Reddit handle of `"main repco acc"` (with spaces, exceeds 20 chars, not even a real username pattern) was accepted by `connectAccount("reddit", handle)` and persisted to `social_accounts.handle`. Reddit's actual username constraint is `^[A-Za-z0-9_]{3,20}$`. The invalid handle later broke `attemptReconnect`'s preflight call to `https://www.reddit.com/user/{handle}/about.json` (404 → mapped to `banned` defensively), which is correct error-handling but masks the real issue: the row should never have been writable.
+  2. **No UI to edit a handle after connect.** AccountCard exposes `Re-login` / `Reconnect` / `Delete` only. If the user typed a typo at connect time, the only recovery is `Delete` (which loses the warmup history + cookies) and reconnect from scratch. Should be a single Edit affordance with the same Zod validation as input.
+  3. **LinkedIn placeholder handle never gets resolved.** `connectAccount("linkedin", "")` writes `linkedin-${user.id.slice(0,8)}` as the handle. This placeholder is currently never replaced with the real LinkedIn slug — even after a successful login + verify. The placeholder shows in AccountCard, in approval queue rows, in DM logs, and in the Phase 18 degraded banner ("u/main repco acc" or "linkedin-a855c3ab" instead of `linkedin.com/in/their-real-slug`).
+
+**Goal**: Handles are always valid for their platform, always editable post-connect, and LinkedIn handles always reflect the real account identity (extracted from the session after login, not the user-id-derived placeholder).
+
+**Depends on**: Phase 17.5 (Stagehand handle is plumbed end-to-end and reachable from server actions; needed for the LinkedIn extract step).
+
+**Requirements**: BPRX-14 (NEW — handle validation Zod schemas per platform), BPRX-15 (NEW — UI Edit affordance on AccountCard with the same schemas), BPRX-16 (NEW — LinkedIn handle auto-resolved post-login via Stagehand `extract`).
+
+**Success Criteria** (what must be TRUE):
+  1. `src/features/accounts/lib/handle-schemas.ts` exports `redditHandleSchema` (`/^[A-Za-z0-9_]{3,20}$/`, no leading/trailing whitespace, no `u/` prefix) and `linkedinSlugSchema` (`/^[a-z0-9-]+$/`, 3–60 chars, no leading/trailing dash). Both with `safeParse` + user-facing error messages, used at all input boundaries.
+  2. `connectAccount` server action validates handle with the platform-specific schema **before** calling `allocateBrowserProfile` and returns the schema's error message on failure. Reddit input form surfaces the inline validation error live (not just on submit).
+  3. AccountCard renders an `Edit` button next to the handle (pencil icon, ghost variant) that opens a modal with the same Zod-validated input. New server action `updateAccountHandle(accountId, newHandle)` updates `social_accounts.handle` after re-validation, calls `revalidatePath("/accounts")`, and toasts success.
+  4. After a LinkedIn `verifyAccountSession` returns `verified: true`, a follow-up server action `resolveLinkedInHandle(accountId)` connects to the BB session via Stagehand, runs `stagehand.extract({ schema: z.object({ linkedin_slug: z.string() }), prompt: "extract the slug from the user's profile URL on linkedin.com/in/" })`, and writes the result to `social_accounts.handle` if it differs from the placeholder. Failure leaves the placeholder in place + logs a warning (no UAT regression).
+  5. UAT: typing `"main repco acc"` into the Reddit connect form shows an inline validation error and submit stays disabled. Typing `kamil_wandtke` succeeds. Editing the saved handle via the Edit affordance updates the card, the banner deeplink, and the preflight call atomically.
+  6. UAT: connecting a LinkedIn account with an empty handle and completing the login flow produces a card whose handle is the real `linkedin.com/in/{slug}` slug, not `linkedin-${user_id_prefix}`.
+
+**Plans**: TBD during phase planning. Sketch:
+  - 17.8-01-handle-schemas-PLAN.md — `handle-schemas.ts` + Zod usage in `connectAccount` + Reddit input live-validation
+  - 17.8-02-edit-handle-ui-PLAN.md — AccountCard Edit affordance + `updateAccountHandle` server action + tests
+  - 17.8-03-linkedin-extract-PLAN.md — `resolveLinkedInHandle` post-verify hook + Stagehand extract integration + fallback to placeholder on failure
+
+**UI hint**: yes (handle input validation, Edit affordance, modal)
 
 ### Phase 18: Cookies Persistence + Preflight + Ban Detection
 **Goal**: Sessions reuse cookies instead of re-logging-in every time, banned/suspended Reddit accounts are detected before any browser spin-up, and any rule/captcha/suspension modal that appears mid-action immediately quarantines the account.
